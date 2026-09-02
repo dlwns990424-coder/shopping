@@ -1,0 +1,23 @@
+.category-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.category-card__image {
+  aspect-ratio: 3 / 2;
+  background-color: var(--color-bg-placeholder);
+  background-size: cover;
+  background-position: center;
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-16);
+}
+
+.category-card__label {
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-4);
+}
+
+.category-card__more {
+  color: var(--color-text-secondary);
+}

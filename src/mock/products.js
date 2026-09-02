@@ -1,0 +1,18 @@
+export const products = [
+  { id: 'p1', name: '와이드 스트레이트 팬츠', price: '₩89,000', gender: 'men', category: '하의' },
+  { id: 'p2', name: '오버핏 울 코트', price: '₩198,000', gender: 'men', category: '아우터' },
+  { id: 'p3', name: '크루넥 니트', price: '₩69,000', gender: 'men', category: '상의' },
+  { id: 'p4', name: '스트레이트 데님', price: '₩79,000', gender: 'men', category: '하의' },
+  { id: 'p5', name: '옥스포드 셔츠', price: '₩59,000', gender: 'men', category: '상의' },
+  { id: 'p6', name: '더블브레스티드 자켓', price: '₩228,000', gender: 'men', category: '아우터' },
+  { id: 'p7', name: '카고 팬츠', price: '₩85,000', gender: 'men', category: '하의' },
+  { id: 'p8', name: '첼시 부츠', price: '₩139,000', gender: 'men', category: '신발' },
+  { id: 'p9', name: '와이드 슬랙스', price: '₩79,000', gender: 'women', category: '하의' },
+  { id: 'p10', name: '벨티드 트렌치코트', price: '₩228,000', gender: 'women', category: '아우터' },
+  { id: 'p11', name: '리브 니트 탑', price: '₩59,000', gender: 'women', category: '상의' },
+  { id: 'p12', name: '플리츠 롱스커트', price: '₩89,000', gender: 'women', category: '하의' },
+  { id: 'p13', name: '셔츠 블라우스', price: '₩65,000', gender: 'women', category: '상의' },
+  { id: 'p14', name: '숏 울 자켓', price: '₩178,000', gender: 'women', category: '아우터' },
+  { id: 'p15', name: '스트레이트 데님팬츠', price: '₩75,000', gender: 'women', category: '하의' },
+  { id: 'p16', name: '스퀘어토 로퍼', price: '₩119,000', gender: 'women', category: '신발' },
+]

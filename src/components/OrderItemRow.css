@@ -1,0 +1,31 @@
+.order-item-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-24);
+  padding: var(--spacing-16) 0;
+}
+
+.order-item-row__thumbnail {
+  width: 80px;
+  height: 96px;
+  flex-shrink: 0;
+  background-color: var(--color-bg-placeholder);
+  background-size: cover;
+  background-position: center;
+  border-radius: var(--radius-sm);
+}
+
+.order-item-row__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.order-item-row__option {
+  color: var(--color-text-secondary);
+}
+
+.order-item-row__quantity {
+  color: var(--color-text-secondary);
+}
