@@ -151,6 +151,11 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 - `ProductDetail.jsx`의 상세 이미지 3칸도 그동안 배경색만 있고 실제 이미지 바인딩이 아예 없었음(빈 회색 박스) — `product.image`를 연결해서 보이게 함(사진이 상품당 1장뿐이라 3칸 다 같은 사진 반복, 여러 각도 사진은 없음)
 - **주의**: 이미지 56장 총 용량 **82MB**(장당 1.2~1.7MB, 원본 그대로 사용) — 리사이즈/webp 변환 등 최적화는 의도적으로 미루기로 함(사용자 확인), 아래 "앞으로 해야 할 것" 참고
 
+### 카테고리 리스팅 페이지 상품카드 — hover 제거, 정보 항상 노출 (2026-09-03)
+- `ProductCard.jsx`에 `showInfo` prop 추가 — 기본값(false)은 기존과 동일(이미지 위 hover 오버레이로 이름/가격), `showInfo`를 켜면 hover 오버레이 대신 이미지 **아래**에 이름/가격을 항상 노출하는 정적 레이아웃으로 전환(`CategoryCard`와 같은 패턴)
+- `CategoryListing.jsx`에서만 `showInfo`를 켜서 사용 — 홈 NEW ARRIVAL, 상세페이지 관련상품, 마이페이지 최근 본 상품은 영향 없이 기존 hover 방식 그대로
+- `CategoryListing.css`에 `.category-listing .product-grid { row-gap: var(--spacing-32) }` 추가 — 전역 `.product-grid`(다른 곳에서 쓰는 `row-gap: 0`)는 안 건드리고 카테고리 리스팅 페이지 안에서만 위아래 카드 간격을 벌림
+
 ### 데이터
 - 목업만 사용 중: `src/mock/products.js`(56개, gender/category/subCategory 포함, 실제 상품 사진), `categories.js`(3종), `productDetail.js`(컬러3/사이즈5/설명 — 모든 상품 공용, 상품별로 다르진 않음), `orders.js`(주문 2건, 계정과 연결 안 됨)
 - Supabase 실제 테이블/Storage/`.env` 키 — **전부 미착수**
@@ -175,4 +180,5 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 5. 반응형 정밀 검증 (지금은 1024px 기본 미디어쿼리만 있음, 실기기/개발자도구 미확인 — 이 세션에서 브라우저 창 리사이즈 시도했으나 환경 문제로 실패)
 6. 카테고리 리스팅 페이지(`CategoryListing`) 필터 기능 — 사이즈/가격대 등. 상품에 `subCategory` 필드는 이미 있어서(코트/셔츠/티셔츠/니트·스웨트/데님/슬랙스/반바지) 카테고리 내 세부 필터로 바로 활용 가능
 7. 카테고리 리스팅 페이지 페이지네이션 또는 무한스크롤 — 지금은 카테고리당 최대 12개(코트만 4개)라 아직 급하지 않지만, 상품 수 더 늘어나면 필요
-8. **상품 이미지 최적화** — `public/images/products/` 56장, 총 82MB(원본 그대로 사용 중). 리사이즈(카드에 필요한 해상도로 축소)/webp 변환 등 필요, 지금은 의도적으로 미룸(사용자 확인)
+8. **상품 이미지 최적화** — `public/images/products/` 56장, 총 82MB(원본 그대로 사용 중). 리사이즈(카드에 필요한 해상도로 축소)/webp 변환 등 필요, 지금은 의도적으로 미룸(사용자 확인). 사용자가 이미지 비율(가로형→세로형 크롭) 수정 작업을 별도로 진행 중이라고 함(2026-09-03) — 다음에 새 이미지로 교체될 수 있음
+9. 카테고리 리스팅 페이지 상품카드 hover 인터랙션 추가 — 2026-09-03에 사용자 요청으로 hover 제거하고 이미지+이름+가격을 항상 노출하는 정적 카드로 바꿈(`ProductCard`의 `showInfo` prop). 나중에 사용자가 어떤 hover 효과를 원하는지 알려주면 그때 추가

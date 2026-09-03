@@ -41,7 +41,7 @@ function CategoryListing({ genderLabel, basePath, products, categoryParam }) {
       {displayedProducts.length > 0 ? (
         <div className="product-grid">
           {displayedProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
+            <ProductCard key={product.id} {...product} showInfo />
           ))}
         </div>
       ) : (

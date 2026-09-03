@@ -44,6 +44,10 @@
   color: var(--color-text-secondary);
 }
 
+.category-listing .product-grid {
+  row-gap: var(--spacing-32);
+}
+
 @media (max-width: 1024px) {
   .category-listing {
     padding: var(--spacing-32) var(--spacing-24) var(--spacing-32);
