@@ -1,3 +1,10 @@
+.user-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
 .user-layout main {
   padding-top: 64px;
+  flex: 1;
 }
