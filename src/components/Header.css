@@ -70,19 +70,6 @@
   color: var(--color-text-disabled);
 }
 
-.site-header__logout {
-  border: none;
-  background: transparent;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  padding: 0;
-  white-space: nowrap;
-}
-
-.site-header__logout:hover {
-  color: var(--color-point);
-}
-
 .sr-only {
   position: absolute;
   width: 1px;

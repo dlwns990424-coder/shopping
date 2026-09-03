@@ -21,6 +21,19 @@ function readSession() {
   }
 }
 
+// 로그인 상태 UX를 매번 회원가입부터 다시 하지 않고 테스트할 수 있도록,
+// 없으면 한 번만 심어두는 고정 테스트 계정. Supabase Auth 연동 시 이 파일과 함께 제거될 목업 전용 로직.
+const TEST_ACCOUNT = { nickname: '테스트유저', email: 'test@test.com', password: 'test1234', phone: '010-1234-5678' }
+
+function ensureTestAccount() {
+  const users = readUsers()
+  if (!users.some((u) => u.email === TEST_ACCOUNT.email)) {
+    localStorage.setItem(USERS_KEY, JSON.stringify([...users, TEST_ACCOUNT]))
+  }
+}
+
+ensureTestAccount()
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(readSession)
 
@@ -49,8 +62,22 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(SESSION_KEY)
   }
 
+  const updateProfile = (updates) => {
+    if (!user) {
+      return { success: false, message: '로그인이 필요합니다.' }
+    }
+    const users = readUsers()
+    const nextUsers = users.map((u) => (u.email === user.email ? { ...u, ...updates } : u))
+    localStorage.setItem(USERS_KEY, JSON.stringify(nextUsers))
+
+    const nextUser = { ...user, ...updates }
+    setUser(nextUser)
+    localStorage.setItem(SESSION_KEY, JSON.stringify(nextUser))
+    return { success: true }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, signup, login, logout }}>
+    <AuthContext.Provider value={{ user, signup, login, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   )

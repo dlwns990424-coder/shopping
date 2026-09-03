@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import Swatch from '../components/Swatch'
@@ -7,6 +7,7 @@ import Button from '../components/Button'
 import ProductCard from '../components/ProductCard'
 import { products } from '../mock/products'
 import { colorOptions, sizeOptions, productDescription } from '../mock/productDetail'
+import { addRecentlyViewed } from '../utils/recentlyViewed'
 import './ProductDetail.css'
 
 function ProductDetail() {
@@ -14,6 +15,10 @@ function ProductDetail() {
   const product = products.find((item) => item.id === productId)
   const [selectedColor, setSelectedColor] = useState(colorOptions[0].id)
   const [selectedSize, setSelectedSize] = useState(null)
+
+  useEffect(() => {
+    if (product) addRecentlyViewed(product.id)
+  }, [product])
 
   if (!product) {
     return (

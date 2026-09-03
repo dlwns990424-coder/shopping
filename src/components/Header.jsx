@@ -1,4 +1,4 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Search, Heart, ShoppingBag, User } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { products } from '../mock/products'
@@ -40,15 +40,9 @@ function IconButton({ label, to, children }) {
 }
 
 function Header() {
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const { user } = useAuth()
   const location = useLocation()
   const activeGender = getActiveGender(location.pathname)
-
-  const handleLogout = () => {
-    logout()
-    navigate('/')
-  }
 
   return (
     <header className="site-header">
@@ -78,11 +72,6 @@ function Header() {
         <IconButton label="마이페이지" to={user ? '/mypage' : '/login'}>
           <User size={20} strokeWidth={1.5} />
         </IconButton>
-        {user && (
-          <button type="button" className="site-header__logout text-caption" onClick={handleLogout}>
-            로그아웃
-          </button>
-        )}
       </div>
     </header>
   )
