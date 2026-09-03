@@ -11,8 +11,8 @@
 ## 마지막 갱신
 - 날짜: 2026-09-03
 - 작업 환경: (기록 안 됨, 다음부터 표시)
-- node_modules가 없는 상태였음 → `npm install` 새로 실행함 (38 packages)
-- **Git: 로컬에 커밋 2개, GitHub(origin)엔 아직 안 올라감(push 보류 요청 상태)** — 다른 컴퓨터로 넘어가기 전에 `git push` 필요. 커밋 내역: ① 로그인/회원가입/Toast/AuthContext + Cart 페이지 + 헤더·푸터 로고 이미지 교체 + Home 삭제/라우팅 변경, ② 섹션 간격 통일 + 상품 임시 이미지 + 카테고리 정리(상의/하의 통합, 신발 삭제)·NEW ARRIVAL 고정 8개·카테고리 필터링
+- **Git: 전부 커밋 + push 완료, origin과 동기화됨(뒤처진 커밋 없음)** — 오늘 세션에 카테고리 리스팅 페이지 신설, 헤더 활성탭 버그 수정, 헤더/푸터 아이콘 정리(로그아웃 버튼 제거, 소셜 텍스트화), 로그인 등 짧은 페이지 Footer 붕뜨는 버그 수정, 마이페이지 탭 구조 전면 개편(계정설정/주문내역/최근본상품), 카테고리 상의/하의 2종 → 아우터/상의/하의 3종 재확장 + 실제 상품 사진 56장 교체, 카테고리 리스팅 상품카드 hover 제거(항상 이름/가격 노출), 원본 이미지 백업(`design-assets/img/`)까지 진행
+- 저장소에 이미지가 많이 들어가 있어서 `.git` 용량이 약 97MB — 다른 컴퓨터에서 최초 `git clone` 시 예전보다 시간이 좀 걸릴 수 있음
 
 ## 다른 컴퓨터에서 이어서 작업하는 법
 1. 프로젝트 폴더에서: 처음이면 `git clone https://github.com/dlwns990424-coder/shopping.git`, 이미 있으면 `git pull`
@@ -79,7 +79,7 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 
 ### 페이지 — 6/8 완료
 - **Home 페이지는 삭제함** (2026-09-03) — 별도 `/` 전용 페이지를 두지 않고 `Men`을 기본 홈으로 사용하기로 변경. `src/pages/Home.jsx`/`Home.css` 삭제, `App.jsx`에서 `<Route path="/" element={<Men />} />`와 `<Route path="/men" element={<Men />} />`가 같은 `Men` 컴포넌트를 렌더링(두 URL 다 유지, `/men`도 그대로 살아있음). `Header.jsx`의 MEN 네비는 `NavLink` 대신 `useLocation`으로 `pathname === '/' || pathname === '/men'`일 때 직접 `is-active` 클래스를 줘서, 루트("/")에 있어도 MEN이 활성 표시되도록 함
-- [x] **Men** — Hero(3분할 이미지, 100dvh)+에디토리얼 배너(NEW ARRIVAL 위, Home에 있던 것 재사용)+신상품 8개+카테고리 2개(상의/하의, 기존 3개에서 아우터 제거)
+- [x] **Men** — Hero(3분할 이미지, 100dvh)+에디토리얼 배너(NEW ARRIVAL 위, Home에 있던 것 재사용)+신상품 8개+카테고리 3개(아우터/상의/하의 — 아래 "카테고리 리스팅 페이지 + 카테고리 3종 확장" 항목 참고)
 - [x] **Women** — Men과 동일 구조 미러링 (`GenderPage.css` 공유, 에디토리얼 배너 문구만 별도)
 - [x] **ProductDetail** — 상세이미지 3장+sticky 정보패널(컬러/사이즈 선택 상태관리, useState)+관련상품 4개(같은 gender 필터)
 - [x] **Login** — 이메일/비밀번호. `AuthContext`(`src/context/AuthContext.jsx`)의 `login()`으로 localStorage에 저장된 계정과 대조 → 성공 시 세션 저장 후 `/`로 이동, 실패 시 비밀번호 필드에 에러 표시
@@ -166,8 +166,8 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 ---
 
 ## 다음 세션 시작 지점
-**마이페이지(계정설정/주문내역/최근본상품 탭) + 상품 카테고리 3종 확장(아우터/상의/하의, 실제 상품 사진 56장)까지 끝낸 상태. 다음 할 일은 Order 페이지 — 아직 시작 안 함 (사용자의 명시적 "작업해" 대기 중).**
-- **먼저 `git push` 여부 확인** — 로컬 커밋이 origin보다 여러 개 앞서 있음(`git log origin/master..HEAD`로 확인). 사용자가 push해도 된다고 하면 그때 진행.
+**마이페이지(계정설정/주문내역/최근본상품 탭) + 상품 카테고리 3종 확장(아우터/상의/하의, 실제 상품 사진 56장) + 원본 이미지 백업까지 끝내고 push 완료한 상태. 다음 할 일은 Order 페이지 — 아직 시작 안 함 (사용자의 명시적 "작업해" 대기 중).**
+- **사용자가 상품 이미지 비율(가로형→세로형) 크롭 작업을 진행 중** — 산출물은 `design-assets/img/clothing/_portrait_staging/{men,women}/...`에 쌓임(2026-09-03 기준 men/coats·jeans만 완료, 나머지 카테고리·women 쪽은 아직). 이 작업이 끝나면 `public/images/products/`의 해당 이미지를 크롭된 버전으로 교체하고 `src/mock/products.js`는 건드릴 필요 없음(파일 경로/이름 그대로 유지된다는 전제 하에 — 크롭된 파일명이 원본과 다르면 경로도 같이 확인 필요)
 - Order 노드는 이미 확보돼 있음: 위 "Figma 연동 상태" 섹션의 `64:287`(section, 이름 없음) → 프레임 `64:288` "Order / Desktop". `get_design_context(fileKey: lX1aiEVIERPEOuWTV3kmmq, nodeId: "64:288")`로 바로 가져올 수 있음.
 - Order 화면 구성(메타데이터로 이미 확인됨): 배송지 정보(이름/연락처/주소 + "변경" 버튼), 주문상품(`Order Item Row` 2개 — 기존 `OrderItemRow` 컴포넌트 재사용), 결제금액 패널(상품금액/배송비/총 결제금액 + 약관동의 체크박스 + 결제 버튼). Cart와 레이아웃 패턴(좌측 리스트 856px + 우측 요약 360px, gap-64)이 거의 동일해서 `Cart.jsx`/`Cart.css` 참고하면 빠름. 배송지 정보는 이제 `AccountSettingsForm`에서 저장한 `user.shippingName`/`shippingPhone`/`shippingAddress`를 기본값으로 채워주면 자연스러움.
 - Cart에서 넘어온 선택 상품을 Order에 전달하는 흐름은 아직 미정 — 지금은 각 페이지가 독립된 mock 데이터를 쓰고 있어서(Cart는 `src/mock/cart.js`), Order도 일단 자체 mock으로 만들지, `navigate('/order', { state: ... })`로 선택 항목을 넘길지 사용자와 확인 필요.
