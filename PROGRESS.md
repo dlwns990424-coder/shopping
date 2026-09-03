@@ -12,6 +12,7 @@
 - 날짜: 2026-09-03
 - 작업 환경: (기록 안 됨, 다음부터 표시)
 - node_modules가 없는 상태였음 → `npm install` 새로 실행함 (38 packages)
+- **Git: 로컬에 커밋 2개, GitHub(origin)엔 아직 안 올라감(push 보류 요청 상태)** — 다른 컴퓨터로 넘어가기 전에 `git push` 필요. 커밋 내역: ① 로그인/회원가입/Toast/AuthContext + Cart 페이지 + 헤더·푸터 로고 이미지 교체 + Home 삭제/라우팅 변경, ② 섹션 간격 통일 + 상품 임시 이미지 + 카테고리 정리(상의/하의 통합, 신발 삭제)·NEW ARRIVAL 고정 8개·카테고리 필터링
 
 ## 다른 컴퓨터에서 이어서 작업하는 법
 1. 프로젝트 폴더에서: 처음이면 `git clone https://github.com/dlwns990424-coder/shopping.git`, 이미 있으면 `git pull`
@@ -135,7 +136,8 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 ---
 
 ## 다음 세션 시작 지점
-**Cart 페이지 완료. 다음은 Order 페이지 — 아직 시작 안 함 (사용자의 명시적 "작업해" 대기 중).**
+**Cart 완료 이후 Men/Women 페이지 다듬기(로고, 카테고리, 섹션 간격, 임시 이미지, 카테고리 필터링)까지 끝낸 상태. 다음 할 일은 Order 페이지 — 아직 시작 안 함 (사용자의 명시적 "작업해" 대기 중).**
+- **먼저 `git push` 여부 확인** — 위 "마지막 갱신"에 적힌 대로 로컬 커밋 2개가 origin에 안 올라가 있음. 사용자가 push해도 된다고 하면 그때 진행.
 - Order 노드는 이미 확보돼 있음: 위 "Figma 연동 상태" 섹션의 `64:287`(section, 이름 없음) → 프레임 `64:288` "Order / Desktop". `get_design_context(fileKey: lX1aiEVIERPEOuWTV3kmmq, nodeId: "64:288")`로 바로 가져올 수 있음.
 - Order 화면 구성(메타데이터로 이미 확인됨): 배송지 정보(이름/연락처/주소 + "변경" 버튼), 주문상품(`Order Item Row` 2개 — 기존 `OrderItemRow` 컴포넌트 재사용), 결제금액 패널(상품금액/배송비/총 결제금액 + 약관동의 체크박스 + 결제 버튼). Cart와 레이아웃 패턴(좌측 리스트 856px + 우측 요약 360px, gap-64)이 거의 동일해서 `Cart.jsx`/`Cart.css` 참고하면 빠름.
 - Cart에서 넘어온 선택 상품을 Order에 전달하는 흐름은 아직 미정 — 지금은 각 페이지가 독립된 mock 데이터를 쓰고 있어서(Cart는 `src/mock/cart.js`), Order도 일단 자체 mock으로 만들지, `navigate('/order', { state: ... })`로 선택 항목을 넘길지 사용자와 확인 필요.
@@ -147,3 +149,5 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 4. Supabase 실연동: 테이블 스키마 설계(profiles/products/cart_items/orders/order_items) → 생성 → Storage 버킷 → 각 페이지 mock을 실제 쿼리로 교체 → `.env` 키 입력(기기마다)
 5. Supabase Auth 연결 (이메일/비밀번호), 로그인 상태 기반 라우트 보호. `src/context/AuthContext.jsx`의 localStorage 기반 로직을 실제 `signUp`/`signInWithPassword`/`signOut` 호출로 교체
 6. 반응형 정밀 검증 (지금은 1024px 기본 미디어쿼리만 있음, 실기기/개발자도구 미확인)
+7. 카테고리 리스팅 페이지(`CategoryListing`) 필터 기능 — 사이즈/가격대 등. 필터 버튼 UI는 없고 상품개수 텍스트만 있는 상태(2026-09-03 작업 시 의도적으로 제외, 사용자 확인)
+8. 카테고리 리스팅 페이지 페이지네이션 또는 무한스크롤 — 지금은 목업이 성별당 최대 8개라 필요 없지만, 실제 상품 수 늘어나면 필요

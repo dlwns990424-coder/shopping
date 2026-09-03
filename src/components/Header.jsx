@@ -1,8 +1,22 @@
-import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Search, Heart, ShoppingBag, User } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { products } from '../mock/products'
 import logo from '../assets/logo.png'
 import './Header.css'
+
+function getActiveGender(pathname) {
+  if (pathname === '/' || pathname === '/men') return 'men'
+  if (pathname === '/women') return 'women'
+
+  const match = pathname.match(/^\/products\/(.+)$/)
+  if (match) {
+    const product = products.find((item) => item.id === match[1])
+    if (product) return product.gender
+  }
+
+  return null
+}
 
 function IconButton({ label, to, children }) {
   const content = (
@@ -29,7 +43,7 @@ function Header() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const isMenActive = location.pathname === '/' || location.pathname === '/men'
+  const activeGender = getActiveGender(location.pathname)
 
   const handleLogout = () => {
     logout()
@@ -43,12 +57,12 @@ function Header() {
       </Link>
 
       <nav className="site-header__nav">
-        <Link to="/men" className={isMenActive ? 'is-active' : ''}>
+        <Link to="/men" className={activeGender === 'men' ? 'is-active' : ''}>
           MEN
         </Link>
-        <NavLink to="/women" className={({ isActive }) => (isActive ? 'is-active' : '')}>
+        <Link to="/women" className={activeGender === 'women' ? 'is-active' : ''}>
           WOMEN
-        </NavLink>
+        </Link>
       </nav>
 
       <div className="site-header__icons">

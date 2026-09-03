@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { FaInstagram, FaYoutube } from 'react-icons/fa6'
 import logo from '../assets/logo.png'
 import './Footer.css'
 
@@ -32,8 +33,12 @@ function Footer() {
         <div className="site-footer__col">
           <p className="site-footer__col-title text-caption">SOCIAL</p>
           <div className="site-footer__social">
-            <a href="#" aria-label="Instagram">IG</a>
-            <a href="#" aria-label="Youtube">YT</a>
+            <a href="#" aria-label="Instagram">
+              <FaInstagram size={14} />
+            </a>
+            <a href="#" aria-label="Youtube">
+              <FaYoutube size={14} />
+            </a>
           </div>
         </div>
       </div>

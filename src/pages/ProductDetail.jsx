@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { Heart } from 'lucide-react'
 import Swatch from '../components/Swatch'
 import SizeSelector from '../components/SizeSelector'
 import Button from '../components/Button'
@@ -44,12 +45,7 @@ function ProductDetail() {
               <p className="text-price">{product.price}</p>
             </div>
             <button type="button" className="product-detail__wishlist" aria-label="위시리스트 추가">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path
-                  d="M12 21s-7.5-4.6-10-9.1C.5 8.5 2 5 5.5 5c2 0 3.5 1.2 4.5 2.8C11 6.2 12.5 5 14.5 5 18 5 19.5 8.5 22 11.9 19.5 16.4 12 21 12 21z"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <Heart size={20} strokeWidth={1.5} />
             </button>
           </div>
 

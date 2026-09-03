@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import CategoryCard from '../components/CategoryCard'
 import ProductCard from '../components/ProductCard'
+import CategoryListing from '../components/CategoryListing'
 import { products } from '../mock/products'
 import { menCategories } from '../mock/categories'
 import './GenderPage.css'
@@ -10,19 +11,18 @@ function Men() {
   const categoryParam = searchParams.get('category')
   const menProducts = products.filter((product) => product.gender === 'men')
 
-  let sectionTitle = 'NEW ARRIVAL'
-  let displayedProducts = menProducts.slice(0, 8)
-  let showMoreLink = true
-
-  if (categoryParam === 'all') {
-    sectionTitle = '전체 상품'
-    displayedProducts = menProducts
-    showMoreLink = false
-  } else if (categoryParam) {
-    sectionTitle = categoryParam
-    displayedProducts = menProducts.filter((product) => product.category === categoryParam)
-    showMoreLink = false
+  if (categoryParam) {
+    return (
+      <CategoryListing
+        genderLabel="MEN"
+        basePath="/men"
+        products={menProducts}
+        categoryParam={categoryParam}
+      />
+    )
   }
+
+  const displayedProducts = menProducts.slice(0, 8)
 
   return (
     <div className="men-page">
@@ -51,20 +51,14 @@ function Men() {
 
       <section className="page-section">
         <div className="page-section__header">
-          <h2 className="text-h2">{sectionTitle}</h2>
-          {showMoreLink && (
-            <Link to="/men?category=all" className="text-body-sm">더보기 +</Link>
-          )}
+          <h2 className="text-h2">NEW ARRIVAL</h2>
+          <Link to="/men?category=all" className="text-body-sm">더보기 +</Link>
         </div>
-        {displayedProducts.length > 0 ? (
-          <div className="product-grid">
-            {displayedProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-body-sm">해당 카테고리에 상품이 없습니다.</p>
-        )}
+        <div className="product-grid">
+          {displayedProducts.map((product) => (
+            <ProductCard key={product.id} {...product} />
+          ))}
+        </div>
       </section>
 
       <section className="page-section">
