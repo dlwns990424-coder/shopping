@@ -67,7 +67,7 @@ function Women() {
         </div>
         <div className="category-grid">
           {womenCategories.map((category) => (
-            <CategoryCard key={category.id} to={category.to} label={category.label} />
+            <CategoryCard key={category.id} to={category.to} label={category.label} image={category.image} />
           ))}
         </div>
       </section>

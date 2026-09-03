@@ -38,9 +38,18 @@ function ProductDetail() {
     <div className="product-detail">
       <div className="product-detail__layout">
         <div className="product-detail__images">
-          <div className="product-detail__image" />
-          <div className="product-detail__image" />
-          <div className="product-detail__image" />
+          <div
+            className="product-detail__image"
+            style={{ backgroundImage: `url(${product.image})` }}
+          />
+          <div
+            className="product-detail__image"
+            style={{ backgroundImage: `url(${product.image})` }}
+          />
+          <div
+            className="product-detail__image"
+            style={{ backgroundImage: `url(${product.image})` }}
+          />
         </div>
 
         <div className="product-detail__info">

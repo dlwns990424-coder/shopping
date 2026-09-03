@@ -3,6 +3,7 @@ import ProductCard from './ProductCard'
 import './CategoryListing.css'
 
 const TABS = [
+  { id: '아우터', label: '아우터' },
   { id: '상의', label: '상의' },
   { id: '하의', label: '하의' },
 ]

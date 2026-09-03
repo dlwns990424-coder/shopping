@@ -8,8 +8,9 @@
   position: relative;
   width: 100%;
   aspect-ratio: 3 / 4;
-  background-color: var(--color-bg-placeholder);
-  background-size: cover;
+  background-color: var(--color-bg-secondary);
+  background-size: contain;
+  background-repeat: no-repeat;
   background-position: center;
   border-radius: var(--radius-none);
   overflow: hidden;

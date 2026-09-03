@@ -10,9 +10,17 @@
   gap: var(--spacing-64);
 }
 
+.mypage-content {
+  min-height: 600px;
+}
+
 @media (max-width: 1024px) {
   .mypage-layout {
     grid-template-columns: 1fr;
     gap: var(--spacing-32);
+  }
+
+  .mypage-content {
+    min-height: 0;
   }
 }

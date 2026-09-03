@@ -13,7 +13,10 @@
 
 .product-detail__image {
   aspect-ratio: 4 / 5;
-  background: var(--color-bg-placeholder);
+  background-color: var(--color-bg-secondary);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .product-detail__info {
