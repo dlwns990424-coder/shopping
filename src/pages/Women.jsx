@@ -23,6 +23,16 @@ function Women() {
       </section>
 
       <section className="page-section">
+        <div className="editorial-banner">
+          <div className="editorial-banner__overlay" />
+          <div className="editorial-banner__caption">
+            <h2 className="text-h2">THE ESSENTIAL LAYER</h2>
+            <p className="text-body-sm">이번 시즌을 완성하는 첫 레이어드</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section">
         <div className="page-section__header">
           <h2 className="text-h2">NEW ARRIVAL</h2>
           <span className="text-body-sm">더보기 +</span>

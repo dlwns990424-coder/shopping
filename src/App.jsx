@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
+import { AuthProvider } from './context/AuthContext'
+
 import UserLayout from './layouts/UserLayout'
 import AdminLayout from './layouts/AdminLayout'
 
-import Home from './pages/Home'
 import Men from './pages/Men'
 import Women from './pages/Women'
 import ProductDetail from './pages/ProductDetail'
@@ -20,28 +21,30 @@ import SalesManage from './admin/pages/SalesManage'
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<UserLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/men" element={<Men />} />
-          <Route path="/women" element={<Women />} />
-          <Route path="/products/:productId" element={<ProductDetail />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/order" element={<Order />} />
-          <Route path="/mypage" element={<MyPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-        </Route>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<UserLayout />}>
+            <Route path="/" element={<Men />} />
+            <Route path="/men" element={<Men />} />
+            <Route path="/women" element={<Women />} />
+            <Route path="/products/:productId" element={<ProductDetail />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/order" element={<Order />} />
+            <Route path="/mypage" element={<MyPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+          </Route>
 
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="products" element={<ProductManage />} />
-          <Route path="orders" element={<OrderManage />} />
-          <Route path="members" element={<MemberManage />} />
-          <Route path="sales" element={<SalesManage />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="products" element={<ProductManage />} />
+            <Route path="orders" element={<OrderManage />} />
+            <Route path="members" element={<MemberManage />} />
+            <Route path="sales" element={<SalesManage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 

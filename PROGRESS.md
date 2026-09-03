@@ -11,13 +11,13 @@
 ## 마지막 갱신
 - 날짜: 2026-09-03
 - 작업 환경: (기록 안 됨, 다음부터 표시)
+- node_modules가 없는 상태였음 → `npm install` 새로 실행함 (38 packages)
 
 ## 다른 컴퓨터에서 이어서 작업하는 법
 1. 프로젝트 폴더에서: 처음이면 `git clone https://github.com/dlwns990424-coder/shopping.git`, 이미 있으면 `git pull`
 2. `npm install` (node_modules는 git에 없음)
 3. **이 파일의 "다음 세션 시작 지점" 확인**
-4. Figma 작업이 필요하면 그 컴퓨터에서 플러그인 재설치/재인증 필요 (기기별 설정이라 GitHub로 안 넘어옴):
-   `claude plugin install figma@claude-plugins-official` → Claude Code 재시작 → `/plugin` → figma 선택 → 인증
+4. Figma 작업이 필요하면 그 컴퓨터에서 OAuth 재인증 필요 (기기별 세션이라 GitHub로 안 넘어옴): `plugin:figma:figma` MCP 도구(`authenticate`) 호출 → 뜨는 URL을 브라우저에서 열어 인가. 데스크톱 앱 설치는 불필요.
 5. `.env`는 gitignore 대상이라 안 넘어옴 — 아직 Supabase 연동 전이라 당장은 불필요, 연동 단계부터는 기기마다 `.env.example` 참고해서 직접 채워야 함
 6. `npm run dev`로 확인 (5173이 다른 프로젝트가 점유 중이면 자동으로 다른 포트로 뜸 — 터미널 로그에서 실제 포트 확인)
 
@@ -34,9 +34,15 @@
   - 타이포: Display 40 / H1 32 / H2 24 / H3 20 / Body 16·14·13 / Caption 12 / Button 14 / Price 16
 
 ## Figma 연동 상태
-- Figma MCP 플러그인(`figma@claude-plugins-official`) 설치+인증 완료 (계정: 뤠준, dlwns990424@gmail.com)
+- Figma 원격 MCP(`plugin:figma:figma`, OAuth 인증, mcp.figma.com) 인증 완료 (계정: 뤠준, dlwns990424@gmail.com, Pro 플랜). 예전에 쓰던 로컬 데스크톱 플러그인(`figma@claude-plugins-official`)과는 별개 서버 — 새 컴퓨터에서도 OAuth 로그인만 하면 되고 데스크톱 앱 설치/재인증 불필요.
 - 파일: **"first-shop 쇼핑몰 디자인"** — `https://www.figma.com/design/lX1aiEVIERPEOuWTV3kmmq/...`, fileKey `lX1aiEVIERPEOuWTV3kmmq`
-- 완료된 데스크톱 와이어프레임(5개): **MEN, Product Detail, Cart, Order, HOME**
+- **주의**: `get_metadata(fileKey)`를 nodeId 없이 호출하면 최상위 페이지로 "Cover & Foundations"(0:1)만 나옴(원인 불명, API 인덱싱 이슈로 추정 — 데스크톱 앱 의존 문제 아니었음, OAuth 원격 연동에서도 동일). 실제 와이어프레임은 **"Wireframe · User"라는 별도 페이지**(canvas id `5:63`)에 있고, 이 nodeId를 직접 넣어서 `get_metadata(fileKey, nodeId:"5:63")`로 호출해야 전체 구조가 나옴.
+- **완료된 데스크톱 와이어프레임 노드 id (`5:63` 페이지 하위)**:
+  - MEN: section `18:2` (frame `18:3`)
+  - Product Detail: section `42:100` (frame `42:101`)
+  - Cart: section `54:169` — `Cart / Desktop`(`54:170`, 상품 3개 담긴 상태: 전체선택 체크박스+선택삭제, Cart Item Row 3개, 우측 주문요약+결제 버튼), `Cart / Empty`(`54:306`, 빈 장바구니 상태: 아이콘+안내문구+쇼핑 유도 버튼)
+  - Order: section `64:287` (frame `64:288` "Order / Desktop" — 배송지, 주문상품 Order Item Row 2개, 결제금액 패널, 약관 체크박스, 결제 버튼)
+  - HOME: section `79:396` (frame `79:397`)
 - **WOMEN/로그인/회원가입/마이페이지는 Figma 없이 코드로 직접 구현하기로 결정** (사용자 승인) — 관리자 4종은 Figma 자체가 없음
 - 재사용 로컬 컴포넌트(파일 내 "Components" 페이지 5:62): Header(16:20), Footer(14:32), Product Card(10:49, 기본상태에서 이름/가격 숨김·호버시 노출), Category Card(23:21), Button(7:83), Hero Pill Button(24:195). 폰트는 Noto Sans KR(Figma 내부용, 코드는 Pretendard)
 
@@ -51,17 +57,52 @@
 - Vite+React19 스캐폴딩, 라우팅(`App.jsx`, `UserLayout`/`AdminLayout` 분리), Supabase 클라이언트 연결 코드(`src/lib/supabaseClient.js`, 실제 스키마는 아직 없음)
 - 디자인 토큰(`src/index.css`): 컬러/스페이싱/라운드 CSS 변수, 타이포 유틸리티 클래스(`.text-*`), Pretendard 폰트
 - **Git 최초 커밋 + GitHub 푸시 완료** — `origin` = `https://github.com/dlwns990424-coder/shopping.git`, `master` 브랜치. `d` 파일은 의도적으로 매번 제외(정체 미확인), `.env`는 정상 제외
+- `lucide-react` 패키지 추가 — 헤더 아이콘(검색/위시리스트/장바구니/마이페이지)에 사용
 
-### 공통 컴포넌트 (`src/components/`) — 13개 완료
-Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCard, Swatch, SizeSelector, QuantityStepper, CartItemRow, OrderItemRow
+### 헤더 — 개편 완료
+- 아이콘 4종을 인라인 SVG → `lucide-react`(`Search`/`Heart`/`ShoppingBag`/`User`, size 20 / strokeWidth 1.5)로 교체
+- `.site-header`를 `position: fixed`(상단 고정)로 변경 — `UserLayout.jsx`가 `UserLayout.css`를 새로 불러와 `main`에 `padding-top: 64px`(헤더 높이만큼)을 줘서 콘텐츠가 헤더 밑으로 가리지 않게 함. `AdminLayout`은 이번 범위 아님(헤더 자체가 다름)
+- MEN/WOMEN 네비 색상: 기본은 `--color-text-disabled`(가장 연한 회색 톤, 처음엔 `--color-text-secondary`로 했다가 사용자 피드백으로 더 연하게 변경), 현재 라우트와 일치할 때만(`NavLink`의 `isActive`) `--color-text-primary`(진한 색)+밑줄 — 즉 MEN 페이지에선 MEN만 진하고 WOMEN은 연하게, WOMEN 페이지에선 반대, 그 외 페이지에선 둘 다 연하게
+- 아이콘 4종은 반대 패턴: 기본 진한 색, hover 시 `--color-text-disabled`로 옅어짐
+- 브라우저로 Home/Men/Women/Login에서 고정 헤더 스크롤 동작, 네비 색상 전환, 아이콘 hover까지 확인 완료
+
+### 로고 이미지 적용 (2026-09-03)
+- 사용자가 `first-shop/img/logo`에 넣어둔 와인레드 "T&L" 워드마크 PNG(투명 배경, 브랜드 포인트 컬러 `#9c2b2b`와 정확히 일치)를 실제 글자 영역만 남기고 트리밍해서 `src/assets/logo.png`로 저장(1068×416)
+- 헤더(`Header.jsx`)와 푸터(`Footer.jsx`)의 "T&L" 텍스트 로고를 이 이미지로 교체 (`site-header__logo-img` 26px, `site-footer__logo` 22px, 둘 다 `height` 고정+`width:auto`)
+- Men/Women 히어로의 "T&L | MEN·WOMEN" 캡션과 푸터 카피라이트(`© 2026 T&L.`)는 문장 속 텍스트라 그대로 유지 — 로고 단독 자리(헤더/푸터)만 이미지로 교체
+- `first-shop/img`의 `bg_1.png`, `hero_human.png`는 아직 미사용(사용자가 다음에 쓸지 결정 예정)
+
+### 공통 컴포넌트 (`src/components/`) — 14개 완료
+Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCard, Swatch, SizeSelector, QuantityStepper, CartItemRow, OrderItemRow, **Toast**(상단 중앙 고정, `show`/`onClose`/`duration` props, 표시 후 자동 dismiss)
 (Badge는 만들었다가 사용자 요청으로 완전 삭제함 — NEW/SALE 뱃지 기능 자체를 안 쓰기로 함)
 
-### 페이지 — 4/9 완료
-- [x] **Home** — Hero(100dvh)+카테고리타일(MEN/WOMEN)+에디토리얼배너+신상품그리드
-- [x] **Men** — Hero(3분할 이미지, 100dvh)+신상품 8개+카테고리 3개(상의/아우터/하의)
-- [x] **Women** — Men과 동일 구조 미러링 (`GenderPage.css` 공유)
+### 페이지 — 6/8 완료
+- **Home 페이지는 삭제함** (2026-09-03) — 별도 `/` 전용 페이지를 두지 않고 `Men`을 기본 홈으로 사용하기로 변경. `src/pages/Home.jsx`/`Home.css` 삭제, `App.jsx`에서 `<Route path="/" element={<Men />} />`와 `<Route path="/men" element={<Men />} />`가 같은 `Men` 컴포넌트를 렌더링(두 URL 다 유지, `/men`도 그대로 살아있음). `Header.jsx`의 MEN 네비는 `NavLink` 대신 `useLocation`으로 `pathname === '/' || pathname === '/men'`일 때 직접 `is-active` 클래스를 줘서, 루트("/")에 있어도 MEN이 활성 표시되도록 함
+- [x] **Men** — Hero(3분할 이미지, 100dvh)+에디토리얼 배너(NEW ARRIVAL 위, Home에 있던 것 재사용)+신상품 8개+카테고리 2개(상의/하의, 기존 3개에서 아우터 제거)
+- [x] **Women** — Men과 동일 구조 미러링 (`GenderPage.css` 공유, 에디토리얼 배너 문구만 별도)
 - [x] **ProductDetail** — 상세이미지 3장+sticky 정보패널(컬러/사이즈 선택 상태관리, useState)+관련상품 4개(같은 gender 필터)
-- [ ] Cart, Order, MyPage, Login, Signup — 스텁(제목만)
+- [x] **Login** — 이메일/비밀번호. `AuthContext`(`src/context/AuthContext.jsx`)의 `login()`으로 localStorage에 저장된 계정과 대조 → 성공 시 세션 저장 후 `/`로 이동, 실패 시 비밀번호 필드에 에러 표시
+- [x] **Signup** — 닉네임/이메일/비밀번호/휴대폰번호. 검증 통과 시 `AuthContext`의 `signup()`으로 localStorage에 계정 저장(이메일 중복 체크) → Toast("회원가입이 완료되었습니다.", 화면 상단) → 1.5초 후 `/login`으로 자동 이동
+  - 닉네임: 영문/한글/숫자 2~10자 (`/^[a-zA-Z0-9가-힣]{2,10}$/`)
+  - 비밀번호: 영문+숫자 포함 8~16자 (`/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/`)
+  - 휴대폰번호: `01`로 시작, 대시(`-`) 있어도/없어도 허용 (`/^01[0-9]-?\d{3,4}-?\d{4}$/`), 에러 메시지는 "휴대폰번호를 정확하게 입력해주세요."
+  - Login/Signup 공유 레이아웃은 `src/pages/Auth.css`(중앙 정렬 카드형, 기존 그리드 페이지들과 다른 톤)
+- [x] **Cart** — Figma `Cart / Desktop`(`54:170`) + `Cart / Empty`(`54:306`) 두 상태 모두 구현. 목업 데이터는 `src/mock/cart.js`(3개 상품, 상품금액 합계가 Figma 예시와 동일한 ₩187,900이 되도록 가격 맞춤)
+  - 상태관리(모두 `useState`, `src/pages/Cart.jsx`): `cartItems`(수량/삭제), `selectedIds`(체크박스 선택) — 전체선택/개별선택/선택삭제/개별삭제/수량 변경 모두 구현, 기존 `CartItemRow`/`Checkbox`/`Button` 컴포넌트 그대로 재사용
+  - 주문요약(상품금액/배송비 ₩3,000 고정/총 결제금액)은 **선택된 항목 기준**으로만 합산 — 선택 해제한 상품은 금액에서 빠짐. 선택된 항목이 없으면 배송비도 0원 처리, "주문하기" 버튼 비활성화
+  - 장바구니가 비면(`cartItems.length === 0`) Empty 상태로 자동 전환 — 아이콘은 Figma 원본 에셋 대신 `lucide-react`의 `ShoppingBag`로 대체(헤더 장바구니 아이콘과 통일감), "쇼핑하러 가기" 클릭 시 `/`로 이동
+  - "주문하기" 클릭 시 `/order`로 이동(Order 페이지 자체는 아직 스텁)
+  - Header/Footer는 Figma 익스포트에 포함돼 있었지만 다른 페이지들과 동일하게 `UserLayout`이 전역으로 렌더링하므로 Cart.jsx에는 넣지 않음
+  - 15px 텍스트("주문 요약" 타이틀, "총 결제금액" 라벨), 요약 패널 20px 패딩/갭, 360px 너비 등 기존 타이포/스페이싱 토큰에 없는 값은 Figma 원본 그대로 리터럴 px 사용(기존 `CartItemRow` 썸네일 100×120px 리터럴 관례와 동일)
+  - 브라우저로 전체선택/개별선택/수량증감/개별삭제/선택삭제→빈 장바구니 전환→"쇼핑하러 가기"/"주문하기" 라우팅까지 전체 흐름 실제 동작 확인 완료
+
+### 로그인 상태 관리 (Supabase 연동 전 임시)
+- `src/context/AuthContext.jsx` — `AuthProvider`(App.jsx에서 BrowserRouter 감쌈)가 `localStorage`에 계정 목록(`shop_users`)과 현재 세션(`shop_current_user`)을 저장하는 **완전 목업 인증**. `useAuth()`로 `{ user, signup, login, logout }` 어디서든 접근 가능
+- **목적**: Supabase Auth 붙이기 전에 로그인/비로그인 상태별 화면 분기를 테스트하기 위함 (Cart/MyPage 등 이후 페이지 작업 시 필요)
+- `Header.jsx`가 `user` 상태를 읽어서 반영: 비로그인 시 사람 아이콘 → `/login`, 로그인 시 사람 아이콘 → `/mypage` + "로그아웃" 텍스트 버튼 노출(클릭 시 로그아웃 후 `/`로 이동)
+- 비밀번호는 평문으로 localStorage에 저장됨(순수 프론트 목업이라 허용) — **Supabase 연동 시 이 파일 전체를 실제 Supabase Auth 호출로 교체 예정**, 그때 기존 localStorage 데이터는 폐기됨
+- Chrome 브라우저로 회원가입→로그인→헤더 상태 전환→로그아웃 전체 흐름 실제 동작 확인 완료
+- [ ] Order, MyPage — 스텁(제목만)
 - [ ] 관리자 4종(상품/주문/회원/매출관리) — 스텁, 디자인 자체가 없어서 기능 위주로 심플하게 만들 예정
 
 ### 상품 카드 관련 디자인 조정 (사용자 피드백, 여러 차례 수정 거침)
@@ -76,23 +117,19 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 
 ### 알아둘 것
 - 콘솔에 가끔 뜨는 정체불명 `[EXCEPTION] Object`는 브라우저 자동화 확장 자체의 메시징 노이즈로 확인됨(1건은 "message channel closed" 메시지 포함) — 앱 코드 문제 아님, 매번 페이지는 정상 동작 확인함
-- `d` 파일(프로젝트 루트, 27KB, first-shop과 무관한 다른 프로젝트 HTML 조각으로 추정) — 삭제 여부 계속 미확인, 커밋에서 계속 제외 중
 
 ---
 
 ## 다음 세션 시작 지점
-**로그인/회원가입 페이지부터 시작** (Cart보다 먼저 하기로 순서 변경 — Input/Button만 조합하면 되는 단순한 페이지라 빠르고 "가입→로그인→쇼핑" 흐름상 자연스러움. 단 Supabase 연동 전이라 실제 인증 동작은 안 되고 폼 UI만 완성됨)
-- 회원가입 필드(요구사항 기준): 이메일, 비밀번호, 이름, 휴대폰번호, 주소
-- 로그인 필드: 이메일, 비밀번호만
-- 그 다음 순서: Cart → Order → MyPage → 관리자 4종 → Supabase 실연동 → 반응형 정밀 검증
+**Cart 페이지 완료. 다음은 Order 페이지 — 아직 시작 안 함 (사용자의 명시적 "작업해" 대기 중).**
+- Order 노드는 이미 확보돼 있음: 위 "Figma 연동 상태" 섹션의 `64:287`(section, 이름 없음) → 프레임 `64:288` "Order / Desktop". `get_design_context(fileKey: lX1aiEVIERPEOuWTV3kmmq, nodeId: "64:288")`로 바로 가져올 수 있음.
+- Order 화면 구성(메타데이터로 이미 확인됨): 배송지 정보(이름/연락처/주소 + "변경" 버튼), 주문상품(`Order Item Row` 2개 — 기존 `OrderItemRow` 컴포넌트 재사용), 결제금액 패널(상품금액/배송비/총 결제금액 + 약관동의 체크박스 + 결제 버튼). Cart와 레이아웃 패턴(좌측 리스트 856px + 우측 요약 360px, gap-64)이 거의 동일해서 `Cart.jsx`/`Cart.css` 참고하면 빠름.
+- Cart에서 넘어온 선택 상품을 Order에 전달하는 흐름은 아직 미정 — 지금은 각 페이지가 독립된 mock 데이터를 쓰고 있어서(Cart는 `src/mock/cart.js`), Order도 일단 자체 mock으로 만들지, `navigate('/order', { state: ... })`로 선택 항목을 넘길지 사용자와 확인 필요.
 
 ## 앞으로 해야 할 것 (전체, 우선순위 순)
-1. 로그인/회원가입 페이지
-2. Cart 페이지 (CartItemRow + 체크박스 선택/삭제/수량 상태관리)
-3. Order 페이지 (OrderItemRow + 가상결제)
-4. MyPage (주문내역, OrderItemRow 재사용)
-5. 관리자 4종 (기능 위주, 디자인 없이)
-6. Supabase 실연동: 테이블 스키마 설계(profiles/products/cart_items/orders/order_items) → 생성 → Storage 버킷 → 각 페이지 mock을 실제 쿼리로 교체 → `.env` 키 입력(기기마다)
-7. Supabase Auth 연결 (이메일/비밀번호), 로그인 상태 기반 라우트 보호
-8. 반응형 정밀 검증 (지금은 1024px 기본 미디어쿼리만 있음, 실기기/개발자도구 미확인)
-9. `d` 파일 처리 여부 결정
+1. Order 페이지 (OrderItemRow + 가상결제)
+2. MyPage (주문내역, OrderItemRow 재사용)
+3. 관리자 4종 (기능 위주, 디자인 없이)
+4. Supabase 실연동: 테이블 스키마 설계(profiles/products/cart_items/orders/order_items) → 생성 → Storage 버킷 → 각 페이지 mock을 실제 쿼리로 교체 → `.env` 키 입력(기기마다)
+5. Supabase Auth 연결 (이메일/비밀번호), 로그인 상태 기반 라우트 보호. `src/context/AuthContext.jsx`의 localStorage 기반 로직을 실제 `signUp`/`signInWithPassword`/`signOut` 호출로 교체
+6. 반응형 정밀 검증 (지금은 1024px 기본 미디어쿼리만 있음, 실기기/개발자도구 미확인)

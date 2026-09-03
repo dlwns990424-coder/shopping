@@ -12,9 +12,9 @@
 }
 
 .site-footer__logo {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
+  height: 22px;
+  width: auto;
+  display: block;
 }
 
 .site-footer__col {

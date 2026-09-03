@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
+import logo from '../assets/logo.png'
 import './Footer.css'
 
 function Footer() {
   return (
     <footer className="site-footer">
       <div className="site-footer__top">
-        <p className="site-footer__logo">T&amp;L</p>
+        <img src={logo} alt="T&L" className="site-footer__logo" />
 
         <div className="site-footer__col">
           <p className="site-footer__col-title text-caption">SHOP</p>

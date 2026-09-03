@@ -23,6 +23,16 @@ function Men() {
       </section>
 
       <section className="page-section">
+        <div className="editorial-banner">
+          <div className="editorial-banner__overlay" />
+          <div className="editorial-banner__caption">
+            <h2 className="text-h2">THE ESSENTIAL LAYER</h2>
+            <p className="text-body-sm">겨울을 준비하는 첫 번째 아우터</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section">
         <div className="page-section__header">
           <h2 className="text-h2">NEW ARRIVAL</h2>
           <span className="text-body-sm">더보기 +</span>
