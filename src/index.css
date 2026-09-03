@@ -147,6 +147,12 @@ textarea {
   padding: var(--spacing-64) var(--spacing-80) 0;
 }
 
+/* 페이지의 마지막 섹션(바로 다음이 Footer)만 아래쪽에도 여백을 줘서
+   Footer의 어두운 배경과 너무 붙어 보이지 않게 함 */
+.page-section:last-of-type {
+  padding-bottom: var(--spacing-64);
+}
+
 .page-section__header {
   display: flex;
   align-items: baseline;
@@ -168,19 +174,21 @@ textarea {
   grid-template-columns: repeat(4, 1fr);
   column-gap: var(--spacing-24);
   row-gap: 0;
-  padding-bottom: var(--spacing-80);
 }
 
 .category-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-24);
-  padding-bottom: var(--spacing-80);
 }
 
 @media (max-width: 1024px) {
   .page-section {
     padding: var(--spacing-32) var(--spacing-24) 0;
+  }
+
+  .page-section:last-of-type {
+    padding-bottom: var(--spacing-32);
   }
 
   .product-grid {

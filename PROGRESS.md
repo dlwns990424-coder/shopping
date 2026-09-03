@@ -111,8 +111,22 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 - 카드 크기는 `height:400px` 고정값 대신 **`aspect-ratio:3/4`** 사용 — 반응형에서 열 개수 바뀌어도 비율 유지됨 (고정 px는 반응형에서 찌그러짐 문제 있었음)
 - 히어로 섹션 전체 `height:100dvh`
 
+### 섹션 간격 정리 + 상품 임시 이미지 (2026-09-03)
+- `.product-grid`/`.category-grid`(`src/index.css`)에 있던 `padding-bottom: var(--spacing-80)`를 제거함 — 각 `.page-section`은 위쪽 패딩(64px)만 갖고 있어서, 두 패딩이 겹치던 곳(예: Men/Women의 NEW ARRIVAL → SHOP BY CATEGORY)은 144px, 안 겹치던 곳(에디토리얼 배너 → NEW ARRIVAL)은 64px로 섹션마다 간격이 들쭉날쭉했음. 제거 후 모든 섹션 사이 간격이 64px(모바일 32px)로 일정해짐. ProductDetail의 "관련상품" 섹션도 같은 클래스를 써서 자동으로 함께 정리됨
+- 위 정리 후 페이지 맨 마지막 섹션(Footer 바로 위, 예: Men/Women의 SHOP BY CATEGORY, ProductDetail의 관련상품)이 Footer와 너무 붙어 보인다는 피드백을 받아서, `.page-section:last-of-type { padding-bottom: var(--spacing-64); }`(모바일은 32px)를 추가함 — 페이지의 마지막 `.page-section`에만 아래쪽 여백을 더해서 어두운 Footer 배경과 자연스럽게 분리되도록 함. 다른 섹션 사이 간격(64px)은 그대로 유지
+- `src/mock/products.js`의 16개 상품 전부에 `image` 필드 추가 — Lorem Picsum(`https://picsum.photos/seed/tl-p{id}/600/800`, 상품카드 비율 3:4와 동일)로 상품별 고정 시드를 줘서 새로고침해도 같은 이미지가 나오게 함. 실제 제품 사진이 아니라 UX 확인용 임시 이미지라는 점 명확히 함 — 외부 서비스라 오프라인/네트워크 차단 시 깨질 수 있음, Supabase Storage 연동 시 교체 예정
+
+### 카테고리 정리 + NEW ARRIVAL/더보기/카테고리 필터링 (2026-09-03)
+- `products.js`의 카테고리 taxonomy를 상의/하의 2종으로 단순화: 기존 '아우터'는 전부 '상의'로 합침(오버핏 울 코트, 더블브레스티드 자켓, 벨티드 트렌치코트, 숏 울 자켓 등). '신발' 카테고리는 완전히 없앰 — 신발 상품 2개(첼시 부츠 p8, 스퀘어토 로퍼 p16)를 삭제하는 대신 같은 id 자리에 새 임의 상품(치노 팬츠/하이웨이스트 와이드 데님, 둘 다 하의)으로 교체해서 성별당 8개, 상의 4/하의 4 균형 유지
+- Men/Women 페이지에 `useSearchParams`로 `?category=` 쿼리를 읽어 상품을 거르는 로직 추가 (`src/pages/Men.jsx`, `Women.jsx`):
+  - 쿼리 없음(기본 진입) → "NEW ARRIVAL" 제목, `slice(0, 8)`로 **최대 8개 고정** 미리보기, "더보기 +"가 실제 링크로 동작(`/men?category=all`)
+  - `category=all` → "전체 상품" 제목, 해당 성별 상품 전체(캡 없음), 더보기 링크는 숨김
+  - `category=상의`/`category=하의` → 그 카테고리 라벨을 제목으로 쓰고 해당 카테고리만 필터링, 더보기 링크 숨김. 결과 없으면 "해당 카테고리에 상품이 없습니다." 표시(현재는 발생 안 함, 안전장치)
+  - "SHOP BY CATEGORY" 타일(`src/mock/categories.js`, 기존에 이미 `/men?category=상의`식 링크로 걸려 있었음)은 필터 상태와 무관하게 항상 그대로 노출 — 진입점 역할
+  - 새 페이지를 따로 만들지 않고 Men/Women 페이지 하나가 "새 상품 미리보기 / 전체 보기 / 카테고리별 보기" 3가지 상태를 다 처리하는 구조
+
 ### 데이터
-- 목업만 사용 중: `src/mock/products.js`(16개, gender/category 포함), `categories.js`, `productDetail.js`(컬러3/사이즈5/설명)
+- 목업만 사용 중: `src/mock/products.js`(16개, gender/category 포함, 임시 Picsum 이미지 포함, 카테고리는 상의/하의 2종), `categories.js`, `productDetail.js`(컬러3/사이즈5/설명)
 - Supabase 실제 테이블/Storage/`.env` 키 — **전부 미착수**
 
 ### 알아둘 것
