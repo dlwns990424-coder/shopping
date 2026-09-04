@@ -9,9 +9,10 @@
 ---
 
 ## 마지막 갱신
-- 날짜: 2026-09-03
+- 날짜: 2026-09-04
 - 작업 환경: (기록 안 됨, 다음부터 표시)
-- **Git: 전부 커밋 + push 완료, origin과 동기화됨(뒤처진 커밋 없음)** — 오늘 세션에 카테고리 리스팅 페이지 신설, 헤더 활성탭 버그 수정, 헤더/푸터 아이콘 정리(로그아웃 버튼 제거, 소셜 텍스트화), 로그인 등 짧은 페이지 Footer 붕뜨는 버그 수정, 마이페이지 탭 구조 전면 개편(계정설정/주문내역/최근본상품), 카테고리 상의/하의 2종 → 아우터/상의/하의 3종 재확장 + 실제 상품 사진 56장 교체, 카테고리 리스팅 상품카드 hover 제거(항상 이름/가격 노출), 원본 이미지 백업(`design-assets/img/`)까지 진행
+- **아직 git 커밋/push 안 함** — 이번 세션 변경사항(Order/OrderComplete 페이지 신규 + 전체 TypeScript/Tailwind CSS 마이그레이션)은 로컬 워킹트리에만 있음. 다음 세션 시작 시 `git status`로 확인 후 커밋 필요.
+- **이번 세션 핵심**: (1) Order/OrderComplete 페이지 신규 구현, (2) 프로젝트 전체를 **React(JS)+커스텀 CSS → TypeScript+Tailwind CSS**로 전면 마이그레이션(아래 "기술 스택 전환" 섹션 참고). 이 마이그레이션으로 **이 문서의 기존 항목들에 나오는 `.jsx`/`.css` 파일명은 전부 `.tsx`로 바뀌었고, 스타일은 Tailwind 유틸리티 클래스로 재작성됨** — 각 항목이 설명하는 기능/디자인 자체는 여전히 유효하나, 정확한 파일 위치를 찾을 땐 실제 파일 트리를 우선 확인할 것
 - 저장소에 이미지가 많이 들어가 있어서 `.git` 용량이 약 97MB — 다른 컴퓨터에서 최초 `git clone` 시 예전보다 시간이 좀 걸릴 수 있음
 
 ## 다른 컴퓨터에서 이어서 작업하는 법
@@ -25,7 +26,7 @@
 ---
 
 ## 프로젝트 개요
-- React(JS) + Supabase 기반 반응형 의류 쇼핑몰. 포트폴리오 + 학습 목적.
+- React(TypeScript) + Tailwind CSS + Supabase 기반 반응형 의류 쇼핑몰. 포트폴리오 + 학습 목적. (2026-09-04까지는 React(JS)+커스텀 CSS였다가 전면 마이그레이션함 — 아래 "기술 스택 전환" 섹션 참고)
 - 상세 요구사항: `project-summary.md`, `docs/planning-for-figma.md`
 - **작업 방식(절대 규칙)**: 사용자가 명시적으로 "작업해"라고 지시하기 전까지 코드/파일/Figma를 임의로 수정하지 않는다. 코드 작성 시 무엇을/어떻게 했는지, 상태가 어떻게 바뀌는지 상세히 설명한다.
 - **확정된 디자인 값** (Figma Cover & Foundations 기준, 더 이상 미확정 아님):
@@ -50,6 +51,26 @@
 ---
 
 ## 완료된 작업
+
+### 기술 스택 전환 — TypeScript + Tailwind CSS 전면 마이그레이션 (2026-09-04, 완료)
+사용자 지시로 프로젝트 전체(컴포넌트 14개, 페이지 10개, 레이아웃, context, mock 데이터, utils, lib, 관리자 스텁 4개 — 약 60개 파일)를 `.jsx`/`.js`+개별 `.css` 구조에서 `.tsx`/`.ts`+Tailwind 유틸리티 클래스로 전면 재작성함. 기존 디자인/기능은 100% 동일하게 유지(픽셀 단위로 비교 확인함), 코드 스타일만 전환.
+- **툴체인**: `typescript`, `@tailwindcss/vite`, `tailwindcss`(v4) 설치. `vite.config.js` → `.ts`(`tailwindcss()` 플러그인 추가), `tsconfig.json`/`tsconfig.app.json`(strict:true)/`tsconfig.node.json` 신규, `main.jsx`→`main.tsx`, `App.jsx`→`App.tsx`
+- **Tailwind 스페이싱 스케일을 1px 기준으로 재정의**(`@theme { --spacing: 1px }`) — 이게 핵심 트릭: Tailwind 기본은 숫자 1 = 0.25rem(4px)이라 `p-4`가 16px가 되는데, 이 프로젝트는 기존 디자인 토큰이 전부 "숫자=px값"(spacing-64 = 64px 등)이었어서, 기준 단위를 1px로 바꿔버리면 `p-64`가 그대로 64px가 됨. 토큰에 없던 리터럴 값(20px, 15px, 6px 등)도 `p-20`처럼 그냥 숫자로 바로 씀(임의값 대괄호 문법 불필요)
+- **컬러 토큰 재매핑**(`src/index.css`의 `@theme`) — 기존 12개 CSS 변수를 8개 Tailwind 컬러 키로 통합: `--color-bg-primary`/`--color-text-inverse`→`color-surface`, `--color-bg-secondary`→`color-surface-muted`, `--color-bg-inverse`→`color-inverse`, `--color-bg-placeholder`/`--color-border-default`→`color-line`, `--color-text-primary`/`--color-border-strong`→`color-primary`, `--color-text-secondary`→`color-secondary`, `--color-text-disabled`→`color-disabled`, `--color-point`/`-hover`/`-tint`는 그대로 유지. 사용 예: `bg-surface`, `text-secondary`, `border-line`
+- **`radius-sm/md/lg`를 Tailwind 기본 스케일에 덮어써서** 기존 4px/8px/12px 값 그대로 `rounded-sm`/`rounded-md`/`rounded-lg`로 재사용
+- **공용 클래스는 `@apply`로 유지** — 타이포 스케일(`.text-h1`~`.text-price`)과 페이지 레이아웃 패턴(`.page-section`, `.product-grid`, `.category-grid`)은 매 페이지마다 유틸리티를 풀어쓰지 않고 `src/index.css`의 `@layer components`에 그대로 재정의(내부만 Tailwind 유틸리티로 구현) — 클래스명이 그대로라 각 페이지 코드에서 여전히 `className="text-h2"`처럼 씀. 반응형 분기(1024px)는 Tailwind 기본 `lg:` breakpoint가 정확히 1024px라 그대로 매칭돼서 `lg:` prefix로 처리(모바일 우선 방식으로 재작성 — 기존 desktop-first `@media (max-width:1024px)`와 반대 방향이라 값 순서가 바뀜에 유의)
+- **컴포넌트별 고유 스타일은 각 `.tsx` 안에 인라인 Tailwind 클래스로 직접 작성** — 예를 들어 `Checkbox`는 네이티브 input을 `sr-only`(Tailwind 내장 클래스, 기존 커스텀 `.sr-only`와 동일)로 숨기고 `peer`+`peer-checked:`로 체크 상태 스타일링, `Swatch`의 선택 링(box-shadow 2중)은 `ring-2 ring-offset-2` 조합으로 재현
+- **타입 정의**: `src/types.ts` 신규(`Product`/`Category`/`ColorOption`/`User`/`CartItem`/`Order`/`AuthResult`/`SignupInput`). `AuthContext`가 `useAuth()` 호출 시 Provider 밖이면 에러를 던지도록 강화(런타임 동작은 동일, 타입에서 `user`가 항상 non-null인 것처럼 안전하게 씀)
+- **검증**: `npx tsc -b` 에러 0건, `npm run lint`(oxlint) 신규 경고 0건(기존 무관 경고 1건만 존재), 브라우저로 전체 플로우(Men/Women 홈+카테고리 필터, ProductDetail 색상/사이즈 선택, 로그인/회원가입+Toast, Cart→Order→OrderComplete→MyPage 3탭) 재확인 완료 — 마이그레이션 전과 픽셀 단위로 동일하게 렌더링됨
+- **주의**: 이 마이그레이션으로 이 문서의 이전 항목들(아래 섹션들)이 언급하는 `.jsx`/`.css` 경로는 실제로는 더 이상 존재하지 않음(전부 `.tsx`로 대체됨). 각 항목이 설명하는 기능 자체는 여전히 정확함
+
+### Order / OrderComplete 페이지 신규 완료 (2026-09-04)
+- Figma `64:288`("Order / Desktop") 기준으로 `src/pages/Order.tsx` 구현 — 배송지 카드(로그인 사용자의 `shippingName`/`shippingPhone`/`shippingAddress`가 있으면 표시, 없으면 "배송지 정보를 입력해주세요" + "입력하기"/"변경" 버튼으로 `/mypage?tab=settings` 이동), 주문상품(`OrderItemRow` 재사용, 읽기전용), 결제금액 패널(상품금액/배송비 고정 ₩3,000/총액 + 약관동의 체크박스로 게이팅되는 "결제하기" 버튼)
+- **Cart → Order 데이터 흐름**: `Cart.tsx`의 "주문하기"가 `navigate('/order', { state: { items: selectedItems } })`로 체크된 상품만 전달. `Order.tsx`는 `location.state`에 items가 없으면(직접 URL 접근 등) `/cart`로 즉시 리다이렉트하는 가드 포함
+- **주문완료 페이지 신규**(`src/pages/OrderComplete.tsx`, 라우트 `/order/complete`, Figma 디자인 없어 자체 구성) — 체크 아이콘(`lucide-react` `CheckCircle`, 브랜드 포인트 컬러)+"주문이 완료되었습니다"+주문 요약(상품 개수·총액)+"쇼핑 계속하기"(`/`)/"주문내역 보기"(`/mypage?tab=orders`) 버튼. `Order.tsx`의 "결제하기"가 `navigate(..., { replace: true })`로 이동해서 뒤로가기 시 `/order`가 아닌 `/cart`로 돌아감(중복결제 방지 의도). `state` 없이 직접 접근 시 `/`로 리다이렉트
+- **주문내역 실데이터 반영은 이번 범위 밖** — `OrderHistory`는 여전히 `src/mock/orders.ts` 고정 목업이라 방금 완료한 주문이 실제로 추가되지 않음(화면 흐름만 구현, 사용자 확인된 결정). Supabase 연동 단계에서 실데이터로 연결 예정
+- 최소 높이 640px(모바일 480px)로 여백 조정(사용자 요청, 기존 Cart 빈 상태의 560px에서 분리)
+- 브라우저로 Cart 부분선택→Order 표시 정확성→체크박스 게이팅→OrderComplete 요약→주문내역 이동, `/order`·`/order/complete` 직접 접근 가드까지 전체 플로우 확인 완료
 
 ### 기획 — 완료
 요구사항/IA/스타일가이드 정리 (`project-summary.md`, `docs/planning-for-figma.md`)
@@ -105,8 +126,8 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 - `Header.jsx`가 `user` 상태를 읽어서 반영: 비로그인 시 사람 아이콘 → `/login`, 로그인 시 사람 아이콘 → `/mypage`. **로그아웃 버튼은 헤더에서 제거함** — 로그아웃은 마이페이지에서만 가능(사용자 요청)
 - 비밀번호는 평문으로 localStorage에 저장됨(순수 프론트 목업이라 허용) — **Supabase 연동 시 이 파일 전체를 실제 Supabase Auth 호출로 교체 예정**, 그때 기존 localStorage 데이터는 폐기됨
 - Chrome 브라우저로 회원가입→로그인→헤더 상태 전환→로그아웃 전체 흐름 실제 동작 확인 완료
-- [ ] Order — 스텁(제목만)
-- [ ] 관리자 4종(상품/주문/회원/매출관리) — 스텁, 디자인 자체가 없어서 기능 위주로 심플하게 만들 예정
+- [x] **Order / OrderComplete** — 완료 (위 "Order / OrderComplete 페이지 신규 완료" 섹션 참고)
+- [ ] 관리자 4종(상품/주문/회원/매출관리) — 스텁(`.tsx`로 전환은 됐으나 내용은 그대로), 디자인 자체가 없어서 기능 위주로 심플하게 만들 예정
 
 ### 마이페이지 — 탭 구조로 전면 개편 완료 (2026-09-03)
 - `/mypage?tab=settings|orders|recent` 쿼리 파라미터 방식(카테고리 리스팅과 동일 패턴)으로 좌측 탭 메뉴 + 우측 콘텐츠 2단 레이아웃(`MyPage.jsx`, `MyPage.css`, 1024px 이하는 1컬럼)
@@ -166,19 +187,17 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 ---
 
 ## 다음 세션 시작 지점
-**마이페이지(계정설정/주문내역/최근본상품 탭) + 상품 카테고리 3종 확장(아우터/상의/하의, 실제 상품 사진 56장) + 원본 이미지 백업까지 끝내고 push 완료한 상태. 다음 할 일은 Order 페이지 — 아직 시작 안 함 (사용자의 명시적 "작업해" 대기 중).**
-- **사용자가 상품 이미지 비율(가로형→세로형) 크롭 작업을 진행 중** — 산출물은 `design-assets/img/clothing/_portrait_staging/{men,women}/...`에 쌓임(2026-09-03 기준 men/coats·jeans만 완료, 나머지 카테고리·women 쪽은 아직). 이 작업이 끝나면 `public/images/products/`의 해당 이미지를 크롭된 버전으로 교체하고 `src/mock/products.js`는 건드릴 필요 없음(파일 경로/이름 그대로 유지된다는 전제 하에 — 크롭된 파일명이 원본과 다르면 경로도 같이 확인 필요)
-- Order 노드는 이미 확보돼 있음: 위 "Figma 연동 상태" 섹션의 `64:287`(section, 이름 없음) → 프레임 `64:288` "Order / Desktop". `get_design_context(fileKey: lX1aiEVIERPEOuWTV3kmmq, nodeId: "64:288")`로 바로 가져올 수 있음.
-- Order 화면 구성(메타데이터로 이미 확인됨): 배송지 정보(이름/연락처/주소 + "변경" 버튼), 주문상품(`Order Item Row` 2개 — 기존 `OrderItemRow` 컴포넌트 재사용), 결제금액 패널(상품금액/배송비/총 결제금액 + 약관동의 체크박스 + 결제 버튼). Cart와 레이아웃 패턴(좌측 리스트 856px + 우측 요약 360px, gap-64)이 거의 동일해서 `Cart.jsx`/`Cart.css` 참고하면 빠름. 배송지 정보는 이제 `AccountSettingsForm`에서 저장한 `user.shippingName`/`shippingPhone`/`shippingAddress`를 기본값으로 채워주면 자연스러움.
-- Cart에서 넘어온 선택 상품을 Order에 전달하는 흐름은 아직 미정 — 지금은 각 페이지가 독립된 mock 데이터를 쓰고 있어서(Cart는 `src/mock/cart.js`), Order도 일단 자체 mock으로 만들지, `navigate('/order', { state: ... })`로 선택 항목을 넘길지 사용자와 확인 필요.
+**Order/OrderComplete 페이지 구현 + 프로젝트 전체 TypeScript+Tailwind CSS 마이그레이션까지 끝낸 상태(위 두 섹션 참고). 브라우저 검증 완료, `tsc -b`/`lint` 클린. 아직 git 커밋/push 전 — 다음 세션은 `git status`/`git diff` 확인 후 커밋부터 시작.**
+- **사용자가 상품 이미지 비율(가로형→세로형) 크롭 작업을 진행 중이었음** — 산출물은 `design-assets/img/clothing/_portrait_staging/{men,women}/...`에 쌓임(2026-09-03 기준 men/coats·jeans만 완료, 나머지 카테고리·women 쪽은 아직 미확인 — 진행 상황 사용자에게 재확인 필요). 끝나면 `public/images/products/`의 해당 이미지를 크롭된 버전으로 교체
+- 다음 우선순위는 아래 "앞으로 해야 할 것" 참고 — 관리자 4종(기능 구현) 또는 Supabase 실연동 중 사용자가 원하는 쪽부터
 
 ## 앞으로 해야 할 것 (전체, 우선순위 순)
-1. Order 페이지 (OrderItemRow + 가상결제)
-2. 관리자 4종 (기능 위주, 디자인 없이)
-3. Supabase 실연동: 테이블 스키마 설계(profiles/products/cart_items/orders/order_items) → 생성 → Storage 버킷 → 각 페이지 mock을 실제 쿼리로 교체 → `.env` 키 입력(기기마다). MyPage 주문내역/배송정보도 이 단계에서 실 데이터로 연결
-4. Supabase Auth 연결 (이메일/비밀번호), 로그인 상태 기반 라우트 보호. `src/context/AuthContext.jsx`의 localStorage 기반 로직을 실제 `signUp`/`signInWithPassword`/`signOut` 호출로 교체
-5. 반응형 정밀 검증 (지금은 1024px 기본 미디어쿼리만 있음, 실기기/개발자도구 미확인 — 이 세션에서 브라우저 창 리사이즈 시도했으나 환경 문제로 실패)
-6. 카테고리 리스팅 페이지(`CategoryListing`) 필터 기능 — 사이즈/가격대 등. 상품에 `subCategory` 필드는 이미 있어서(코트/셔츠/티셔츠/니트·스웨트/데님/슬랙스/반바지) 카테고리 내 세부 필터로 바로 활용 가능
-7. 카테고리 리스팅 페이지 페이지네이션 또는 무한스크롤 — 지금은 카테고리당 최대 12개(코트만 4개)라 아직 급하지 않지만, 상품 수 더 늘어나면 필요
-8. **상품 이미지 최적화** — `public/images/products/` 56장, 총 82MB(원본 그대로 사용 중). 리사이즈(카드에 필요한 해상도로 축소)/webp 변환 등 필요, 지금은 의도적으로 미룸(사용자 확인). 사용자가 이미지 비율(가로형→세로형 크롭) 수정 작업을 별도로 진행 중이라고 함(2026-09-03) — 다음에 새 이미지로 교체될 수 있음
-9. 카테고리 리스팅 페이지 상품카드 hover 인터랙션 추가 — 2026-09-03에 사용자 요청으로 hover 제거하고 이미지+이름+가격을 항상 노출하는 정적 카드로 바꿈(`ProductCard`의 `showInfo` prop). 나중에 사용자가 어떤 hover 효과를 원하는지 알려주면 그때 추가
+1. 관리자 4종 (기능 위주, 디자인 없이) — 지금은 제목만 있는 완전 스텁
+2. Supabase 실연동: 테이블 스키마 설계(profiles/products/cart_items/orders/order_items) → 생성 → Storage 버킷 → 각 페이지 mock을 실제 쿼리로 교체 → `.env` 키 입력(기기마다). MyPage 주문내역/배송정보, 방금 완료한 주문완료 플로우도 이 단계에서 실 데이터로 연결
+3. Supabase Auth 연결 (이메일/비밀번호), 로그인 상태 기반 라우트 보호. `src/context/AuthContext.tsx`의 localStorage 기반 로직을 실제 `signUp`/`signInWithPassword`/`signOut` 호출로 교체
+4. 반응형 정밀 검증 (Tailwind `lg:`(1024px) 브레이크포인트로 재작성은 했으나, 이 환경의 브라우저 자동화 도구가 창 리사이즈를 지원하지 않아 모바일 폭에서 실제 스크린샷 검증은 못 함 — 실기기/개발자도구에서 확인 필요)
+5. 카테고리 리스팅 페이지(`CategoryListing`) 필터 기능 — 사이즈/가격대 등. 상품에 `subCategory` 필드는 이미 있어서(코트/셔츠/티셔츠/니트·스웨트/데님/슬랙스/반바지) 카테고리 내 세부 필터로 바로 활용 가능
+6. 카테고리 리스팅 페이지 페이지네이션 또는 무한스크롤 — 지금은 카테고리당 최대 12개(코트만 4개)라 아직 급하지 않지만, 상품 수 더 늘어나면 필요
+7. **상품 이미지 최적화** — `public/images/products/` 56장, 총 82MB(원본 그대로 사용 중). 리사이즈(카드에 필요한 해상도로 축소)/webp 변환 등 필요, 지금은 의도적으로 미룸(사용자 확인). 사용자가 이미지 비율(가로형→세로형 크롭) 수정 작업을 별도로 진행 중이라고 함(2026-09-03) — 다음에 새 이미지로 교체될 수 있음
+8. 카테고리 리스팅 페이지 상품카드 hover 인터랙션 추가 — 2026-09-03에 사용자 요청으로 hover 제거하고 이미지+이름+가격을 항상 노출하는 정적 카드로 바꿈(`ProductCard`의 `showInfo` prop). 나중에 사용자가 어떤 hover 효과를 원하는지 알려주면 그때 추가
+9. `allowJs`를 껐으니(전체 `.ts`/`.tsx` 전환 완료) 이후 실수로 `.js`/`.jsx` 파일이 다시 섞이지 않는지 주의
