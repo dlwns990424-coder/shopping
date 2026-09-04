@@ -9,11 +9,22 @@
 ---
 
 ## 마지막 갱신
-- 날짜: 2026-09-04
-- 작업 환경: (기록 안 됨, 다음부터 표시)
-- **아직 git 커밋/push 안 함** — 이번 세션 변경사항(Order/OrderComplete 페이지 신규 + 전체 TypeScript/Tailwind CSS 마이그레이션)은 로컬 워킹트리에만 있음. 다음 세션 시작 시 `git status`로 확인 후 커밋 필요.
-- **이번 세션 핵심**: (1) Order/OrderComplete 페이지 신규 구현, (2) 프로젝트 전체를 **React(JS)+커스텀 CSS → TypeScript+Tailwind CSS**로 전면 마이그레이션(아래 "기술 스택 전환" 섹션 참고). 이 마이그레이션으로 **이 문서의 기존 항목들에 나오는 `.jsx`/`.css` 파일명은 전부 `.tsx`로 바뀌었고, 스타일은 Tailwind 유틸리티 클래스로 재작성됨** — 각 항목이 설명하는 기능/디자인 자체는 여전히 유효하나, 정확한 파일 위치를 찾을 땐 실제 파일 트리를 우선 확인할 것
-- 저장소에 이미지가 많이 들어가 있어서 `.git` 용량이 약 97MB — 다른 컴퓨터에서 최초 `git clone` 시 예전보다 시간이 좀 걸릴 수 있음
+- 날짜: 2026-09-04 (저녁)
+- **git 상태: 전부 커밋 + push 완료, 워킹트리 클린.** 다음 세션은 `git pull`만 하면 최신 상태.
+- **이번 세션(오늘) 핵심 — 아래 "완료된 작업"에 없는 최신 내용**:
+  1. 상품 상세페이지 바로구매/장바구니 버튼 동작 안 하던 버그 수정
+  2. 컬러 스와치를 상품당 실제 촬영 색상 하나만(다중 가짜 옵션 제거) — `Product.color: {label, hex}` 필드로 전환, `src/mock/products.ts` 전 상품에 실제 사진 보고 색상/설명 직접 기재(모델 신장 문구는 넣지 않기로 확정)
+  3. **위시리스트 신규 구현** — `WishlistContext`(localStorage), `/wishlist` 페이지, 상품카드 hover 시에만 하트 노출(찜한 상태여도 hover 전엔 항상 숨김), 비로그인도 사용 가능
+  4. **로그인 게이팅 + 선택 모달** — `AuthModalContext` + `RequireAuth`(라우트 가드): 장바구니/주문/마이페이지는 로그인 필요, 클릭 시 바로 `/login` 리다이렉트가 아니라 "로그인이 필요합니다" 모달(로그인하기/닫기)을 띄움
+  5. 마이페이지 로그아웃 버튼 → 확인 모달("로그아웃 하시겠습니까?") 추가
+  6. **주문내역 실데이터 연결** — `OrderHistoryContext` 신규, 결제 완료 시 실제 주문이 저장되고 로그인 계정의 `userEmail`로 필터링돼 마이페이지 주문내역에 표시됨 (기존 `mock/orders.ts` 고정 목업 제거)
+  7. 장바구니 6개 초과 시 "더보기" 버튼(전체 페이지 스크롤 방식, 내부 스크롤 아님) + 우측 결제요약 패널 `lg:sticky`. 위시리스트 카드 그리드 데스크탑 6열, 카드 하단 여백 조정
+  8. Toast 애니메이션 버그 수정(슬라이드 후 오른쪽으로 순간이동하던 문제) — Tailwind v4의 `translate` 속성과 커스텀 `@keyframes`의 `transform` 충돌이 원인, `-translate-x-1/2` 유틸리티 제거+`animation-fill-mode: forwards` 추가로 해결
+  9. **상의 - 후드 소분류 신규** — `public/images/products/{men,women}/hoodies/`에 사용자가 추가한 사진 4장으로 상품 4개 추가(`img()` 헬퍼에 확장자 파라미터 추가해 `.jpg` 지원)
+  10. `CategoryListing`에 **소분류 필터 칩 UI** 추가(기본값 "전체") — 상의(셔츠/티셔츠/니트·스웨트/후드), 하의(데님/슬랙스/반바지)는 실존 상품 기준, **아우터는 코트 외 자켓·블레이저/패딩/가디건도 칩으로 노출**(아직 상품 없음 → 클릭 시 "0개 상품" 빈 상태, 사진 준비되면 상품만 추가하면 됨)
+  11. 헤더/푸터 좌우 패딩을 본문 섹션과 동일하게 통일(`px-24 lg:px-80`) — 기존엔 헤더만 `px-32` 고정이라 어긋나 있었음
+  12. **Figma 작업 시작** — 기획서 페이지 신규 제작 완료(아래 "Figma 연동 상태" 참고), Components 페이지에 Chip/Toast/Modal 컴포넌트 3종 신규 추가. 기존 5개 와이어프레임(MEN/Product Detail/Cart/Order/HOME)은 **아직 코드와 어긋난 채로 미수정** — 다음 세션에서 이어서 할 것(아래 참고)
+- 저장소에 이미지가 많이 들어가 있어서 `.git` 용량이 약 97MB+ — 다른 컴퓨터에서 최초 `git clone` 시 예전보다 시간이 좀 걸릴 수 있음
 
 ## 다른 컴퓨터에서 이어서 작업하는 법
 1. 프로젝트 폴더에서: 처음이면 `git clone https://github.com/dlwns990424-coder/shopping.git`, 이미 있으면 `git pull`
@@ -39,14 +50,17 @@
 - Figma 원격 MCP(`plugin:figma:figma`, OAuth 인증, mcp.figma.com) 인증 완료 (계정: 뤠준, dlwns990424@gmail.com, Pro 플랜). 예전에 쓰던 로컬 데스크톱 플러그인(`figma@claude-plugins-official`)과는 별개 서버 — 새 컴퓨터에서도 OAuth 로그인만 하면 되고 데스크톱 앱 설치/재인증 불필요.
 - 파일: **"first-shop 쇼핑몰 디자인"** — `https://www.figma.com/design/lX1aiEVIERPEOuWTV3kmmq/...`, fileKey `lX1aiEVIERPEOuWTV3kmmq`
 - **주의**: `get_metadata(fileKey)`를 nodeId 없이 호출하면 최상위 페이지로 "Cover & Foundations"(0:1)만 나옴(원인 불명, API 인덱싱 이슈로 추정 — 데스크톱 앱 의존 문제 아니었음, OAuth 원격 연동에서도 동일). 실제 와이어프레임은 **"Wireframe · User"라는 별도 페이지**(canvas id `5:63`)에 있고, 이 nodeId를 직접 넣어서 `get_metadata(fileKey, nodeId:"5:63")`로 호출해야 전체 구조가 나옴.
-- **완료된 데스크톱 와이어프레임 노드 id (`5:63` 페이지 하위)**:
-  - MEN: section `18:2` (frame `18:3`)
-  - Product Detail: section `42:100` (frame `42:101`)
-  - Cart: section `54:169` — `Cart / Desktop`(`54:170`, 상품 3개 담긴 상태: 전체선택 체크박스+선택삭제, Cart Item Row 3개, 우측 주문요약+결제 버튼), `Cart / Empty`(`54:306`, 빈 장바구니 상태: 아이콘+안내문구+쇼핑 유도 버튼)
-  - Order: section `64:287` (frame `64:288` "Order / Desktop" — 배송지, 주문상품 Order Item Row 2개, 결제금액 패널, 약관 체크박스, 결제 버튼)
-  - HOME: section `79:396` (frame `79:397`)
-- **WOMEN/로그인/회원가입/마이페이지는 Figma 없이 코드로 직접 구현하기로 결정** (사용자 승인) — 관리자 4종은 Figma 자체가 없음
-- 재사용 로컬 컴포넌트(파일 내 "Components" 페이지 5:62): Header(16:20), Footer(14:32), Product Card(10:49, 기본상태에서 이름/가격 숨김·호버시 노출), Category Card(23:21), Button(7:83), Hero Pill Button(24:195). 폰트는 Noto Sans KR(Figma 내부용, 코드는 Pretendard)
+- **파일 내 페이지**: Cover & Foundations(`0:1`), Components(`5:62`), Wireframe · User(`5:63`), **기획서(`129:2`, 2026-09-04 신규)**
+- **와이어프레임 노드 id (`5:63` 페이지 하위) — ⚠️ 아래 5개는 최신 코드와 어긋난 상태로 아직 미수정**:
+  - MEN: section `18:2` (frame `18:3`) — ⚠️ 실제 코드엔 있는 "THE ESSENTIAL LAYER" 에디토리얼 배너 섹션이 와이어프레임엔 빠져있음
+  - Product Detail: section `42:100` (frame `42:101`) — ⚠️ 제품정보 텍스트에 "모델 신장 183cm, L 사이즈 착용" 문구가 아직 남아있음(실제 서비스는 모델 신장 미표기로 확정됐으니 지워야 함)
+  - Cart: section `54:169` — `Cart / Desktop`(`54:170`), `Cart / Empty`(`54:306`) — ⚠️ "더보기"(6개 초과 시)/sticky 결제요약 반영 안 됨
+  - Order: section `64:287` (frame `64:288`)
+  - HOME: section `79:396` — ⚠️ **삭제 대상**: 실제 서비스는 "/"와 "/men"이 완전히 같은 페이지라 별도 HOME 화면이 없음
+  - 이 5개 수정 작업(Phase 1)을 서브에이전트로 진행하다 사용자가 중단시켜서 미완료 상태로 남음 — 재개 시 위 항목들만 고치면 됨
+  - **아직 와이어프레임 자체가 없는 페이지(Phase 2, 착수 전)**: WOMEN, Category Listing(소분류 칩 포함), Wishlist, Login, Signup, MyPage(탭형), Order Complete, Admin 4종
+- **재사용 로컬 컴포넌트(Components 페이지 `5:62`)**: Header(`16:20`), Footer(`14:32`), Product Card(`10:49`), Category Card(`23:21`), Button(`7:83`), Hero Pill Button(`24:195`), Input(`7:112`), Checkbox(`10:16`), Badge(`10:28`), Swatch(`41:7`), Size Selector(`41:19`), Icon Button(`41:31`), Quantity Stepper(`52:177`), Cart Item Row(`52:203`), Order Item Row(`63:17`), **Chip(`125:10`, 소분류 필터용, 2026-09-04 신규)**, **Toast(`125:19`, 2026-09-04 신규)**, **Modal(`128:30`, LoginRequired/LogoutConfirm, 2026-09-04 신규)**. 폰트는 Noto Sans KR(Figma 내부용, 코드는 Pretendard)
+- **기획서 페이지(`129:2`) — 2026-09-04 신규 완성**: Section1 서비스개요&페르소나(`129:3`, 포트폴리오목적/서비스목적 구분+페르소나 2명 특징·페인포인트·니즈·행동패턴) / Section2 IA(`129:5`) / Section3 화면별기능정의(`129:7`) / Section4 핵심사용자플로우(`129:9`) / Section5 데이터모델(`129:11`) / Section6 기술스택(`129:13`). "향후 계획"/"차별화 포인트" 섹션은 사용자 요청으로 의도적으로 뺌
 
 ---
 
@@ -68,7 +82,7 @@
 - Figma `64:288`("Order / Desktop") 기준으로 `src/pages/Order.tsx` 구현 — 배송지 카드(로그인 사용자의 `shippingName`/`shippingPhone`/`shippingAddress`가 있으면 표시, 없으면 "배송지 정보를 입력해주세요" + "입력하기"/"변경" 버튼으로 `/mypage?tab=settings` 이동), 주문상품(`OrderItemRow` 재사용, 읽기전용), 결제금액 패널(상품금액/배송비 고정 ₩3,000/총액 + 약관동의 체크박스로 게이팅되는 "결제하기" 버튼)
 - **Cart → Order 데이터 흐름**: `Cart.tsx`의 "주문하기"가 `navigate('/order', { state: { items: selectedItems } })`로 체크된 상품만 전달. `Order.tsx`는 `location.state`에 items가 없으면(직접 URL 접근 등) `/cart`로 즉시 리다이렉트하는 가드 포함
 - **주문완료 페이지 신규**(`src/pages/OrderComplete.tsx`, 라우트 `/order/complete`, Figma 디자인 없어 자체 구성) — 체크 아이콘(`lucide-react` `CheckCircle`, 브랜드 포인트 컬러)+"주문이 완료되었습니다"+주문 요약(상품 개수·총액)+"쇼핑 계속하기"(`/`)/"주문내역 보기"(`/mypage?tab=orders`) 버튼. `Order.tsx`의 "결제하기"가 `navigate(..., { replace: true })`로 이동해서 뒤로가기 시 `/order`가 아닌 `/cart`로 돌아감(중복결제 방지 의도). `state` 없이 직접 접근 시 `/`로 리다이렉트
-- **주문내역 실데이터 반영은 이번 범위 밖** — `OrderHistory`는 여전히 `src/mock/orders.ts` 고정 목업이라 방금 완료한 주문이 실제로 추가되지 않음(화면 흐름만 구현, 사용자 확인된 결정). Supabase 연동 단계에서 실데이터로 연결 예정
+- **(2026-09-04 갱신) 주문내역 실데이터 연결 완료** — 위 문장은 작성 당시 기준이며, 이후 세션에서 `OrderHistoryContext` 신규 구현으로 결제 완료 시 실제 주문이 저장되고 마이페이지 주문내역에 반영되도록 바뀜(`src/mock/orders.ts`는 삭제됨). 자세한 내용은 이 문서 최상단 "마지막 갱신" 참고
 - 최소 높이 640px(모바일 480px)로 여백 조정(사용자 요청, 기존 Cart 빈 상태의 560px에서 분리)
 - 브라우저로 Cart 부분선택→Order 표시 정확성→체크박스 게이팅→OrderComplete 요약→주문내역 이동, `/order`·`/order/complete` 직접 접근 가드까지 전체 플로우 확인 완료
 
@@ -133,7 +147,7 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 - `/mypage?tab=settings|orders|recent` 쿼리 파라미터 방식(카테고리 리스팅과 동일 패턴)으로 좌측 탭 메뉴 + 우측 콘텐츠 2단 레이아웃(`MyPage.jsx`, `MyPage.css`, 1024px 이하는 1컬럼)
 - `MyPageNav.jsx` — 계정 설정/주문 내역/최근 본 상품 탭 + 로그아웃(작게, 하단 별도)
 - `AccountSettingsForm.jsx` — 닉네임/이메일(읽기전용)/휴대폰번호 + 배송정보(수령인/연락처/주소), 회원가입과 동일한 정규식 검증, 저장 시 Toast
-- `OrderHistory.jsx` — `src/mock/orders.js`(주문 2건, `OrderItemRow` 재사용) 표시. **주문이 실제 로그인 계정과 연결되어 있지 않음(고정 목업)** — Supabase 연동 시 실제 `orders` 테이블과 연결 예정
+- `OrderHistory.tsx` — (2026-09-04 갱신) `OrderHistoryContext`에서 실제 결제 완료된 주문을 로그인 계정의 `userEmail`로 필터링해 표시. `mock/orders.ts`는 삭제됨. Supabase 연동 시 이 Context 내부만 실제 쿼리로 교체하면 됨
 - `RecentlyViewed.jsx` + `src/utils/recentlyViewed.js` — `ProductDetail` 방문 시 `localStorage`(`shop_recently_viewed`, 최대 8개)에 기록, 마이페이지에서 `ProductCard` 그리드로 표시. 실제로 동작하는 기능(스텁 아님)
 - `.mypage-content`에 데스크톱 전용 `min-height: 600px`(가장 긴 탭 기준) — 탭 전환 시 Footer 위치가 들쭉날쭉하지 않도록. 1024px 이하 미디어쿼리에서는 `min-height: 0`으로 해제(모바일에서 빈 여백 방지)
 
@@ -186,10 +200,12 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 
 ---
 
-## 다음 세션 시작 지점
-**Order/OrderComplete 페이지 구현 + 프로젝트 전체 TypeScript+Tailwind CSS 마이그레이션까지 끝낸 상태(위 두 섹션 참고). 브라우저 검증 완료, `tsc -b`/`lint` 클린. 아직 git 커밋/push 전 — 다음 세션은 `git status`/`git diff` 확인 후 커밋부터 시작.**
-- **사용자가 상품 이미지 비율(가로형→세로형) 크롭 작업을 진행 중이었음** — 산출물은 `design-assets/img/clothing/_portrait_staging/{men,women}/...`에 쌓임(2026-09-03 기준 men/coats·jeans만 완료, 나머지 카테고리·women 쪽은 아직 미확인 — 진행 상황 사용자에게 재확인 필요). 끝나면 `public/images/products/`의 해당 이미지를 크롭된 버전으로 교체
-- 다음 우선순위는 아래 "앞으로 해야 할 것" 참고 — 관리자 4종(기능 구현) 또는 Supabase 실연동 중 사용자가 원하는 쪽부터
+## 다음 세션 시작 지점 (2026-09-04 저녁 기준, 최신)
+**코드 쪽은 전부 커밋+push 완료, 워킹트리 클린.** 이번 세션 마지막 작업은 Figma "기획서" 페이지 제작(완료)이었고, 다음은 아래 중 하나부터:
+1. **Figma 와이어프레임 정리 (Phase 1 재개)** — Wireframe·User 페이지의 HOME 섹션(`79:396`) 삭제, MEN(`18:2`)에 에디토리얼 배너 추가, Product Detail(`42:100`)에서 모델 신장 문구 제거, Cart(`54:169`)에 더보기/sticky 표기 추가. (위 "Figma 연동 상태" 섹션 참고)
+2. **Figma 와이어프레임 신규 (Phase 2, 사용자가 보류 요청한 상태)** — WOMEN/Category Listing/Wishlist/Login/Signup/MyPage/Order Complete/Admin 4종. 사용자가 다시 진행하라고 명시할 때까지 손대지 말 것
+3. 아우터 소분류(자켓·블레이저/패딩/가디건) — 사진 없어서 칩만 만들어두고 실제 상품은 비어있음. 사용자가 사진을 추가해주면 후드 때와 같은 방식(`img()` 헬퍼 + `src/mock/products.ts`에 항목 추가)으로 채우면 됨
+4. 그 외 우선순위는 아래 "앞으로 해야 할 것" 참고(관리자 4종 기능 구현, Supabase 실연동 등 — 이 목록은 아직 예전 상태라 실제로 뭐가 남았는지는 이 문서 최상단 "마지막 갱신"과 대조해서 확인할 것)
 
 ## 앞으로 해야 할 것 (전체, 우선순위 순)
 1. 관리자 4종 (기능 위주, 디자인 없이) — 지금은 제목만 있는 완전 스텁
