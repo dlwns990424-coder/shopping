@@ -1,8 +1,8 @@
 import type { Gender, Product } from '../types'
 
-function img(gender: Gender, folder: string, file: string, index: number) {
+function img(gender: Gender, folder: string, file: string, index: number, ext: string = 'png') {
   const num = String(index).padStart(2, '0')
-  return `/images/products/${gender}/${folder}/${gender}-${file}-${num}.png`
+  return `/images/products/${gender}/${folder}/${gender}-${file}-${num}.${ext}`
 }
 
 export const products: Product[] = [
@@ -92,6 +92,18 @@ export const products: Product[] = [
     id: 'men-knit-4', name: '케이블 니트', price: '₩85,000', gender: 'men', category: '상의', subCategory: '니트·스웨트',
     image: img('men', 'tops', 'top', 4), color: { label: '그레이', hex: '#c7c7c7' },
     description: '그레이 톤의 케이블 패턴 니트. 클래식한 무늬로 자켓 이너로도 활용하기 좋습니다.\n어깨너비 51cm · 가슴단면 58cm · 총장 67cm\n울 40% · 아크릴 60%\n드라이클리닝 권장',
+  },
+
+  // ── MEN · 상의 · 후드 ──
+  {
+    id: 'men-hoodie-1', name: '오버사이즈 후드 티셔츠', price: '₩65,000', gender: 'men', category: '상의', subCategory: '후드',
+    image: img('men', 'hoodies', 'hoodie', 1, 'jpg'), color: { label: '블랙', hex: '#1c1c1c' },
+    description: '블랙 컬러의 오버사이즈 후드 티셔츠. 넉넉한 기장과 두툼한 기모 안감으로 편안하게 착용할 수 있습니다.\n어깨너비 56cm · 가슴단면 63cm · 총장 71cm\n코튼 80% · 폴리에스터 20%\n드라이클리닝 권장',
+  },
+  {
+    id: 'men-hoodie-2', name: '오버사이즈 후드 티셔츠', price: '₩65,000', gender: 'men', category: '상의', subCategory: '후드',
+    image: img('men', 'hoodies', 'hoodie', 2, 'jpg'), color: { label: '그레이', hex: '#c7c7c7' },
+    description: '멜란지 그레이 톤의 오버사이즈 후드 티셔츠. 두툼한 기모 안감과 넉넉한 기장으로 데일리하게 입기 좋습니다.\n어깨너비 56cm · 가슴단면 63cm · 총장 71cm\n코튼 80% · 폴리에스터 20%\n드라이클리닝 권장',
   },
 
   // ── MEN · 하의 · 데님 ──
@@ -246,6 +258,18 @@ export const products: Product[] = [
     id: 'women-knit-4', name: '케이블 니트', price: '₩72,000', gender: 'women', category: '상의', subCategory: '니트·스웨트',
     image: img('women', 'tops', 'top', 4), color: { label: '오트밀베이지', hex: '#d9cfc0' },
     description: '오트밀 베이지 톤의 케이블 니트. 클래식한 무늬가 포인트인 크루넥 디자인입니다.\n어깨너비 41cm · 가슴단면 50cm · 총장 59cm\n울 35% · 아크릴 65%\n드라이클리닝 권장',
+  },
+
+  // ── WOMEN · 상의 · 후드 ──
+  {
+    id: 'women-hoodie-1', name: '오버사이즈 후드 티셔츠', price: '₩62,000', gender: 'women', category: '상의', subCategory: '후드',
+    image: img('women', 'hoodies', 'hoodie', 1, 'jpg'), color: { label: '차콜그레이', hex: '#4a4a4c' },
+    description: '차콜 그레이 톤의 오버사이즈 후드 티셔츠. 여유로운 기장과 두툼한 기모 안감으로 편안하게 착용할 수 있습니다.\n어깨너비 45cm · 가슴단면 55cm · 총장 59cm\n코튼 80% · 폴리에스터 20%\n드라이클리닝 권장',
+  },
+  {
+    id: 'women-hoodie-2', name: '크롭 후드 티셔츠', price: '₩58,000', gender: 'women', category: '상의', subCategory: '후드',
+    image: img('women', 'hoodies', 'hoodie', 2, 'jpg'), color: { label: '버건디', hex: '#5c1a29' },
+    description: '버건디 컬러의 크롭 후드 티셔츠. 박시한 기장으로 하의와 매치하기 좋습니다.\n어깨너비 41cm · 가슴단면 51cm · 총장 45cm\n코튼 80% · 폴리에스터 20%\n드라이클리닝 권장',
   },
 
   // ── WOMEN · 하의 · 데님 ──

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import ProductCard from './ProductCard'
 import type { Product } from '../types'
 
@@ -8,6 +8,12 @@ const TABS = [
   { id: '하의', label: '하의' },
 ]
 
+const SUB_CATEGORIES: Record<string, string[]> = {
+  아우터: ['코트', '자켓·블레이저', '패딩', '가디건'],
+  상의: ['셔츠', '티셔츠', '니트·스웨트', '후드'],
+  하의: ['데님', '슬랙스', '반바지'],
+}
+
 interface CategoryListingProps {
   genderLabel: string
   basePath: string
@@ -16,11 +22,28 @@ interface CategoryListingProps {
 }
 
 function CategoryListing({ genderLabel, basePath, products, categoryParam }: CategoryListingProps) {
+  const [searchParams] = useSearchParams()
+  const subParam = searchParams.get('sub') ?? 'all'
+
   const title = categoryParam === 'all' ? '전체 상품' : categoryParam
-  const displayedProducts =
+  const categoryProducts =
     categoryParam === 'all'
       ? products
       : products.filter((product) => product.category === categoryParam)
+
+  const subCategories = SUB_CATEGORIES[categoryParam] ?? []
+
+  const displayedProducts =
+    subParam === 'all'
+      ? categoryProducts
+      : categoryProducts.filter((product) => product.subCategory === subParam)
+
+  const subTabClass = (active: boolean) =>
+    `rounded-full border px-16 py-6 text-body-sm no-underline transition-colors ${
+      active
+        ? 'border-primary bg-primary text-surface'
+        : 'border-line text-secondary hover:border-primary hover:text-primary'
+    }`
 
   return (
     <div className="px-24 pb-32 pt-32 lg:px-80 lg:pb-64 lg:pt-48">
@@ -44,6 +67,23 @@ function CategoryListing({ genderLabel, basePath, products, categoryParam }: Cat
           </Link>
         ))}
       </div>
+
+      {categoryParam !== 'all' && subCategories.length > 1 && (
+        <div className="flex flex-wrap gap-8 pt-16">
+          <Link to={`${basePath}?category=${categoryParam}`} className={subTabClass(subParam === 'all')}>
+            전체
+          </Link>
+          {subCategories.map((sub) => (
+            <Link
+              key={sub}
+              to={`${basePath}?category=${categoryParam}&sub=${sub}`}
+              className={subTabClass(subParam === sub)}
+            >
+              {sub}
+            </Link>
+          ))}
+        </div>
+      )}
 
       <div className="py-16 text-secondary">
         <span className="text-body-sm">{displayedProducts.length}개 상품</span>
