@@ -46,7 +46,7 @@ function CategoryListing({ genderLabel, basePath, products, categoryParam }: Cat
     }`
 
   return (
-    <div className="px-24 pb-32 pt-32 lg:px-80 lg:pb-64 lg:pt-48">
+    <div className="px-24 pb-32 pt-32 md:px-48 md:pt-48 lg:px-80 lg:pb-64">
       <div className="mb-24">
         <p className="text-caption mb-8 tracking-[0.08em] text-secondary">
           T&amp;L | {genderLabel}

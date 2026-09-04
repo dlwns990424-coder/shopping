@@ -9,8 +9,23 @@
 ---
 
 ## 마지막 갱신
-- 날짜: 2026-09-04 (저녁)
-- **git 상태: 전부 커밋 + push 완료, 워킹트리 클린.** 다음 세션은 `git pull`만 하면 최신 상태.
+- 날짜: 2026-09-04 (밤)
+- **git 상태: 미커밋 변경 있음** — `src/index.css`, `src/components/{Header,Footer,ProductCard,CategoryListing,CartItemRow}.tsx`, `src/pages/{MyPage,Men,Women,ProductDetail}.tsx` 10개 파일. 사용자가 커밋 요청 전까지는 그대로 둘 것.
+- **반응형 작업 후속(같은 세션, Abercrombie/H&M 레퍼런스 조사 후 사용자 지시로 진행)**:
+  1. **Men/Women 섹션 순서 변경** — 기존 "Hero → 에디토리얼 배너 → NEW ARRIVAL → SHOP BY CATEGORY" 순서를 "Hero → 에디토리얼 배너 → SHOP BY CATEGORY → NEW ARRIVAL"로 스왑(`src/pages/Men.tsx`, `Women.tsx`)
+  2. **Hero 섹션을 모바일/태블릿/PC 전부 `100vh` 고정 + 헤더가 그 위에 position으로 떠 있는 구조로 변경** — 기존엔 `<main>`에 전역 `pt-64`(헤더 높이만큼)가 있어서 Hero가 헤더 아래부터 시작(`h-dvh` 추가로 실질적으로 100vh+64px를 차지). Hero 섹션에만 `-mt-64`(음수 마진으로 헤더 높이만큼 끌어올림) + `h-dvh → h-screen`(100vh 고정)을 줘서 Hero가 뷰포트 최상단(y=0)부터 정확히 100vh를 채우고, 고정된 헤더가 그 위에 겹쳐 뜨도록 함. 다음 섹션(에디토리얼 배너)은 정확히 100vh 지점부터 이어짐(겹침/틈 없음, 브라우저로 확인 완료). 다른 페이지들의 `pt-64`는 안 건드림(Hero가 있는 Men/Women만 해당)
+  3. **PDP(`ProductDetail.tsx`) 모바일/태블릿 하단 고정 구매바 추가** — 기존 "장바구니 담기"/"바로 구매" 버튼은 `lg:` 이상에서만 보이도록(`hidden lg:flex`) 유지하고, `lg:hidden`인 별도 `fixed inset-x-0 bottom-0` 바를 추가해서 두 버튼을 가로로 나란히 배치(모바일에서 스크롤해도 항상 하단에 고정, `env(safe-area-inset-bottom)`로 아이폰 하단 홈 인디케이터 여백 처리). 본문에 `pb-112 lg:pb-0`을 줘서 마지막 콘텐츠가 바에 가리지 않게 함(단, 맨 아래로 끝까지 스크롤하면 Footer 일부가 바에 덮이는 건 의도된 정상 동작 — 업계 흔한 트레이드오프)
+  4. ProductCard의 hover 정책(데스크톱만 hover, 모바일/태블릿은 항상 노출)은 이전 반응형 작업에서 이미 적용돼 있어서 이번엔 추가 수정 없이 재확인만 함
+  5. 브라우저(iframe 트릭)로 375/768/1280px 모두 재확인 완료 — Hero 겹침 없음, 섹션 순서, PDP 고정바 표시/숨김 정상
+- **이전 반응형 작업 핵심 (같은 세션)**:
+  1. **브레이크포인트 3단으로 확장** — 기존엔 `lg:`(1024px) 하나만 써서 모바일/태블릿이 완전히 동일한 레이아웃이었음. `src/index.css`의 `page-section`/`product-grid`/`category-grid`에 `md:`(768px) 단계 추가 — `product-grid` 2→3→4열, `category-grid` 1→2→3열. `Header`/`Footer`/`CategoryListing` 좌우 패딩도 `px-24 → md:px-48 → lg:px-80`로 통일
+  2. **헤더 실버그 발견+수정** — 375px 폭에서 로고 이미지가 flex-shrink로 완전히 0폭이 되어 사라지는 버그 발견(`shrink-0` 누락). 로고/네비/아이콘 gap도 모바일에서 좁게(`gap-16` md 이상은 `gap-32`), 로고 높이도 `h-22 → md:h-26`로 축소해서 375px에서 전체 헤더 콘텐츠가 실제로 들어가도록 수정(기존엔 좁은 화면에서 폭이 약 90px 초과했음)
+  3. **장바구니 아이템 행(`CartItemRow`) 실버그 발견+수정** — 375px에서 `QuantityStepper`(−/숫자/+, `overflow-hidden`)가 flex-shrink로 짜부라져 거의 안 보이는 얇은 조각으로 렌더링되던 버그 발견. `md:contents` 트릭으로 모바일에선 "체크박스+이미지+정보" 1행 / "수량조절+삭제" 2행으로 줄바꿈, `md:` 이상에서는 `display:contents`로 원래의 한 줄 레이아웃 그대로 복원
+  4. **`ProductCard`의 hover-only 인터랙션을 터치 기기 대응으로 변경** — 위시리스트 하트 버튼과 이름/가격 오버레이가 기존엔 `group-hover`로만 나타나서(데스크톱 마우스 전제) 모바일/태블릿(터치, hover 없음)에서는 사실상 안 보이거나 발견하기 어려웠음. `lg:` 이상에서만 hover-reveal 유지, 그 아래(모바일/태블릿)에서는 항상 노출되도록 변경
+  5. **`MyPage` 좌측 탭+우측 콘텐츠 2단 레이아웃의 분기점을 `lg:`(1024px) → `md:`(768px)로 변경** — 태블릿 폭(768~1024px)에서도 사이드바+콘텐츠가 나란히 보이도록(기존엔 이 구간에서 모바일과 동일하게 세로로 쌓였음)
+  6. **검증 방법**: 이 환경 브라우저 자동화 도구의 `resize_window`가 실제로는 창 크기를 못 바꾸는 게 재확인됨(이전 기록대로) — 대신 빈 탭에 `iframe`(원하는 폭으로 고정)을 만들어 그 안에 앱을 로드하는 방식으로 375/768/1280px 폭을 흉내내어 스크린샷 검증함. Header/Men·Women/CategoryListing/ProductDetail/Cart/Order/MyPage/Wishlist/Login·Signup 전부 이 방식으로 확인 완료
+  7. ProductDetail(1024px 분기 그대로 유지, 태블릿에서도 스택형이 맞다고 판단), Order/OrderItemRow, Wishlist, Login/Signup은 기존 코드가 이미 반응형으로 잘 되어 있어서 수정 없이 확인만 함
+- **다음에 재확인하면 좋을 것**: 관리자 4종은 이번 반응형 작업 범위에서 의도적으로 제외함(스텁 상태라 디자인 자체가 없음)
 - **이번 세션(오늘) 핵심 — 아래 "완료된 작업"에 없는 최신 내용**:
   1. 상품 상세페이지 바로구매/장바구니 버튼 동작 안 하던 버그 수정
   2. 컬러 스와치를 상품당 실제 촬영 색상 하나만(다중 가짜 옵션 제거) — `Product.color: {label, hex}` 필드로 전환, `src/mock/products.ts` 전 상품에 실제 사진 보고 색상/설명 직접 기재(모델 신장 문구는 넣지 않기로 확정)
@@ -200,10 +215,10 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 
 ---
 
-## 다음 세션 시작 지점 (2026-09-04 저녁 기준, 최신)
-**코드 쪽은 전부 커밋+push 완료, 워킹트리 클린.** 이번 세션 마지막 작업은 Figma "기획서" 페이지 제작(완료)이었고, 다음은 아래 중 하나부터:
-1. **Figma 와이어프레임 정리 (Phase 1 재개)** — Wireframe·User 페이지의 HOME 섹션(`79:396`) 삭제, MEN(`18:2`)에 에디토리얼 배너 추가, Product Detail(`42:100`)에서 모델 신장 문구 제거, Cart(`54:169`)에 더보기/sticky 표기 추가. (위 "Figma 연동 상태" 섹션 참고)
-2. **Figma 와이어프레임 신규 (Phase 2, 사용자가 보류 요청한 상태)** — WOMEN/Category Listing/Wishlist/Login/Signup/MyPage/Order Complete/Admin 4종. 사용자가 다시 진행하라고 명시할 때까지 손대지 말 것
+## 다음 세션 시작 지점 (2026-09-04 밤 기준, 최신)
+**코드 쪽 미커밋 변경 있음(위 "마지막 갱신" 참고) — 사용자가 커밋하라고 하기 전까진 그대로 둘 것.** 이번 세션은 모바일/태블릿 반응형 작업(사용자 화면 전체, 관리자 제외)을 완료했고, 다음은 아래 중 하나부터:
+1. **커밋 여부 확인** — 반응형 작업 변경사항을 커밋할지 사용자에게 먼저 물어볼 것 (아직 안 물어봤으면)
+2. Figma 작업 — 사용자가 명시적으로 "보류하자"고 해서 손대지 않은 상태. Phase 1(와이어프레임 5개 최신화)/Phase 2(신규 와이어프레임) 모두 사용자가 재개 요청할 때까지 대기
 3. 아우터 소분류(자켓·블레이저/패딩/가디건) — 사진 없어서 칩만 만들어두고 실제 상품은 비어있음. 사용자가 사진을 추가해주면 후드 때와 같은 방식(`img()` 헬퍼 + `src/mock/products.ts`에 항목 추가)으로 채우면 됨
 4. 그 외 우선순위는 아래 "앞으로 해야 할 것" 참고(관리자 4종 기능 구현, Supabase 실연동 등 — 이 목록은 아직 예전 상태라 실제로 뭐가 남았는지는 이 문서 최상단 "마지막 갱신"과 대조해서 확인할 것)
 

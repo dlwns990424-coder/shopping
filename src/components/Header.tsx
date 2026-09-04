@@ -64,12 +64,12 @@ function Header() {
     }`
 
   return (
-    <header className="fixed inset-x-0 top-0 z-[100] flex h-64 items-center gap-32 border-b border-line bg-surface px-24 lg:px-80">
-      <Link to="/" className="inline-flex items-center">
-        <img src={logo} alt="T&L" className="block h-26 w-auto" />
+    <header className="fixed inset-x-0 top-0 z-[100] flex h-64 items-center gap-16 border-b border-line bg-surface px-24 md:gap-32 md:px-48 lg:px-80">
+      <Link to="/" className="inline-flex shrink-0 items-center">
+        <img src={logo} alt="T&L" className="block h-22 w-auto md:h-26" />
       </Link>
 
-      <nav className="flex flex-1 gap-24">
+      <nav className="flex flex-1 gap-16 md:gap-24">
         <Link to="/men" className={navLinkClass(activeGender === 'men')}>
           MEN
         </Link>
@@ -78,7 +78,7 @@ function Header() {
         </Link>
       </nav>
 
-      <div className="flex items-center gap-16">
+      <div className="flex items-center gap-8 md:gap-16">
         <IconButton label="검색">
           <Search size={20} strokeWidth={1.5} />
         </IconButton>

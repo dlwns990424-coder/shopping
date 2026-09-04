@@ -89,7 +89,7 @@ function ProductDetail() {
   }
 
   return (
-    <div>
+    <div className="pb-112 lg:pb-0">
       <div className="grid grid-cols-1 gap-64 px-24 pt-32 lg:grid-cols-[1fr_456px] lg:px-80 lg:pt-48">
         <div className="flex flex-col gap-4">
           <div
@@ -156,7 +156,7 @@ function ProductDetail() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-12">
+          <div className="hidden flex-col gap-12 lg:flex">
             <Button variant="secondary" size="large" className="w-full" onClick={handleAddToCart}>
               장바구니 담기
             </Button>
@@ -165,6 +165,15 @@ function ProductDetail() {
             </Button>
           </div>
         </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-[90] flex gap-8 border-t border-line bg-surface px-24 pb-[calc(12px+env(safe-area-inset-bottom))] pt-12 lg:hidden">
+        <Button variant="secondary" size="large" className="flex-1" onClick={handleAddToCart}>
+          장바구니 담기
+        </Button>
+        <Button variant="primary" size="large" className="flex-1" onClick={handleBuyNow}>
+          바로 구매
+        </Button>
       </div>
 
       <section className="page-section">

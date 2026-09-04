@@ -25,7 +25,7 @@ function Women() {
 
   return (
     <div>
-      <section className="relative flex h-dvh items-end overflow-hidden">
+      <section className="relative -mt-64 flex h-screen items-end overflow-hidden">
         <div className="absolute inset-0 grid grid-cols-3 gap-[2px]">
           <div className="bg-line" />
           <div className="bg-disabled" />
@@ -50,23 +50,23 @@ function Women() {
 
       <section className="page-section">
         <div className="page-section__header">
-          <h2 className="text-h2">NEW ARRIVAL</h2>
-          <Link to="/women?category=all" className="text-body-sm">더보기 +</Link>
+          <h2 className="text-h2">SHOP BY CATEGORY</h2>
         </div>
-        <div className="product-grid">
-          {displayedProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
+        <div className="category-grid">
+          {womenCategories.map((category) => (
+            <CategoryCard key={category.id} to={category.to} label={category.label} image={category.image} />
           ))}
         </div>
       </section>
 
       <section className="page-section">
         <div className="page-section__header">
-          <h2 className="text-h2">SHOP BY CATEGORY</h2>
+          <h2 className="text-h2">NEW ARRIVAL</h2>
+          <Link to="/women?category=all" className="text-body-sm">더보기 +</Link>
         </div>
-        <div className="category-grid">
-          {womenCategories.map((category) => (
-            <CategoryCard key={category.id} to={category.to} label={category.label} image={category.image} />
+        <div className="product-grid">
+          {displayedProducts.map((product) => (
+            <ProductCard key={product.id} {...product} />
           ))}
         </div>
       </section>

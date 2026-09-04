@@ -32,13 +32,13 @@ function ProductCard({ id, name, price, image, showInfo = false }: ProductCardPr
           onClick={handleToggleWishlist}
           aria-label={wishlisted ? '찜 해제' : '찜하기'}
           aria-pressed={wishlisted}
-          className="absolute right-12 top-12 flex h-32 w-32 items-center justify-center rounded-full bg-surface/92 text-primary opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+          className="absolute right-12 top-12 flex h-32 w-32 items-center justify-center rounded-full bg-surface/92 text-primary opacity-100 transition-opacity lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-visible:opacity-100"
         >
           <Heart size={16} strokeWidth={1.5} fill={wishlisted ? 'currentColor' : 'none'} />
         </button>
 
         {!showInfo && (
-          <div className="absolute inset-x-16 bottom-16 translate-y-6 rounded-sm bg-surface/92 p-12 opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+          <div className="absolute inset-x-16 bottom-16 rounded-sm bg-surface/92 p-12 opacity-100 transition-all lg:translate-y-6 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 lg:group-focus-visible:translate-y-0 lg:group-focus-visible:opacity-100">
             <p className="text-body text-primary">{name}</p>
             <p className="text-price text-primary">{price}</p>
           </div>

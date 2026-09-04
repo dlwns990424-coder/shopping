@@ -23,10 +23,10 @@ function MyPage() {
     <div className="page-section flex flex-col gap-32">
       <h1 className="text-h1">마이페이지</h1>
 
-      <div className="grid grid-cols-1 gap-32 lg:grid-cols-[200px_1fr] lg:gap-64">
+      <div className="grid grid-cols-1 gap-32 md:grid-cols-[200px_1fr] md:gap-48 lg:gap-64">
         <MyPageNav activeTab={activeTab} onLogout={() => setShowLogoutConfirm(true)} />
 
-        <div className="min-h-0 lg:min-h-600">
+        <div className="min-h-0 md:min-h-600">
           {activeTab === 'orders' && <OrderHistory />}
           {activeTab === 'recent' && <RecentlyViewed />}
           {activeTab !== 'orders' && activeTab !== 'recent' && <AccountSettingsForm />}

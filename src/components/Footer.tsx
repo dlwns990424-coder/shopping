@@ -4,7 +4,7 @@ import logo from '../assets/logo.png'
 function Footer() {
   return (
     <footer className="mt-auto bg-inverse text-surface">
-      <div className="flex flex-wrap gap-48 px-24 pb-32 pt-64 lg:px-80">
+      <div className="flex flex-wrap gap-48 px-24 pb-32 pt-64 md:px-48 lg:px-80">
         <img src={logo} alt="T&L" className="block h-22 w-auto" />
 
         <div className="flex min-w-160 flex-col gap-8">
@@ -43,7 +43,7 @@ function Footer() {
         </div>
       </div>
 
-      <div className="text-caption border-t border-white/15 px-24 py-16 text-disabled lg:px-80">
+      <div className="text-caption border-t border-white/15 px-24 py-16 text-disabled md:px-48 lg:px-80">
         <p>© 2026 T&amp;L. All rights reserved.</p>
       </div>
     </footer>
