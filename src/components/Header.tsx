@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Search, Heart, ShoppingBag, User } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useAuthModal } from '../context/AuthModalContext'
 import { products } from '../mock/products'
 import logo from '../assets/logo.png'
 
@@ -23,10 +24,11 @@ function getActiveGender(pathname: string): Gender | null {
 interface IconButtonProps {
   label: string
   to?: string
+  onClick?: () => void
   children: ReactNode
 }
 
-function IconButton({ label, to, children }: IconButtonProps) {
+function IconButton({ label, to, onClick, children }: IconButtonProps) {
   const content = (
     <>
       <span className="sr-only">{label}</span>
@@ -44,7 +46,7 @@ function IconButton({ label, to, children }: IconButtonProps) {
     )
   }
   return (
-    <button type="button" className={className} aria-label={label}>
+    <button type="button" className={className} aria-label={label} onClick={onClick}>
       {content}
     </button>
   )
@@ -52,6 +54,7 @@ function IconButton({ label, to, children }: IconButtonProps) {
 
 function Header() {
   const { user } = useAuth()
+  const { openLoginModal } = useAuthModal()
   const location = useLocation()
   const activeGender = getActiveGender(location.pathname)
 
@@ -79,13 +82,21 @@ function Header() {
         <IconButton label="검색">
           <Search size={20} strokeWidth={1.5} />
         </IconButton>
-        <IconButton label="위시리스트">
+        <IconButton label="위시리스트" to="/wishlist">
           <Heart size={20} strokeWidth={1.5} />
         </IconButton>
-        <IconButton label="장바구니" to="/cart">
+        <IconButton
+          label="장바구니"
+          to={user ? '/cart' : undefined}
+          onClick={user ? undefined : openLoginModal}
+        >
           <ShoppingBag size={20} strokeWidth={1.5} />
         </IconButton>
-        <IconButton label="마이페이지" to={user ? '/mypage' : '/login'}>
+        <IconButton
+          label="마이페이지"
+          to={user ? '/mypage' : undefined}
+          onClick={user ? undefined : openLoginModal}
+        >
           <User size={20} strokeWidth={1.5} />
         </IconButton>
       </div>

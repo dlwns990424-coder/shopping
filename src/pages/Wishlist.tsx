@@ -1,0 +1,25 @@
+import ProductCard from '../components/ProductCard'
+import { products } from '../mock/products'
+import { useWishlist } from '../context/WishlistContext'
+
+function Wishlist() {
+  const { ids } = useWishlist()
+  const items = products.filter((product) => ids.includes(product.id))
+
+  return (
+    <div className="page-section">
+      <h1 className="text-h1 mb-24">찜한 상품</h1>
+      {items.length === 0 ? (
+        <p className="text-body-sm text-secondary">아직 찜한 상품이 없습니다.</p>
+      ) : (
+        <div className="product-grid">
+          {items.map((product) => (
+            <ProductCard key={product.id} {...product} showInfo />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default Wishlist

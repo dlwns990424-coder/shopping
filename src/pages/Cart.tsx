@@ -4,7 +4,7 @@ import { ShoppingBag } from 'lucide-react'
 import CartItemRow from '../components/CartItemRow'
 import Checkbox from '../components/Checkbox'
 import Button from '../components/Button'
-import { initialCartItems } from '../mock/cart'
+import { useCart } from '../context/CartContext'
 
 const SHIPPING_FEE = 3000
 
@@ -14,8 +14,8 @@ function formatPrice(amount: number) {
 
 function Cart() {
   const navigate = useNavigate()
-  const [cartItems, setCartItems] = useState(initialCartItems)
-  const [selectedIds, setSelectedIds] = useState(() => initialCartItems.map((item) => item.id))
+  const { items: cartItems, updateQuantity, removeItem, removeItems } = useCart()
+  const [selectedIds, setSelectedIds] = useState(() => cartItems.map((item) => item.id))
 
   const allSelected = cartItems.length > 0 && selectedIds.length === cartItems.length
 
@@ -29,17 +29,13 @@ function Cart() {
     )
   }
 
-  const changeQuantity = (id: string, quantity: number) => {
-    setCartItems((prev) => prev.map((item) => (item.id === id ? { ...item, quantity } : item)))
-  }
-
-  const removeItem = (id: string) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id))
+  const handleRemove = (id: string) => {
+    removeItem(id)
     setSelectedIds((prev) => prev.filter((itemId) => itemId !== id))
   }
 
-  const removeSelected = () => {
-    setCartItems((prev) => prev.filter((item) => !selectedIds.includes(item.id)))
+  const handleRemoveSelected = () => {
+    removeItems(selectedIds)
     setSelectedIds([])
   }
 
@@ -79,7 +75,7 @@ function Cart() {
             <button
               type="button"
               className="text-body-sm cursor-pointer border-none bg-transparent text-secondary disabled:cursor-not-allowed disabled:text-disabled"
-              onClick={removeSelected}
+              onClick={handleRemoveSelected}
               disabled={selectedIds.length === 0}
             >
               선택삭제
@@ -93,8 +89,8 @@ function Cart() {
                 item={{ ...item, price: formatPrice(item.price) }}
                 checked={selectedIds.includes(item.id)}
                 onCheck={() => toggleItem(item.id)}
-                onQuantityChange={(quantity) => changeQuantity(item.id, quantity)}
-                onRemove={() => removeItem(item.id)}
+                onQuantityChange={(quantity) => updateQuantity(item.id, quantity)}
+                onRemove={() => handleRemove(item.id)}
               />
             ))}
           </div>

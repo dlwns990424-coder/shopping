@@ -1,5 +1,10 @@
 export type Gender = 'men' | 'women'
 
+export interface ProductColor {
+  label: string
+  hex: string
+}
+
 export interface Product {
   id: string
   name: string
@@ -8,6 +13,8 @@ export interface Product {
   category: string
   subCategory: string
   image: string
+  color: ProductColor
+  description: string
 }
 
 export interface Category {
@@ -15,12 +22,6 @@ export interface Category {
   label: string
   to: string
   image: string
-}
-
-export interface ColorOption {
-  id: string
-  label: string
-  color: string
 }
 
 export interface User {

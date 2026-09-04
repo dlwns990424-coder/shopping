@@ -1,19 +1,33 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { Heart } from 'lucide-react'
-import Swatch from '../components/Swatch'
 import SizeSelector from '../components/SizeSelector'
 import Button from '../components/Button'
 import ProductCard from '../components/ProductCard'
+import Toast from '../components/Toast'
 import { products } from '../mock/products'
-import { colorOptions, sizeOptions, productDescription } from '../mock/productDetail'
+import { sizeOptions } from '../mock/productDetail'
 import { addRecentlyViewed } from '../utils/recentlyViewed'
+import { useCart } from '../context/CartContext'
+import { useWishlist } from '../context/WishlistContext'
+import { useAuth } from '../context/AuthContext'
+import { useAuthModal } from '../context/AuthModalContext'
+
+function parsePrice(formatted: string) {
+  return Number(formatted.replace(/[^0-9]/g, ''))
+}
 
 function ProductDetail() {
   const { productId } = useParams()
+  const navigate = useNavigate()
+  const { addItem } = useCart()
+  const { isWishlisted, toggle } = useWishlist()
+  const { user } = useAuth()
+  const { openLoginModal } = useAuthModal()
   const product = products.find((item) => item.id === productId)
-  const [selectedColor, setSelectedColor] = useState(colorOptions[0].id)
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const [sizeError, setSizeError] = useState(false)
+  const [showToast, setShowToast] = useState(false)
 
   useEffect(() => {
     if (product) addRecentlyViewed(product.id)
@@ -31,7 +45,48 @@ function ProductDetail() {
     .filter((item) => item.id !== product.id && item.gender === product.gender)
     .slice(0, 4)
 
-  const selectedColorLabel = colorOptions.find((color) => color.id === selectedColor)?.label
+  const handleSelectSize = (size: string) => {
+    setSelectedSize(size)
+    setSizeError(false)
+  }
+
+  const handleAddToCart = () => {
+    if (!user) {
+      openLoginModal()
+      return
+    }
+    if (!selectedSize) {
+      setSizeError(true)
+      return
+    }
+    addItem(product, selectedSize)
+    setShowToast(true)
+  }
+
+  const handleBuyNow = () => {
+    if (!user) {
+      openLoginModal()
+      return
+    }
+    if (!selectedSize) {
+      setSizeError(true)
+      return
+    }
+    navigate('/order', {
+      state: {
+        items: [
+          {
+            id: `${product.id}-${product.color.label}-${selectedSize}`,
+            name: product.name,
+            option: `${product.color.label} · ${selectedSize}`,
+            price: parsePrice(product.price),
+            quantity: 1,
+            image: product.image,
+          },
+        ],
+      },
+    })
+  }
 
   return (
     <div>
@@ -59,26 +114,24 @@ function ProductDetail() {
             </div>
             <button
               type="button"
-              className="flex h-40 w-40 shrink-0 cursor-pointer items-center justify-center rounded-sm border border-line bg-transparent text-primary"
-              aria-label="위시리스트 추가"
+              onClick={() => toggle(product.id)}
+              className={`flex h-40 w-40 shrink-0 cursor-pointer items-center justify-center rounded-sm border bg-transparent transition-colors ${
+                isWishlisted(product.id) ? 'border-point text-point' : 'border-line text-primary'
+              }`}
+              aria-label={isWishlisted(product.id) ? '찜 해제' : '위시리스트 추가'}
+              aria-pressed={isWishlisted(product.id)}
             >
-              <Heart size={20} strokeWidth={1.5} />
+              <Heart size={20} strokeWidth={1.5} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} />
             </button>
           </div>
 
           <div className="flex flex-col gap-12">
-            <p className="text-body-lg">컬러: {selectedColorLabel}</p>
-            <div className="flex flex-wrap gap-8">
-              {colorOptions.map((color) => (
-                <Swatch
-                  key={color.id}
-                  color={color.color}
-                  label={color.label}
-                  selected={selectedColor === color.id}
-                  onClick={() => setSelectedColor(color.id)}
-                />
-              ))}
-            </div>
+            <p className="text-body-lg">컬러: {product.color.label}</p>
+            <div
+              className="h-32 w-32 rounded-full border border-line"
+              style={{ backgroundColor: product.color.hex }}
+              aria-label={product.color.label}
+            />
           </div>
 
           <div className="flex flex-col gap-12">
@@ -89,24 +142,25 @@ function ProductDetail() {
                   key={size}
                   size={size}
                   selected={selectedSize === size}
-                  onClick={() => setSelectedSize(size)}
+                  onClick={() => handleSelectSize(size)}
                 />
               ))}
             </div>
+            {sizeError && <p className="text-caption text-point">사이즈를 선택해주세요.</p>}
           </div>
 
           <div className="flex flex-col gap-12">
             <p className="text-h3">제품 정보</p>
             <p className="text-body-sm whitespace-pre-line leading-[1.6] text-secondary">
-              {productDescription}
+              {product.description}
             </p>
           </div>
 
           <div className="flex flex-col gap-12">
-            <Button variant="secondary" size="large" className="w-full">
+            <Button variant="secondary" size="large" className="w-full" onClick={handleAddToCart}>
               장바구니 담기
             </Button>
-            <Button variant="primary" size="large" className="w-full">
+            <Button variant="primary" size="large" className="w-full" onClick={handleBuyNow}>
               바로 구매
             </Button>
           </div>
@@ -123,6 +177,8 @@ function ProductDetail() {
           ))}
         </div>
       </section>
+
+      <Toast message="장바구니에 담았습니다." show={showToast} onClose={() => setShowToast(false)} />
     </div>
   )
 }
