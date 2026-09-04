@@ -9,7 +9,7 @@ import logo from '../assets/logo.png'
 type Gender = 'men' | 'women'
 
 function getActiveGender(pathname: string): Gender | null {
-  if (pathname === '/' || pathname === '/men') return 'men'
+  if (pathname === '/men') return 'men'
   if (pathname === '/women') return 'women'
 
   const match = pathname.match(/^\/products\/(.+)$/)

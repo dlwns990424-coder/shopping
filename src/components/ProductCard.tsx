@@ -38,18 +38,16 @@ function ProductCard({ id, name, price, image, showInfo = false }: ProductCardPr
         </button>
 
         {!showInfo && (
-          <div className="absolute inset-x-16 bottom-16 rounded-sm bg-surface/92 p-12 opacity-100 transition-all lg:translate-y-6 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 lg:group-focus-visible:translate-y-0 lg:group-focus-visible:opacity-100">
+          <div className="hidden lg:block absolute inset-x-16 bottom-16 rounded-sm bg-surface/92 p-12 transition-all lg:translate-y-6 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 lg:group-focus-visible:translate-y-0 lg:group-focus-visible:opacity-100">
             <p className="text-body text-primary">{name}</p>
-            <p className="text-price text-primary">{price}</p>
+            <p className="text-sm font-semibold text-primary">{price}</p>
           </div>
         )}
       </div>
-      {showInfo && (
-        <div className="mt-12 flex flex-col gap-4">
-          <p className="text-body text-primary">{name}</p>
-          <p className="text-price text-primary">{price}</p>
-        </div>
-      )}
+      <div className={`mt-12 flex flex-col gap-4 ${showInfo ? '' : 'lg:hidden'}`}>
+        <p className="text-body text-primary">{name}</p>
+        <p className="text-sm font-semibold text-primary">{price}</p>
+      </div>
     </Link>
   )
 }
