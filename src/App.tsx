@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import { WishlistProvider } from './context/WishlistContext'
+import { OrderHistoryProvider } from './context/OrderHistoryContext'
 import { AuthModalProvider } from './context/AuthModalContext'
 import ScrollToTop from './components/ScrollToTop'
 import RequireAuth from './components/RequireAuth'
@@ -31,36 +32,38 @@ function App() {
     <AuthProvider>
       <CartProvider>
         <WishlistProvider>
-          <BrowserRouter>
-            <AuthModalProvider>
-              <ScrollToTop />
-              <Routes>
-                <Route element={<UserLayout />}>
-                  <Route path="/" element={<Men />} />
-                  <Route path="/men" element={<Men />} />
-                  <Route path="/women" element={<Women />} />
-                  <Route path="/products/:productId" element={<ProductDetail />} />
-                  <Route path="/wishlist" element={<Wishlist />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
+          <OrderHistoryProvider>
+            <BrowserRouter>
+              <AuthModalProvider>
+                <ScrollToTop />
+                <Routes>
+                  <Route element={<UserLayout />}>
+                    <Route path="/" element={<Men />} />
+                    <Route path="/men" element={<Men />} />
+                    <Route path="/women" element={<Women />} />
+                    <Route path="/products/:productId" element={<ProductDetail />} />
+                    <Route path="/wishlist" element={<Wishlist />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
 
-                  <Route element={<RequireAuth />}>
-                    <Route path="/cart" element={<Cart />} />
-                    <Route path="/order" element={<Order />} />
-                    <Route path="/order/complete" element={<OrderComplete />} />
-                    <Route path="/mypage" element={<MyPage />} />
+                    <Route element={<RequireAuth />}>
+                      <Route path="/cart" element={<Cart />} />
+                      <Route path="/order" element={<Order />} />
+                      <Route path="/order/complete" element={<OrderComplete />} />
+                      <Route path="/mypage" element={<MyPage />} />
+                    </Route>
                   </Route>
-                </Route>
 
-                <Route path="/admin" element={<AdminLayout />}>
-                  <Route path="products" element={<ProductManage />} />
-                  <Route path="orders" element={<OrderManage />} />
-                  <Route path="members" element={<MemberManage />} />
-                  <Route path="sales" element={<SalesManage />} />
-                </Route>
-              </Routes>
-            </AuthModalProvider>
-          </BrowserRouter>
+                  <Route path="/admin" element={<AdminLayout />}>
+                    <Route path="products" element={<ProductManage />} />
+                    <Route path="orders" element={<OrderManage />} />
+                    <Route path="members" element={<MemberManage />} />
+                    <Route path="sales" element={<SalesManage />} />
+                  </Route>
+                </Routes>
+              </AuthModalProvider>
+            </BrowserRouter>
+          </OrderHistoryProvider>
         </WishlistProvider>
       </CartProvider>
     </AuthProvider>

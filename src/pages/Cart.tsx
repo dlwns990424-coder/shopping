@@ -16,6 +16,7 @@ function Cart() {
   const navigate = useNavigate()
   const { items: cartItems, updateQuantity, removeItem, removeItems } = useCart()
   const [selectedIds, setSelectedIds] = useState(() => cartItems.map((item) => item.id))
+  const [expanded, setExpanded] = useState(false)
 
   const allSelected = cartItems.length > 0 && selectedIds.length === cartItems.length
 
@@ -82,7 +83,7 @@ function Cart() {
             </button>
           </div>
 
-          <div>
+          <div className={!expanded && cartItems.length > 5 ? 'max-h-840 overflow-hidden' : undefined}>
             {cartItems.map((item) => (
               <CartItemRow
                 key={item.id}
@@ -94,9 +95,19 @@ function Cart() {
               />
             ))}
           </div>
+
+          {cartItems.length > 5 && !expanded && (
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="text-body-sm mt-16 w-full cursor-pointer border-none bg-transparent py-8 text-center text-secondary hover:text-primary"
+            >
+              더보기
+            </button>
+          )}
         </div>
 
-        <div className="flex w-full shrink-0 flex-col gap-20 bg-surface-muted px-24 pb-24 pt-20 lg:w-360">
+        <div className="flex w-full shrink-0 flex-col gap-20 bg-surface-muted px-24 pb-24 pt-20 lg:sticky lg:top-96 lg:w-360">
           <p className="text-[15px] font-medium text-primary">주문 요약</p>
           <div className="text-body-sm flex items-center justify-between text-primary">
             <span className="text-secondary">상품금액</span>

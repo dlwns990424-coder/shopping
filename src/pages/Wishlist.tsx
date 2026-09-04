@@ -12,7 +12,7 @@ function Wishlist() {
       {items.length === 0 ? (
         <p className="text-body-sm text-secondary">아직 찜한 상품이 없습니다.</p>
       ) : (
-        <div className="product-grid">
+        <div className="product-grid gap-y-32 lg:grid-cols-6">
           {items.map((product) => (
             <ProductCard key={product.id} {...product} showInfo />
           ))}

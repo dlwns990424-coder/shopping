@@ -55,5 +55,6 @@ export interface Order {
   id: string
   date: string
   status: string
+  userEmail: string
   items: CartItem[]
 }

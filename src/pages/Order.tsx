@@ -4,6 +4,8 @@ import OrderItemRow from '../components/OrderItemRow'
 import Checkbox from '../components/Checkbox'
 import Button from '../components/Button'
 import { useAuth } from '../context/AuthContext'
+import { useCart } from '../context/CartContext'
+import { useOrderHistory } from '../context/OrderHistoryContext'
 import type { CartItem } from '../types'
 
 const SHIPPING_FEE = 3000
@@ -14,6 +16,8 @@ function formatPrice(amount: number) {
 
 function Order() {
   const { user } = useAuth()
+  const { removeItems } = useCart()
+  const { addOrder } = useOrderHistory()
   const location = useLocation()
   const navigate = useNavigate()
   const items = (location.state as { items?: CartItem[] } | null)?.items
@@ -36,6 +40,8 @@ function Order() {
   const hasShippingInfo = user?.shippingName && user?.shippingPhone && user?.shippingAddress
 
   const handleCheckout = () => {
+    addOrder(user!.email, items)
+    removeItems(items.map((item) => item.id))
     navigate('/order/complete', {
       replace: true,
       state: { itemCount: items.length, totalPrice },

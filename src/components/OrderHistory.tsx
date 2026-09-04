@@ -1,5 +1,6 @@
 import OrderItemRow from './OrderItemRow'
-import { orders } from '../mock/orders'
+import { useAuth } from '../context/AuthContext'
+import { useOrderHistory } from '../context/OrderHistoryContext'
 import type { Order } from '../types'
 
 function formatPrice(amount: number) {
@@ -11,13 +12,17 @@ function orderTotal(order: Order) {
 }
 
 function OrderHistory() {
-  if (orders.length === 0) {
+  const { user } = useAuth()
+  const { orders } = useOrderHistory()
+  const myOrders = orders.filter((order) => order.userEmail === user?.email)
+
+  if (myOrders.length === 0) {
     return <p className="text-body-sm">주문 내역이 없습니다.</p>
   }
 
   return (
     <div className="flex max-w-640 flex-col gap-16">
-      {orders.map((order) => (
+      {myOrders.map((order) => (
         <div key={order.id} className="rounded-sm border border-line px-24 py-16">
           <div className="text-body-sm flex justify-between border-b border-line pb-16 text-secondary">
             <span>{order.date}</span>
