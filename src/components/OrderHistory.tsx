@@ -28,6 +28,15 @@ function OrderHistory() {
             <span>{order.date}</span>
             <span className="text-primary">{order.status}</span>
           </div>
+          <div className="text-[13px] flex flex-col gap-2 border-b border-line py-16 text-secondary">
+            <p>
+              {order.shippingName} · {order.shippingPhone}
+            </p>
+            <p>
+              {order.shippingAddress} {order.shippingAddressDetail}
+            </p>
+            {order.deliveryRequest && <p>배송 요청: {order.deliveryRequest}</p>}
+          </div>
           {order.items.map((item, index) => (
             <div key={`${order.id}-${index}`} className="[&:not(:last-of-type)]:border-b [&:not(:last-of-type)]:border-line">
               <OrderItemRow item={{ ...item, price: formatPrice(item.price) }} />

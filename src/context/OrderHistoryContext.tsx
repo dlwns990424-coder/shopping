@@ -1,9 +1,14 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import type { CartItem, Order } from '../types'
 
+type OrderShippingInfo = Pick<
+  Order,
+  'shippingName' | 'shippingPhone' | 'shippingAddress' | 'shippingAddressDetail' | 'deliveryRequest'
+>
+
 interface OrderHistoryContextValue {
   orders: Order[]
-  addOrder: (userEmail: string, items: CartItem[]) => void
+  addOrder: (userEmail: string, items: CartItem[], shipping: OrderShippingInfo) => void
 }
 
 const OrderHistoryContext = createContext<OrderHistoryContextValue | null>(null)
@@ -21,13 +26,14 @@ function readOrders(): Order[] {
 export function OrderHistoryProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>(readOrders)
 
-  const addOrder = (userEmail: string, items: CartItem[]) => {
+  const addOrder = (userEmail: string, items: CartItem[], shipping: OrderShippingInfo) => {
     const newOrder: Order = {
       id: `ORD-${Date.now()}`,
       date: new Date().toISOString().slice(0, 10),
       status: '결제완료',
       userEmail,
       items,
+      ...shipping,
     }
     setOrders((prev) => {
       const next = [newOrder, ...prev]

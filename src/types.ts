@@ -58,4 +58,9 @@ export interface Order {
   status: string
   userEmail: string
   items: CartItem[]
+  shippingName: string
+  shippingPhone: string
+  shippingAddress: string
+  shippingAddressDetail?: string
+  deliveryRequest?: string
 }
