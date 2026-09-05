@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
 
 interface CategoryCardProps {
   to: string
@@ -9,15 +8,14 @@ interface CategoryCardProps {
 
 function CategoryCard({ to, label, image }: CategoryCardProps) {
   return (
-    <Link to={to} className="group block text-inherit no-underline">
+    <Link to={to} className="group relative block aspect-[3/4] overflow-hidden rounded-sm bg-surface-muted text-inherit no-underline lg:aspect-[3/2]">
       <div
-        className="mb-16 aspect-[3/4] rounded-sm bg-surface-muted bg-contain bg-center bg-no-repeat lg:aspect-[3/2]"
+        className="absolute inset-0 bg-contain bg-center bg-no-repeat"
         style={image ? { backgroundImage: `url(${image})` } : undefined}
       />
-      <div className="flex items-center justify-between">
-        <p className="text-base font-medium text-primary transition-colors group-hover:text-point">{label}</p>
-        <ArrowRight size={18} strokeWidth={1.5} className="text-primary transition-colors group-hover:text-point" />
-      </div>
+      <p className="absolute bottom-16 left-16 text-base font-semibold text-primary underline transition-colors group-hover:text-point">
+        {label}
+      </p>
     </Link>
   )
 }

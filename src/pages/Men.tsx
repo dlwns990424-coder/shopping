@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import CategoryCard from '../components/CategoryCard'
 import ProductCard from '../components/ProductCard'
 import CategoryListing from '../components/CategoryListing'
@@ -21,7 +21,8 @@ function Men() {
     )
   }
 
-  const displayedProducts = menProducts.slice(0, 8)
+  const shirtProducts = menProducts.filter((product) => product.subCategory === '셔츠').slice(0, 4)
+  const outerProducts = menProducts.filter((product) => product.category === '아우터').slice(0, 4)
 
   return (
     <div>
@@ -32,41 +33,50 @@ function Men() {
           <div className="bg-line" />
         </div>
         <div className="absolute inset-0 bg-black/35" />
-        <div className="relative z-10 px-24 py-32 text-surface lg:p-64">
+        <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-48 lg:px-80">
           <p className="text-caption mb-8 tracking-[0.08em] text-surface">T&amp;L | MEN</p>
           <h1 className="text-h1 text-surface">댄디하고 심플한 무드의 새 시즌 컬렉션</h1>
         </div>
       </section>
 
-      <section className="page-section">
-        <div className="relative flex aspect-[21/8] min-h-280 items-end overflow-hidden rounded-none bg-secondary">
-          <div className="absolute inset-0 bg-black/15" />
-          <div className="relative z-10 p-32">
-            <h2 className="text-h2 text-surface">THE ESSENTIAL LAYER</h2>
-            <p className="text-body-sm text-surface">겨울을 준비하는 첫 번째 아우터</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="page-section">
-        <div className="page-section__header">
-          <h2 className="text-h2">SHOP BY CATEGORY</h2>
-        </div>
-        <div className="category-grid">
-          {menCategories.map((category) => (
-            <CategoryCard key={category.id} to={category.to} label={category.label} image={category.image} />
+      <section className="mt-20 px-24 md:px-48 lg:px-80">
+        <div className="product-grid">
+          {shirtProducts.map((product) => (
+            <ProductCard key={product.id} {...product} />
           ))}
         </div>
       </section>
 
-      <section className="page-section">
-        <div className="page-section__header">
-          <h2 className="text-h2">NEW ARRIVAL</h2>
-          <Link to="/men?category=all" className="text-body-sm">더보기 +</Link>
+      <section className="mt-20">
+        <div
+          className="relative flex aspect-[21/8] min-h-280 items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url(https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_1920/v1/home%20banner%202025/9.2%20Sale%20Third%20Banner.desktop?_i=AH)",
+          }}
+        >
+          <div className="absolute inset-0 bg-black/15" />
+          <div className="relative z-10 px-24 pt-32 pb-48 md:px-48 lg:px-80">
+            <h2 className="text-h2 text-surface">Sale&apos;s up to 50% off</h2>
+          </div>
         </div>
+      </section>
+
+      <section className="mt-20 px-24 md:px-48 lg:px-80">
         <div className="product-grid">
-          {displayedProducts.map((product) => (
+          {outerProducts.map((product) => (
             <ProductCard key={product.id} {...product} />
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-20 px-24 pb-20 md:px-48 lg:px-80">
+        <div className="page-section__header">
+          <h2 className="text-base font-bold">SHOP BY CATEGORY</h2>
+        </div>
+        <div className="category-grid">
+          {menCategories.map((category) => (
+            <CategoryCard key={category.id} to={category.to} label={category.label} image={category.image} />
           ))}
         </div>
       </section>

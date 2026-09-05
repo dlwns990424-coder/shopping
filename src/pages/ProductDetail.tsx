@@ -104,8 +104,8 @@ function ProductDetail() {
         <div className="static flex flex-col gap-32 self-start lg:sticky lg:top-96">
           <div className="flex items-start justify-between gap-16">
             <div>
-              <h1 className="text-h2 mb-8">{product.name}</h1>
-              <p className="text-price">{product.price}</p>
+              <h1 className="text-h3 font-bold mb-8">{product.name}</h1>
+              <p className="text-price font-medium">{product.price}</p>
             </div>
             <button
               type="button"
@@ -173,7 +173,7 @@ function ProductDetail() {
 
       <section className="page-section">
         <div className="page-section__header">
-          <h2 className="text-h2">함께 보면 좋은 상품</h2>
+          <h2 className="text-h3 font-bold">함께 보면 좋은 상품</h2>
         </div>
         <div className="product-grid">
           {relatedProducts.map((item) => (

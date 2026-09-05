@@ -111,7 +111,7 @@
   }
 
   .page-section__header {
-    @apply mb-24 flex items-baseline justify-between;
+    @apply mb-10 flex items-baseline justify-between;
   }
 
   .page-section__header a,
