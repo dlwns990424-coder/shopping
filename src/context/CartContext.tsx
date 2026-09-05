@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import type { CartItem, Product } from '../types'
+import { safeSetItem } from '../utils/storage'
 
 interface CartContextValue {
   items: CartItem[]
@@ -31,7 +32,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateItems = (updater: (prev: CartItem[]) => CartItem[]) => {
     setItems((prev) => {
       const next = updater(prev)
-      localStorage.setItem(CART_KEY, JSON.stringify(next))
+      safeSetItem(CART_KEY, next)
       return next
     })
   }

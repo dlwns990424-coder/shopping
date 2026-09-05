@@ -5,8 +5,7 @@ import CartItemRow from '../components/CartItemRow'
 import Checkbox from '../components/Checkbox'
 import Button from '../components/Button'
 import { useCart } from '../context/CartContext'
-
-const SHIPPING_FEE = 3000
+import { SHIPPING_FEE } from '../constants'
 
 function formatPrice(amount: number) {
   return `₩${amount.toLocaleString('ko-KR')}`

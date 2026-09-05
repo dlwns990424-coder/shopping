@@ -34,7 +34,7 @@ function MyPage() {
       </div>
 
       {showLogoutConfirm && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 px-24">
+        <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 px-24">
           <div className="flex w-full max-w-360 flex-col gap-16 rounded-md bg-surface p-24 text-center">
             <p className="text-h3">로그아웃 하시겠습니까?</p>
             <div className="mt-8 flex flex-col gap-8">

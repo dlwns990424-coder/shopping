@@ -92,18 +92,13 @@ function ProductDetail() {
     <div className="pb-112 lg:pb-0">
       <div className="grid grid-cols-1 gap-64 px-24 pt-32 lg:grid-cols-[1fr_456px] lg:px-80 lg:pt-48">
         <div className="flex flex-col gap-4">
-          <div
-            className="aspect-[4/5] bg-surface-muted bg-contain bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${product.image})` }}
-          />
-          <div
-            className="aspect-[4/5] bg-surface-muted bg-contain bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${product.image})` }}
-          />
-          <div
-            className="aspect-[4/5] bg-surface-muted bg-contain bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${product.image})` }}
-          />
+          {[0, 1, 2].map((index) => (
+            <div
+              key={index}
+              className="aspect-[4/5] bg-surface-muted bg-contain bg-center bg-no-repeat"
+              style={{ backgroundImage: `url(${product.image})` }}
+            />
+          ))}
         </div>
 
         <div className="static flex flex-col gap-32 self-start lg:sticky lg:top-96">
@@ -167,7 +162,7 @@ function ProductDetail() {
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-[90] flex gap-8 border-t border-line bg-surface px-24 pb-[calc(12px+env(safe-area-inset-bottom))] pt-12 lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-fixed-bar flex gap-8 border-t border-line bg-surface px-24 pb-[calc(12px+env(safe-area-inset-bottom))] pt-12 lg:hidden">
         <Button variant="secondary" size="large" className="flex-1" onClick={handleAddToCart}>
           장바구니 담기
         </Button>

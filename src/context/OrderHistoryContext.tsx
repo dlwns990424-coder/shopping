@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import type { CartItem, Order } from '../types'
+import { safeSetItem } from '../utils/storage'
 
 type OrderShippingInfo = Pick<
   Order,
@@ -37,7 +38,7 @@ export function OrderHistoryProvider({ children }: { children: ReactNode }) {
     }
     setOrders((prev) => {
       const next = [newOrder, ...prev]
-      localStorage.setItem(ORDERS_KEY, JSON.stringify(next))
+      safeSetItem(ORDERS_KEY, next)
       return next
     })
   }

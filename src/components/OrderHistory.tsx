@@ -28,7 +28,7 @@ function OrderHistory() {
             <span>{order.date}</span>
             <span className="text-primary">{order.status}</span>
           </div>
-          <div className="text-[13px] flex flex-col gap-2 border-b border-line py-16 text-secondary">
+          <div className="text-body-sm flex flex-col gap-2 border-b border-line py-16 text-secondary">
             <p>
               {order.shippingName} · {order.shippingPhone}
             </p>

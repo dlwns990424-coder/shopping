@@ -18,7 +18,7 @@ function Toast({ message, show, onClose, duration = 1500 }: ToastProps) {
 
   return (
     <div
-      className="fixed left-1/2 top-80 z-[1000] whitespace-nowrap rounded-md bg-primary px-24 py-14 text-sm font-medium text-surface shadow-[0_4px_16px_rgba(0,0,0,0.16)] animate-[toast-in_0.2s_ease_forwards]"
+      className="fixed left-1/2 top-80 z-toast whitespace-nowrap rounded-md bg-primary px-24 py-14 text-sm font-medium text-surface shadow-[0_4px_16px_rgba(0,0,0,0.16)] animate-[toast-in_0.2s_ease_forwards]"
       role="status"
     >
       {message}

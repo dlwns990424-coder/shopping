@@ -24,7 +24,7 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
     <AuthModalContext.Provider value={{ openLoginModal }}>
       {children}
       {open && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 px-24">
+        <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 px-24">
           <div className="flex w-full max-w-360 flex-col gap-16 rounded-md bg-surface p-24 text-center">
             <p className="text-h3">로그인이 필요합니다</p>
             <p className="text-body-sm text-secondary">이 기능은 로그인 후 이용하실 수 있어요.</p>

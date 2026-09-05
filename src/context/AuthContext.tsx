@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import type { AuthResult, SignupInput, User } from '../types'
+import { safeSetItem } from '../utils/storage'
 
 interface StoredUser extends User {
   password: string
@@ -46,7 +47,7 @@ const TEST_ACCOUNT: StoredUser = {
 function ensureTestAccount() {
   const users = readUsers()
   if (!users.some((u) => u.email === TEST_ACCOUNT.email)) {
-    localStorage.setItem(USERS_KEY, JSON.stringify([...users, TEST_ACCOUNT]))
+    safeSetItem(USERS_KEY, [...users, TEST_ACCOUNT])
   }
 }
 
@@ -60,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (users.some((u) => u.email === email)) {
       return { success: false, message: '이미 가입된 이메일입니다.' }
     }
-    localStorage.setItem(USERS_KEY, JSON.stringify([...users, { nickname, email, password, phone }]))
+    safeSetItem(USERS_KEY, [...users, { nickname, email, password, phone }])
     return { success: true }
   }
 
@@ -71,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const { password: _password, ...safeUser } = found
     setUser(safeUser)
-    localStorage.setItem(SESSION_KEY, JSON.stringify(safeUser))
+    safeSetItem(SESSION_KEY, safeUser)
     return { success: true }
   }
 
@@ -86,11 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const users = readUsers()
     const nextUsers = users.map((u) => (u.email === user.email ? { ...u, ...updates } : u))
-    localStorage.setItem(USERS_KEY, JSON.stringify(nextUsers))
+    safeSetItem(USERS_KEY, nextUsers)
 
     const nextUser = { ...user, ...updates }
     setUser(nextUser)
-    localStorage.setItem(SESSION_KEY, JSON.stringify(nextUser))
+    safeSetItem(SESSION_KEY, nextUser)
     return { success: true }
   }
 

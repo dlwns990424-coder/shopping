@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
+import { safeSetItem } from '../utils/storage'
 
 interface WishlistContextValue {
   ids: string[]
@@ -24,7 +25,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const toggle = (id: string) => {
     setIds((prev) => {
       const next = prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-      localStorage.setItem(WISHLIST_KEY, JSON.stringify(next))
+      safeSetItem(WISHLIST_KEY, next)
       return next
     })
   }

@@ -39,7 +39,7 @@ function Women() {
       </section>
 
       <section className="page-section">
-        <div className="relative flex aspect-[21/8] min-h-280 items-end overflow-hidden rounded-sm bg-secondary">
+        <div className="relative flex aspect-[21/8] min-h-280 items-end overflow-hidden rounded-none bg-secondary">
           <div className="absolute inset-0 bg-black/15" />
           <div className="relative z-10 p-32">
             <h2 className="text-h2 text-surface">THE ESSENTIAL LAYER</h2>

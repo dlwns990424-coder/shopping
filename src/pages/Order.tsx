@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { ChevronDown } from 'lucide-react'
 import OrderItemRow from '../components/OrderItemRow'
 import Checkbox from '../components/Checkbox'
 import Input from '../components/Input'
@@ -8,8 +9,8 @@ import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useOrderHistory } from '../context/OrderHistoryContext'
 import type { CartItem } from '../types'
+import { SHIPPING_FEE } from '../constants'
 
-const SHIPPING_FEE = 3000
 const PHONE_REGEX = /^01[0-9]-?\d{3,4}-?\d{4}$/
 
 const DELIVERY_REQUEST_PRESETS = [
@@ -118,7 +119,7 @@ function Order() {
               {hasSavedShipping || !isEditingShipping ? (
                 <button
                   type="button"
-                  className="cursor-pointer border-none bg-transparent text-[13px] text-secondary underline"
+                  className="text-body-sm cursor-pointer border-none bg-transparent text-secondary underline"
                   onClick={() => setIsEditingShipping((prev) => !prev)}
                 >
                   {isEditingShipping ? '완료' : '변경'}
@@ -175,8 +176,8 @@ function Order() {
             ) : (
               <div className="flex flex-col gap-6 border border-line px-20 py-16">
                 <p className="text-sm font-medium text-primary">{shippingForm.shippingName}</p>
-                <p className="text-[13px] text-secondary">{shippingForm.shippingPhone}</p>
-                <p className="text-[13px] text-secondary">
+                <p className="text-body-sm text-secondary">{shippingForm.shippingPhone}</p>
+                <p className="text-body-sm text-secondary">
                   {shippingForm.shippingAddress} {shippingForm.shippingAddressDetail}
                 </p>
               </div>
@@ -186,18 +187,25 @@ function Order() {
           <div className="flex flex-col gap-16">
             <p className="text-body-lg font-bold text-primary">배송 요청사항</p>
             <div className="flex flex-col gap-12">
-              <select
-                value={deliveryRequestPreset}
-                onChange={(e) => setDeliveryRequestPreset(e.target.value)}
-                className="text-sm rounded-sm border border-line bg-surface px-16 py-12 text-primary outline-none focus:border-primary"
-              >
-                <option value="">선택 안 함</option>
-                {DELIVERY_REQUEST_PRESETS.map((preset) => (
-                  <option key={preset} value={preset}>
-                    {preset}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={deliveryRequestPreset}
+                  onChange={(e) => setDeliveryRequestPreset(e.target.value)}
+                  className="text-sm w-full appearance-none rounded-sm border border-line bg-surface py-12 pl-16 pr-40 text-primary outline-none focus:border-primary"
+                >
+                  <option value="">선택 안 함</option>
+                  {DELIVERY_REQUEST_PRESETS.map((preset) => (
+                    <option key={preset} value={preset}>
+                      {preset}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={16}
+                  strokeWidth={1.5}
+                  className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 text-secondary"
+                />
+              </div>
               {deliveryRequestPreset === '직접 입력' && (
                 <Input
                   id="order-delivery-request-custom"

@@ -10,8 +10,20 @@
 
 ## 마지막 갱신
 - 날짜: 2026-09-05
-- **git 상태: 미커밋 변경 있음** — 아래 "주문서 배송 요청사항 + 주문시점 배송지 수정" 작업분. 카카오 주소검색 연동(`32ccf7c`)까지는 이미 커밋+push 완료. 사용자가 커밋 요청 전까지 그대로 둘 것.
+- **git 상태: 이번 응답 직후 커밋 예정**(사용자 요청). 배송 요청사항/주문시점 배송지 수정(`4564222`)까지는 이미 push 완료.
 - **`public/images/hero/`에 사용자가 모델 사진 4장 추가함**(women-coat-02-model-01/02, 각 버전+v2) — WOMEN 배너용으로 보이는 라이프스타일 사진. **아직 코드에 연결 안 함, 다음 세션에서 이어서 작업.**
+- **Order 배송요청 select 커스텀 화살표 + 배너 rounded 제거 (2026-09-05)**:
+  1. `Order.tsx`의 배송 요청사항 `<select>`가 브라우저 기본 화살표를 쓰고 있어 간격 제어가 안 되던 것을, `appearance-none` + `lucide-react`의 `ChevronDown`을 직접 배치하는 방식으로 교체(우측 16px 고정)
+  2. **Home/Men/Women의 "큰 배너/섹션 블록"만** `rounded-sm` → `rounded-none`으로 변경 — Home의 에디토리얼 배너·MEN 배너·WOMEN 배너·이벤트 배너 4개(총 6곳) + Men/Women의 에디토리얼 배너(각 1곳). Button/Input/Checkbox/Toast/모달/칩/스와치 등 **작은 UI 요소는 의도적으로 그대로 둠**(사용자가 큰 배너만 지정)
+  3. 브라우저로 확인, `npx tsc -b` 에러 0건
+- **유지보수성 점검 후속 정리 — "그 외 작은 것들" 전부 처리 (2026-09-05)**: 관리자 작업 착수 전 코드 전체를 유지보수 관점에서 훑어본 리뷰(구조적 이슈 3건/중복 코드 4건/작은 것들 6건)에서, 그중 "작은 것들" 6개를 전부 처리함. 구조적 이슈(관리자 인증가드 없음, Order.status 타입 없음, 아우터 소분류 죽은 탭)와 중복 코드(localStorage 래퍼 중복, formatPrice/parsePrice 중복, Men/Women 거의 동일 등)는 **아직 손 안 댐** — 다음에 필요하면 그때 진행:
+  1. **`SHIPPING_FEE` 공용화** — `src/constants.ts` 신규, `Cart.tsx`/`Order.tsx`가 각자 하드코딩하던 `3000`을 여기서 import
+  2. **z-index 토큰화** — `index.css` `@theme`에 `--z-index-fixed-bar(90)/--z-index-header(100)/--z-index-modal(200)/--z-index-toast(1000)` 정의, `Header`/`ProductDetail`/`AuthModalContext`/`MyPage`/`Toast`의 `z-[N]` 임의값을 `z-header`/`z-fixed-bar`/`z-modal`/`z-toast`로 교체
+  3. **`text-[13px]` → `text-body-sm` 치환** — `Order.tsx`, `OrderHistory.tsx`의 페이지 텍스트에서만 교체(정확히 동일한 13px 값이라 안전). `text-[15px]`는 과거에 이미 "Figma 원본 그대로 리터럴 사용하기로 확정"된 의도적 예외라 그대로 둠. `Button.tsx`/`SizeSelector.tsx`의 `text-[13px]`도 `text-body-sm`이 추가로 갖는 `leading-[1.4]`가 고정 높이 버튼의 수직 정렬에 영향 줄 수 있어 의도적으로 안 건드림
+  4. **`ProductDetail.tsx` 썸네일 3연복 제거** — 동일한 이미지 `div` 3개를 `[0,1,2].map()`으로 축소
+  5. **미사용 코드 삭제** — `HeroPillButton.tsx`(아무도 import 안 함), `index.css`의 `.text-display` 클래스(사용처 없음)
+  6. **localStorage 쓰기 에러 처리 통일** — `src/utils/storage.ts` 신규(`safeSetItem` 헬퍼, try/catch로 조용히 무시 — 읽기 쪽과 동일한 패턴), `AuthContext`/`CartContext`/`WishlistContext`/`OrderHistoryContext`/`utils/recentlyViewed.ts`의 `localStorage.setItem` 호출 9곳을 전부 이걸로 교체
+  7. **검증**: `npx tsc -b` 에러 0건, `npm run lint` 신규 경고 0건(기존에도 있던 Context 파일들의 `react/only-export-components` 경고 5건은 이번 변경과 무관), 브라우저로 위시리스트 토글이 실제로 localStorage에 정상 반영되는지까지 확인 완료
 - **주문서(`Order.tsx`) — 배송 요청사항 + 주문시점 배송지 수정 기능 (2026-09-05)**:
   1. **관리자 페이지 작업에 앞서, 코드 유지보수성 점검 리뷰를 먼저 진행**(별도 커밋 없음, 리뷰 리포트만) — localStorage 래퍼 중복(4개 Context), `formatPrice`/`parsePrice` 중복, `Men.tsx`/`Women.tsx` 거의 동일, `SHIPPING_FEE` 이중 하드코딩, z-index/폰트사이즈 임의값 산재, `/admin` 라우트 인증 가드 없음, `Order.status`가 타입 없이 문자열 하드코딩 등 발견 — 전부 기록만 하고 아직 수정 안 함(다음에 필요할 때 참고)
   2. **`Order` 타입에 배송 스냅샷 필드 추가** — `shippingName/shippingPhone/shippingAddress/shippingAddressDetail/deliveryRequest`. 기존엔 주문에 배송지 정보가 아예 없어서 마이페이지 프로필 주소를 나중에 바꾸면 과거 주문 배송지 표시도 같이 바뀌는 구조적 문제가 있었는데, 이제 주문 시점 값을 스냅샷으로 저장

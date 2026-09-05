@@ -64,7 +64,7 @@ function Header() {
     }`
 
   return (
-    <header className="fixed inset-x-0 top-0 z-[100] flex h-64 items-center gap-16 border-b border-line bg-surface px-24 md:gap-32 md:px-48 lg:px-80">
+    <header className="fixed inset-x-0 top-0 z-header flex h-64 items-center gap-16 border-b border-line bg-surface px-24 md:gap-32 md:px-48 lg:px-80">
       <Link to="/" className="inline-flex shrink-0 items-center">
         <img src={logo} alt="T&L" className="block h-22 w-auto md:h-26" />
       </Link>

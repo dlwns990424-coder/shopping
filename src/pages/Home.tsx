@@ -31,7 +31,7 @@ function Home() {
       </section>
 
       <section className="mt-20 px-24 md:px-48 lg:px-80">
-        <div className="relative flex h-screen items-end overflow-hidden rounded-sm bg-secondary">
+        <div className="relative flex h-screen items-end overflow-hidden rounded-none bg-secondary">
           <div className="absolute inset-0 bg-black/15" />
           <div className="relative z-10 p-32">
             <h2 className="text-h2 text-surface">NEW SEASON LAYER</h2>
@@ -42,7 +42,7 @@ function Home() {
 
       <section className="mt-20 px-24 md:px-48 lg:px-80">
         <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
-          <Link to="/men" className="group relative flex h-screen items-end overflow-hidden rounded-sm bg-secondary">
+          <Link to="/men" className="group relative flex h-screen items-end overflow-hidden rounded-none bg-secondary">
             <div className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
             <div className="relative z-10 p-32 text-surface">
               <h2 className="text-h1 mb-8 text-surface">MEN</h2>
@@ -52,7 +52,7 @@ function Home() {
           </Link>
           <Link
             to="/women"
-            className="group relative flex h-screen items-end overflow-hidden rounded-sm bg-secondary"
+            className="group relative flex h-screen items-end overflow-hidden rounded-none bg-secondary"
           >
             <div className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
             <div className="relative z-10 p-32 text-surface">
@@ -70,7 +70,7 @@ function Home() {
             <Link
               key={banner.id}
               to={banner.to}
-              className="group relative flex aspect-[2/3] items-end overflow-hidden rounded-sm bg-secondary"
+              className="group relative flex aspect-[2/3] items-end overflow-hidden rounded-none bg-secondary"
             >
               <div className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
               <div className="relative z-10 flex flex-col gap-8 p-20 text-surface">

@@ -1,3 +1,5 @@
+import { safeSetItem } from './storage'
+
 const STORAGE_KEY = 'shop_recently_viewed'
 const MAX_ITEMS = 8
 
@@ -11,5 +13,5 @@ export function getRecentlyViewedIds(): string[] {
 
 export function addRecentlyViewed(productId: string) {
   const ids = [productId, ...getRecentlyViewedIds().filter((id) => id !== productId)]
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(ids.slice(0, MAX_ITEMS)))
+  safeSetItem(STORAGE_KEY, ids.slice(0, MAX_ITEMS))
 }
