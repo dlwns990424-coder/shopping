@@ -33,13 +33,13 @@ function Men() {
           <div className="bg-line" />
         </div>
         <div className="absolute inset-0 bg-black/35" />
-        <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-48 lg:px-80">
+        <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
           <p className="text-caption mb-8 tracking-[0.08em] text-surface">T&amp;L | MEN</p>
           <h1 className="text-h1 text-surface">댄디하고 심플한 무드의 새 시즌 컬렉션</h1>
         </div>
       </section>
 
-      <section className="mt-20 px-24 md:px-48 lg:px-80">
+      <section className="mt-20 px-24 md:px-32 lg:px-40">
         <div className="product-grid">
           {shirtProducts.map((product) => (
             <ProductCard key={product.id} {...product} />
@@ -56,13 +56,13 @@ function Men() {
           }}
         >
           <div className="absolute inset-0 bg-black/15" />
-          <div className="relative z-10 px-24 pt-32 pb-48 md:px-48 lg:px-80">
+          <div className="relative z-10 px-24 pt-32 pb-48 md:px-32 lg:px-40">
             <h2 className="text-h2 text-surface">Sale&apos;s up to 50% off</h2>
           </div>
         </div>
       </section>
 
-      <section className="mt-20 px-24 md:px-48 lg:px-80">
+      <section className="mt-20 px-24 md:px-32 lg:px-40">
         <div className="product-grid">
           {outerProducts.map((product) => (
             <ProductCard key={product.id} {...product} />
@@ -70,7 +70,7 @@ function Men() {
         </div>
       </section>
 
-      <section className="mt-20 px-24 pb-20 md:px-48 lg:px-80">
+      <section className="mt-20 px-24 pb-20 md:px-32 lg:px-40">
         <div className="page-section__header">
           <h2 className="text-base font-bold">SHOP BY CATEGORY</h2>
         </div>

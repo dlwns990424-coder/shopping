@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ChevronDown } from 'lucide-react'
+import { useDaumPostcodeSearch } from '../hooks/useDaumPostcodeSearch'
 import OrderItemRow from '../components/OrderItemRow'
 import Checkbox from '../components/Checkbox'
 import Input from '../components/Input'
@@ -52,6 +53,9 @@ function Order() {
   const [saveAsDefault, setSaveAsDefault] = useState(false)
   const [deliveryRequestPreset, setDeliveryRequestPreset] = useState('')
   const [deliveryRequestCustom, setDeliveryRequestCustom] = useState('')
+  const handleSearchAddress = useDaumPostcodeSearch((roadAddress) => {
+    setShippingForm((prev) => ({ ...prev, shippingAddress: roadAddress }))
+  })
 
   useEffect(() => {
     if (!items || items.length === 0) {
@@ -79,14 +83,6 @@ function Order() {
       setShippingForm((prev) => ({ ...prev, [field]: e.target.value }))
     }
 
-  const handleSearchAddress = () => {
-    new window.daum.Postcode({
-      oncomplete: (data) => {
-        setShippingForm((prev) => ({ ...prev, shippingAddress: data.roadAddress }))
-      },
-    }).open()
-  }
-
   const handleCheckout = () => {
     if (saveAsDefault) {
       updateProfile(shippingForm)
@@ -107,11 +103,11 @@ function Order() {
 
   return (
     <div>
-      <div className="px-24 pb-16 pt-32 lg:px-80 lg:pb-24 lg:pt-48">
+      <div className="px-24 pb-16 pt-32 md:px-32 lg:px-40 lg:pb-24 lg:pt-48">
         <h1 className="text-h2">주문/결제</h1>
       </div>
 
-      <div className="flex flex-col gap-32 px-24 pb-32 lg:flex-row lg:items-start lg:gap-64 lg:px-80 lg:pb-80">
+      <div className="flex flex-col gap-32 px-24 pb-32 md:px-32 lg:flex-row lg:items-start lg:gap-64 lg:px-40 lg:pb-80">
         <div className="flex min-w-0 flex-1 flex-col gap-48">
           <div className="flex flex-col gap-16">
             <div className="flex items-center justify-between">

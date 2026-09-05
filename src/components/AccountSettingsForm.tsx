@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useDaumPostcodeSearch } from '../hooks/useDaumPostcodeSearch'
 import Input from './Input'
 import Button from './Button'
 import Toast from './Toast'
@@ -34,14 +35,10 @@ function AccountSettingsForm() {
     setForm((prev) => ({ ...prev, [field]: e.target.value }))
   }
 
-  const handleSearchAddress = () => {
-    new window.daum.Postcode({
-      oncomplete: (data) => {
-        setForm((prev) => ({ ...prev, shippingAddress: data.roadAddress }))
-        setErrors((prev) => ({ ...prev, shippingAddress: undefined }))
-      },
-    }).open()
-  }
+  const handleSearchAddress = useDaumPostcodeSearch((roadAddress) => {
+    setForm((prev) => ({ ...prev, shippingAddress: roadAddress }))
+    setErrors((prev) => ({ ...prev, shippingAddress: undefined }))
+  })
 
   const validate = (): Partial<Record<keyof FormState, string>> => {
     const nextErrors: Partial<Record<keyof FormState, string>> = {}

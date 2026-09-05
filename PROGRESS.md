@@ -9,8 +9,9 @@
 ---
 
 ## 마지막 갱신
-- 날짜: 2026-09-05
+- 날짜: 2026-09-06
 - **git 상태: 미커밋 변경 있음** — 아래 항목들. 배너 rounded 제거/select 화살표 등(`ae20be0`)까지는 이미 push 완료. 사용자가 커밋 요청 전까지 그대로 둘 것.
+- **사이트 전체 좌우 패딩 스케일 재정의 (2026-09-06)**: 기존 `px-24 → md:px-48 → lg:px-80`(모바일 24/태블릿 48/데스크톱 80)를 **`px-24 → md:px-32 → lg:px-40`**로 전면 교체. 태블릿이 데스크톱보다 여백이 커지는 역전 현상을 막기 위해 태블릿 값도 같이 낮춤. `Header`/`Footer`/`index.css`의 `.page-section`(MyPage/Wishlist가 자동 적용받음)/`CategoryListing`/`Home`/`Men`/`Women`/`ProductDetail`/`Cart`/`Order` 총 10개 파일 24곳 전부 교체. `Cart`/`Order`/`ProductDetail`은 기존에 `md:` 단계 자체가 없었어서(모바일→데스크톱으로 바로 점프) 이번에 `md:px-32`를 새로 추가해 다른 페이지들과 통일. 브라우저로 확인, `npx tsc -b` 에러 0건
 - **`public/images/hero/`에 사용자가 모델 사진 4장 추가함**(women-coat-02-model-01/02, 각 버전+v2) — 지금은 Women 히어로에 임시 외부 URL 이미지를 쓰고 있어서 **이 로컬 사진들은 아직 어디에도 연결 안 함**, 다음에 필요하면 교체
 - **Men/Women 페이지 섹션 재구성 + 타이틀/간격/PDP 폰트 조정 (2026-09-05~06, 전부 미커밋)**:
   1. **섹션 순서 전면 재구성** — 기존 "Hero → 에디토리얼 배너 → SHOP BY CATEGORY → NEW ARRIVAL(8개 혼합)"을 **"Hero → 상품(셔츠 4개, 타이틀 없음) → 에디토리얼 배너 → 상품(아우터 4개, 타이틀 없음) → SHOP BY CATEGORY"**로 전면 재구성. 셔츠/아우터 섹션은 `subCategory==='셔츠'`/`category==='아우터'`로 필터링한 4개를 `product-grid`(NEW ARRIVAL과 동일 레이아웃)로 배치, 타이틀·"더보기" 링크 없음. 기존 "NEW ARRIVAL" 섹션 자체는 삭제
@@ -18,6 +19,11 @@
   3. **Women 히어로 이미지 교체** — 기존 3분할 색상 블록 대신 사용자가 준 임시 외부 이미지(Cloudinary `craftcore_des`)로 교체(`bg-cover bg-center`, 기존 어두운 오버레이 유지). Men 히어로는 아직 색상 블록 그대로(별도 이미지 요청 없었음)
   4. **에디토리얼 배너 엣지투엣지 처리** — 배너를 감싸던 `<section>`의 좌우 패딩(`px-24 md:px-48 lg:px-80`)을 제거해서 배너가 화면 전체 폭에 꽉 차도록 변경(배너 내부 텍스트 패딩은 유지)
   5. **Hero/에디토리얼 배너 타이틀 padding을 사이트 기본값으로 통일** — 좌우는 `px-24 md:px-48 lg:px-80`(헤더와 동일한 사이트 기본 패딩)로, 세로는 상단 32px 유지하고 하단만 48px로 키워서 텍스트가 배너 하단에서 좀 더 위로 올라오도록 조정(`px-24 pt-32 pb-48 md:px-48 lg:px-80`, Hero의 기존 `lg:p-64` 축약형은 제거)
+  6. **관리자(`/admin`) 인증 가드는 의도적으로 보류 확정** — 사용자가 "사이트 구성이 어느 정도 됐을 때 진행할 것, 지금 만들면 확인할 때마다 로그인 요구가 뜰 것"이라고 명시적으로 이유를 설명하며 보류 요청. 다음에 먼저 물어보지 않고 진행하지 말 것
+  7. **`Home.tsx`의 에디토리얼/젠더/이벤트 배너도 Men/Women과 동일하게 엣지투엣지 처리** — 3개 섹션 전부 outer `<section>`의 좌우 패딩 제거. 에디토리얼 배너는 내부 텍스트도 Men/Women과 동일한 `px-24 pt-32 pb-48 md:px-48 lg:px-80` 패턴 적용. 젠더/이벤트 배너는 내부 텍스트 패딩(`p-32`/`p-20`)은 그대로 유지(사용자가 배치/외곽 패딩만 요청)
+  8. **`Men.tsx`/`Women.tsx` 코드 중복 — 리팩터링 보류 확정** — 사용자가 "구조는 같지만 내용(상품/이미지/카피)은 앞으로 완전히 달라질 것"이라고 확인. 지금은 거의 동일한 코드지만, 공통 컴포넌트로 합치는 리팩터링은 진행하지 않기로 함(향후 콘텐츠 발산을 고려한 판단)
+  9. **카카오 주소검색 로직을 공통 훅으로 분리** — `src/hooks/useDaumPostcodeSearch.ts` 신규(`(onComplete: (roadAddress: string) => void) => () => void` 형태, 내부에서 `new window.daum.Postcode({oncomplete}).open()` 호출). `AccountSettingsForm.tsx`와 `Order.tsx`에 각각 따로 있던 동일 로직을 이 훅으로 교체. **주의**: 훅 이름이 `use`로 시작해서 oxlint의 `react-hooks(rules-of-hooks)`가 "조건부 호출" 여부를 정적으로 검사함 — Order.tsx에서 처음엔 early-return(`if (!items) return null`) 아래에 배치했다가 린트 에러 발생, 다른 `useState` 호출들과 함께 컴포넌트 최상단으로 옮겨서 해결
+  10. 브라우저로 전체 확인(Home 엣지투엣지, 마이페이지·주문서 양쪽에서 주소검색 정상 동작), `npx tsc -b`/`npm run lint` 둘 다 에러 0건(기존 Context 5개의 `only-export-components` 경고만 무관하게 존재)
   4. **"SHOP BY CATEGORY" 타이틀** — `text-h2`(24px) → `text-base font-bold`(16px)
   5. **섹션 간 간격을 Home과 동일하게** — 각 섹션이 쓰던 공용 `.page-section` 클래스(32→48→64px 반응형 패딩) 대신 `mt-20 px-24 md:px-48 lg:px-80`로 직접 교체(마지막 섹션엔 `pb-20`). `.page-section` 클래스 자체는 ProductDetail/Wishlist도 같이 쓰기 때문에 안 건드림
   6. **`page-section__header`의 `mb-24` → `mb-10`** — 타이틀과 아래 콘텐츠 사이 간격 축소(공용 클래스라 ProductDetail "함께 보면 좋은 상품"에도 동일 적용됨, 확인 완료)

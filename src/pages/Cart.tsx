@@ -59,12 +59,12 @@ function Cart() {
 
   return (
     <div>
-      <div className="flex flex-col gap-4 px-24 pb-16 pt-32 lg:px-80 lg:pb-24 lg:pt-48">
+      <div className="flex flex-col gap-4 px-24 pb-16 pt-32 md:px-32 lg:px-40 lg:pb-24 lg:pt-48">
         <h1 className="text-h2">장바구니</h1>
         <p className="text-body-sm text-secondary">총 {cartItems.length}개 상품</p>
       </div>
 
-      <div className="flex flex-col gap-32 px-24 pb-32 lg:flex-row lg:items-start lg:gap-64 lg:px-80 lg:pb-80">
+      <div className="flex flex-col gap-32 px-24 pb-32 md:px-32 lg:flex-row lg:items-start lg:gap-64 lg:px-40 lg:pb-80">
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between pb-16">
             <Checkbox

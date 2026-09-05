@@ -103,7 +103,7 @@
   }
 
   .page-section {
-    @apply px-24 pb-0 pt-32 md:px-48 md:pt-48 lg:px-80 lg:pt-64;
+    @apply px-24 pb-0 pt-32 md:px-32 md:pt-48 lg:px-40 lg:pt-64;
   }
 
   .page-section:last-of-type {
