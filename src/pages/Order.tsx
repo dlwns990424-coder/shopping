@@ -72,7 +72,9 @@ function Order() {
                     </button>
                   </div>
                   <p className="text-[13px] text-secondary">{user.shippingPhone}</p>
-                  <p className="text-[13px] text-secondary">{user.shippingAddress}</p>
+                  <p className="text-[13px] text-secondary">
+                    {user.shippingAddress} {user.shippingAddressDetail}
+                  </p>
                 </>
               ) : (
                 <div className="flex items-center justify-between">

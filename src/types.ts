@@ -31,6 +31,7 @@ export interface User {
   shippingName?: string
   shippingPhone?: string
   shippingAddress?: string
+  shippingAddressDetail?: string
 }
 
 export type AuthResult = { success: true } | { success: false; message: string }

@@ -10,8 +10,15 @@
 
 ## 마지막 갱신
 - 날짜: 2026-09-05
-- **git 상태: 이번 세션 작업 커밋 완료(`c484db5`) + push 완료.** 워킹트리 클린.
+- **git 상태: 미커밋 변경 있음** — 아래 "마이페이지 배송지 카카오 주소 검색" 작업분. 사용자가 커밋 요청 전까지 그대로 둘 것.
 - **`public/images/hero/`에 사용자가 모델 사진 4장 추가함**(women-coat-02-model-01/02, 각 버전+v2) — WOMEN 배너용으로 보이는 라이프스타일 사진. **아직 코드에 연결 안 함, 다음 세션에서 이어서 작업.**
+- **마이페이지 배송지 — 카카오(다음) 우편번호 서비스 연동 (2026-09-05)**:
+  1. `index.html`에 `//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js` 스크립트 태그 추가(API 키 불필요, 무료 공개 서비스)
+  2. `src/types/daum-postcode.d.ts` 신규 — `window.daum.Postcode` 전역 타입 선언(`declare global`)
+  3. `types.ts`의 `User`에 `shippingAddressDetail?: string` 필드 추가(도로명주소와 상세주소를 분리 저장)
+  4. `AccountSettingsForm.tsx` — 기존 "주소" 텍스트 입력을 readOnly 입력+"주소 검색" 버튼으로 변경(`new window.daum.Postcode({oncomplete}).open()`으로 팝업 열고 `roadAddress`를 자동 채움), 그 아래 "상세주소"(동/호수 등) 입력을 새로 추가
+  5. `Order.tsx`의 배송지 표시를 `{shippingAddress} {shippingAddressDetail}`로 합쳐서 노출
+  6. **검증 방법**: 이 브라우저 자동화 환경에서 `daum.Postcode.open()`이 여는 실제 팝업 창은 MCP가 추적하는 탭 그룹 밖에서 열려서 스크린샷 확인은 불가(툴 한계, 코드 문제 아님) — 대신 `window.daum.Postcode`를 임시로 스텁 처리해서 `oncomplete` 콜백이 실제로 폼 상태를 갱신하는지 확인, 저장 버튼으로 `localStorage`(`shop_users`)에 `shippingAddress`+`shippingAddressDetail`이 정확히 저장되는지, Order 페이지에서 두 값이 합쳐서 표시되는지까지 전체 플로우 확인 완료. `npx tsc -b` 에러 0건
 - **Home 페이지 신규 추가 + 카드 디자인 조정 (2026-09-05)**:
   1. **`/` 라우팅 분리** — 기존엔 `/`와 `/men`이 완전히 같은 `Men` 컴포넌트를 공유했는데(2026-09-03에 의도적으로 합쳤던 결정을 이번에 되돌림), `src/pages/Home.tsx` 신규 생성 후 `App.tsx`에서 `/`를 여기로 연결. `/men`은 그대로 `Men` 유지
   2. **`Home.tsx` 구성**: Hero(100vh, Men/Women과 동일한 `-mt-64`+헤더 오버레이 패턴, 성별 무관 카피) → 에디토리얼 배너 → **MEN/WOMEN 배너 2개**(큰 카드, `/men`·`/women`으로 링크, 타이틀+설명+"SHOP MEN'S/WOMEN'S") → **이벤트 배너 4개**("가을 필수 아이템", 카테고리/소분류로 링크). 사용자 확인 결과 이미지는 전부 색상 블록 placeholder로 우선 진행(실사진 없음, 나중에 받으면 교체)

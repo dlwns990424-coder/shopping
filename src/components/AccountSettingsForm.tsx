@@ -13,6 +13,7 @@ interface FormState {
   shippingName: string
   shippingPhone: string
   shippingAddress: string
+  shippingAddressDetail: string
 }
 
 function AccountSettingsForm() {
@@ -24,12 +25,22 @@ function AccountSettingsForm() {
     shippingName: user?.shippingName ?? '',
     shippingPhone: user?.shippingPhone ?? '',
     shippingAddress: user?.shippingAddress ?? '',
+    shippingAddressDetail: user?.shippingAddressDetail ?? '',
   })
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const [showToast, setShowToast] = useState(false)
 
   const handleChange = (field: keyof FormState) => (e: ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }))
+  }
+
+  const handleSearchAddress = () => {
+    new window.daum.Postcode({
+      oncomplete: (data) => {
+        setForm((prev) => ({ ...prev, shippingAddress: data.roadAddress }))
+        setErrors((prev) => ({ ...prev, shippingAddress: undefined }))
+      },
+    }).open()
   }
 
   const validate = (): Partial<Record<keyof FormState, string>> => {
@@ -103,12 +114,30 @@ function AccountSettingsForm() {
             onChange={handleChange('shippingPhone')}
             error={errors.shippingPhone}
           />
+          <div className="flex flex-col gap-8">
+            <label className="text-caption text-secondary" htmlFor="mypage-shipping-address">
+              주소
+            </label>
+            <div className="flex gap-8">
+              <Input
+                id="mypage-shipping-address"
+                value={form.shippingAddress}
+                readOnly
+                placeholder="주소 검색을 눌러주세요"
+                className="flex-1"
+              />
+              <Button type="button" variant="secondary" onClick={handleSearchAddress} className="shrink-0">
+                주소 검색
+              </Button>
+            </div>
+            {errors.shippingAddress && <p className="text-caption text-point">{errors.shippingAddress}</p>}
+          </div>
           <Input
-            id="mypage-shipping-address"
-            label="주소"
-            value={form.shippingAddress}
-            onChange={handleChange('shippingAddress')}
-            error={errors.shippingAddress}
+            id="mypage-shipping-address-detail"
+            label="상세주소"
+            placeholder="동/호수 등 상세주소를 입력해주세요"
+            value={form.shippingAddressDetail}
+            onChange={handleChange('shippingAddressDetail')}
           />
         </section>
 
