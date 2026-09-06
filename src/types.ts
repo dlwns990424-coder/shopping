@@ -24,10 +24,13 @@ export interface Category {
   image: string
 }
 
+export type UserRole = 'admin' | 'user'
+
 export interface User {
   nickname: string
   email: string
   phone: string
+  role: UserRole
   shippingName?: string
   shippingPhone?: string
   shippingAddress?: string

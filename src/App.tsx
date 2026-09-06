@@ -7,6 +7,7 @@ import { OrderHistoryProvider } from './context/OrderHistoryContext'
 import { AuthModalProvider } from './context/AuthModalContext'
 import ScrollToTop from './components/ScrollToTop'
 import RequireAuth from './components/RequireAuth'
+import RequireAdmin from './components/RequireAdmin'
 
 import UserLayout from './layouts/UserLayout'
 import AdminLayout from './layouts/AdminLayout'
@@ -23,6 +24,7 @@ import MyPage from './pages/MyPage'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 
+import Dashboard from './admin/pages/Dashboard'
 import ProductManage from './admin/pages/ProductManage'
 import OrderManage from './admin/pages/OrderManage'
 import MemberManage from './admin/pages/MemberManage'
@@ -55,11 +57,14 @@ function App() {
                     </Route>
                   </Route>
 
-                  <Route path="/admin" element={<AdminLayout />}>
-                    <Route path="products" element={<ProductManage />} />
-                    <Route path="orders" element={<OrderManage />} />
-                    <Route path="members" element={<MemberManage />} />
-                    <Route path="sales" element={<SalesManage />} />
+                  <Route element={<RequireAdmin />}>
+                    <Route path="/admin" element={<AdminLayout />}>
+                      <Route index element={<Dashboard />} />
+                      <Route path="products" element={<ProductManage />} />
+                      <Route path="orders" element={<OrderManage />} />
+                      <Route path="members" element={<MemberManage />} />
+                      <Route path="sales" element={<SalesManage />} />
+                    </Route>
                   </Route>
                 </Routes>
               </AuthModalProvider>

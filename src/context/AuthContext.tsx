@@ -12,6 +12,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => AuthResult
   logout: () => void
   updateProfile: (updates: Partial<User>) => AuthResult
+  listUsers: () => User[]
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -42,16 +43,28 @@ const TEST_ACCOUNT: StoredUser = {
   email: 'test@test.com',
   password: 'test1234',
   phone: '010-1234-5678',
+  role: 'user',
 }
 
-function ensureTestAccount() {
+const TEST_ADMIN_ACCOUNT: StoredUser = {
+  nickname: '관리자',
+  email: 'admin@test.com',
+  password: 'admin1234',
+  phone: '010-0000-0000',
+  role: 'admin',
+}
+
+function ensureTestAccounts() {
   const users = readUsers()
-  if (!users.some((u) => u.email === TEST_ACCOUNT.email)) {
-    safeSetItem(USERS_KEY, [...users, TEST_ACCOUNT])
+  const missing = [TEST_ACCOUNT, TEST_ADMIN_ACCOUNT].filter(
+    (account) => !users.some((u) => u.email === account.email),
+  )
+  if (missing.length > 0) {
+    safeSetItem(USERS_KEY, [...users, ...missing])
   }
 }
 
-ensureTestAccount()
+ensureTestAccounts()
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(readSession)
@@ -61,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (users.some((u) => u.email === email)) {
       return { success: false, message: '이미 가입된 이메일입니다.' }
     }
-    safeSetItem(USERS_KEY, [...users, { nickname, email, password, phone }])
+    safeSetItem(USERS_KEY, [...users, { nickname, email, password, phone, role: 'user' }])
     return { success: true }
   }
 
@@ -95,8 +108,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: true }
   }
 
+  const listUsers = (): User[] =>
+    readUsers().map(({ password: _password, ...safeUser }) => safeUser)
+
   return (
-    <AuthContext.Provider value={{ user, signup, login, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, signup, login, logout, updateProfile, listUsers }}>
       {children}
     </AuthContext.Provider>
   )

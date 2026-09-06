@@ -10,8 +10,16 @@
 
 ## 마지막 갱신
 - 날짜: 2026-09-06
-- **git 상태: 방금 커밋 완료**(아래 "상품 카드 hover 정보 노출 제거" 항목). 그 이전 항목들(패딩 스케일 통일 등, `b010611`)은 이미 push 완료.
-- **다음 작업: 관리자 페이지 제작 준비 착수** — 아직 설계/코드 작업 시작 전, 요구사항부터 정리할 것
+- **git 상태: 미커밋 변경 있음** — 아래 "관리자 페이지 착수" 항목. 그 이전 항목(상품 카드 hover 제거, `538cc89`)까지는 커밋 완료(미푸시).
+- **Supabase 프로젝트 연결됨** — 사용자가 실제 프로젝트 생성(`nkwofckgxfgsusgqabme`), `.env.local`에 `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` 기록함(gitignore 대상, 커밋 안 됨). anon key만 사용, service_role 키는 받지 않음. **상품관리(관리자)만 Supabase로 전환하기로 결정** — 공개 페이지(Men/Women/상세)는 계속 `src/mock/products.ts` 사용. 아직 실제 `products` 테이블은 안 만듦(다음 단계)
+- **관리자 페이지 착수 — 인증가드 + role + 대시보드 (2026-09-06, 미커밋)**:
+  1. **`User`에 `role: 'admin' | 'user'` 필드 추가**(`types.ts`에 `UserRole` 타입 신규). 회원가입 시 항상 `role: 'user'`로 생성
+  2. **테스트 관리자 계정 추가** — `AuthContext.tsx`의 `ensureTestAccounts()`(기존 `ensureTestAccount` 단수→복수로 변경)가 이제 `test@test.com`(일반)과 `admin@test.com` / `admin1234`(관리자, `role: 'admin'`) 둘 다 없으면 생성
+  3. **`useAuth`에 `listUsers()` 추가** — 저장된 전체 회원 목록을 비밀번호 제거하고 반환(회원관리/대시보드용, 지금까지는 로그인한 본인만 조회 가능했음)
+  4. **`src/components/RequireAdmin.tsx` 신규** — `RequireAuth`와 같은 패턴, `user.role !== 'admin'`이면(비로그인 포함) `/`로 리다이렉트. `App.tsx`에서 `/admin` 전체 라우트를 이걸로 감쌈
+  5. **대시보드 페이지 신규**(`src/admin/pages/Dashboard.tsx`, `/admin` 인덱스 라우트) — KPI 카드 4개(총 매출/총 주문 수/오늘 주문 수/총 회원 수) + 최근 주문 8건 테이블. 기존 `useOrderHistory()`(이미 전체 유저 주문 보유)와 신규 `listUsers()`만으로 구성, 새 데이터 소스 불필요. `AdminLayout.tsx` 사이드바에 "대시보드" 링크 추가
+  6. **검증**: 브라우저로 (a) 비로그인 상태 `/admin` 접근 → `/`로 리다이렉트, (b) 일반 회원(`test@test.com`) 로그인 상태에서 `/admin` 접근 → `/`로 리다이렉트, (c) `admin@test.com`/`admin1234` 로그인 → 대시보드에 실제 주문(₩198,000, 1건)·회원 수(2명) 정상 표시까지 전체 플로우 확인. `npx tsc -b`/`npm run lint` 에러 0건(기존 5건 경고만 무관하게 존재)
+  7. **다음 단계**: 상품관리(`ProductManage.tsx`)를 Supabase 연동 — `products` 테이블 스키마를 사용자에게 제시 후 Supabase SQL 에디터에서 직접 생성 요청(anon key로는 DDL 불가), 시딩, `src/lib/supabaseClient.ts`(이미 존재)를 통한 CRUD 페이지 구현 예정. 주문관리/회원관리 페이지는 아직 스텁 상태로 미착수
 - **상품 카드 hover 정보 노출 제거 (2026-09-06)**: 기존엔 데스크탑에서 상품카드에 마우스를 올려야만 이름/가격이 나타났는데(`showInfo` prop으로 모바일/PC 분기), 모바일·태블릿처럼 PC에서도 이름/가격이 항상 보이도록 변경. 찜하기 하트 버튼은 기존대로 PC(`lg:`)에서만 hover 시 노출되는 동작은 그대로 유지(요구사항이 "hover하면 찜하기 버튼만 나오게"였음). `ProductCard.tsx`에서 `showInfo` prop과 hover 오버레이 `<div>` 완전 삭제, 이름/가격 블록을 이미지 아래 항상 렌더링. `CategoryListing.tsx`/`Wishlist.tsx`의 `<ProductCard showInfo />` 호출부에서도 prop 제거. 브라우저로 PC 폭에서 이름/가격 항상 표시 + 하트만 hover 시 노출 확인, `npx tsc -b` 에러 0건
 - **사이트 전체 좌우 패딩 스케일 재정의 (2026-09-06)**: 기존 `px-24 → md:px-48 → lg:px-80`(모바일 24/태블릿 48/데스크톱 80)를 **`px-24 → md:px-32 → lg:px-40`**로 전면 교체. 태블릿이 데스크톱보다 여백이 커지는 역전 현상을 막기 위해 태블릿 값도 같이 낮춤. `Header`/`Footer`/`index.css`의 `.page-section`(MyPage/Wishlist가 자동 적용받음)/`CategoryListing`/`Home`/`Men`/`Women`/`ProductDetail`/`Cart`/`Order` 총 10개 파일 24곳 전부 교체. `Cart`/`Order`/`ProductDetail`은 기존에 `md:` 단계 자체가 없었어서(모바일→데스크톱으로 바로 점프) 이번에 `md:px-32`를 새로 추가해 다른 페이지들과 통일. 브라우저로 확인, `npx tsc -b` 에러 0건
 - **`public/images/hero/`에 사용자가 모델 사진 4장 추가함**(women-coat-02-model-01/02, 각 버전+v2) — 지금은 Women 히어로에 임시 외부 URL 이미지를 쓰고 있어서 **이 로컬 사진들은 아직 어디에도 연결 안 함**, 다음에 필요하면 교체
