@@ -92,7 +92,7 @@ function CategoryListing({ genderLabel, basePath, products, categoryParam }: Cat
       {displayedProducts.length > 0 ? (
         <div className="product-grid gap-y-32">
           {displayedProducts.map((product) => (
-            <ProductCard key={product.id} {...product} showInfo />
+            <ProductCard key={product.id} {...product} />
           ))}
         </div>
       ) : (

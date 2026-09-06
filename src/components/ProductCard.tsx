@@ -8,10 +8,9 @@ interface ProductCardProps {
   name: string
   price: string
   image?: string | null
-  showInfo?: boolean
 }
 
-function ProductCard({ id, name, price, image, showInfo = false }: ProductCardProps) {
+function ProductCard({ id, name, price, image }: ProductCardProps) {
   const { isWishlisted, toggle } = useWishlist()
   const wishlisted = isWishlisted(id)
 
@@ -36,15 +35,8 @@ function ProductCard({ id, name, price, image, showInfo = false }: ProductCardPr
         >
           <Heart size={16} strokeWidth={1.5} fill={wishlisted ? 'currentColor' : 'none'} />
         </button>
-
-        {!showInfo && (
-          <div className="hidden lg:block absolute inset-x-16 bottom-16 rounded-sm bg-surface/92 p-12 transition-all lg:translate-y-6 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 lg:group-focus-visible:translate-y-0 lg:group-focus-visible:opacity-100">
-            <p className="text-body text-primary">{name}</p>
-            <p className="text-sm font-semibold text-primary">{price}</p>
-          </div>
-        )}
       </div>
-      <div className={`mt-12 flex flex-col gap-4 ${showInfo ? '' : 'lg:hidden'}`}>
+      <div className="mt-12 flex flex-col gap-4">
         <p className="text-body text-primary">{name}</p>
         <p className="text-sm font-semibold text-primary">{price}</p>
       </div>
