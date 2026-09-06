@@ -10,7 +10,15 @@
 
 ## 마지막 갱신
 - 날짜: 2026-09-06
-- **git 상태: 미커밋 변경 있음** — 아래 "Supabase products 테이블 시딩" 항목(`scripts/seed-products.ts` 신규). 그 이전 항목(관리자 가드+대시보드, `8c173e6`)까지는 커밋 완료(미푸시).
+- **git 상태: 미커밋 변경 있음** — 아래 "ProductManage 실제 구현" 항목. 그 이전 항목(Supabase 시딩, `8384d72`)까지는 커밋 완료(미푸시, 총 4커밋).
+- **상품관리(`ProductManage.tsx`) 실제 구현 완료 (2026-09-06)**:
+  1. `supabase.from('products')`로 목록 조회(`created_at` 역순), 성별/카테고리 필터 + 상품명 검색(클라이언트 사이드 필터링)
+  2. 추가/수정 폼 하나를 토글로 공유(추가 시 `editingId: null`, 수정 시 해당 상품 값으로 폼 채움) — 성별/카테고리/서브카테고리는 `CategoryListing.tsx`와 동일한 옵션 목록 재사용, 카테고리 바꾸면 서브카테고리 옵션도 같이 갱신
+  3. 신규 상품 `id`는 `${gender}-admin-${Date.now()}` 형식으로 자동 생성(관리자가 직접 입력 안 함)
+  4. 삭제는 `window.confirm` 확인 후 `delete().eq('id', ...)`
+  5. **알려진 oxlint 경고 1건 추가**: `react(set-state-in-effect)` — mount 시 `loadProducts()`를 `useEffect`에서 호출하는 패턴 자체를 oxlint가 보수적으로 잡아냄(await 이후의 setState까지도 감지). 코드를 부자연스럽게 바꾸지 않는 이상 없앨 수 없는 경고라 기존 5건의 무관한 경고와 같이 그대로 둠(신규 데이터fetching 컴포넌트라 코드베이스 최초 사례)
+  6. **검증**: 브라우저에서 관리자 계정으로 (a) 60개 목록 정상 렌더링 (b) 검색/필터 정상 (c) 기존 상품 가격 수정 → 저장 → 목록 즉시 반영 (d) 새 상품 추가 → 검색으로 노출 확인 (e) 방금 추가한 테스트 상품 삭제(→`window.confirm` 스텁 처리해서 확인) 까지 전체 CRUD 플로우 확인, 수정 테스트에 썼던 데이터는 원래 값으로 복구함. `npx tsc -b` 에러 0건
+  7. **다음 단계**: 주문관리(`OrderManage.tsx`)/회원관리(`MemberManage.tsx`)는 아직 스텁 상태로 미착수. 공개 페이지(Men/Women/상세)를 Supabase로 전환하는 건 별도 결정 필요(현재는 상품관리만 Supabase, 공개 페이지는 계속 mock)
 - **Supabase 연동 진행 중 — 테이블 생성 + 시딩 완료 (2026-09-06)**:
   1. 사용자가 Supabase 프로젝트 생성(`nkwofckgxfgsusgqabme`), `.env.local`에 `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` 기록(gitignore 대상, 커밋 안 됨). anon key만 사용, service_role 키는 받지 않음
   2. **RLS 정책 결정**: 지금 로그인이 Supabase Auth가 아니라 localStorage 가짜 인증이라 `auth.uid()` 기반 권한 분리가 불가능함을 설명 → 사용자가 "지금은 전체 공개(A안)"로 결정. `products` 테이블에 RLS는 켜두되 `for all using (true) with check (true)` 정책 하나로 사실상 전체 공개. **주의**: anon key가 프론트 번들에 노출되므로 지금은 누구나 상품을 수정/삭제할 수 있는 상태 — 실제 배포 전에는 반드시 Supabase Auth 전환 + 관리자 전용 쓰기 정책으로 승격 필요
