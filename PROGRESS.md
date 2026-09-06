@@ -8,9 +8,21 @@
 
 ---
 
+## 새 환경(다른 컴퓨터)에서 시작하기
+1. `git pull`
+2. `npm install`
+3. **`.env.local` 파일을 프로젝트 루트에 새로 생성해야 함** — `.gitignore` 대상이라 git에는 안 올라감. 아래 내용을 채워야 관리자 상품관리(Supabase 연동) 페이지가 동작함(다른 기능은 이 파일 없어도 정상 동작):
+   ```
+   VITE_SUPABASE_URL=
+   VITE_SUPABASE_ANON_KEY=
+   ```
+   값은 [Supabase 대시보드](https://supabase.com/dashboard/project/nkwofckgxfgsusgqabme) → Settings → API에서 Project URL / anon public key 복사(`service_role` 키는 절대 사용하지 않음)
+4. `npm run dev`로 로컬 서버 실행
+5. 테스트 계정(로그인 시 자동 생성됨, 별도 설정 불필요): 일반 `test@test.com` / `test1234`, 관리자 `admin@test.com` / `admin1234`
+
 ## 마지막 갱신
 - 날짜: 2026-09-06
-- **git 상태: 미커밋 변경 있음** — 아래 "주문관리 실제 구현" 항목. 그 이전 항목(상품관리 CRUD, `bf4c615`)까지 push 완료.
+- **git 상태: 커밋+push 완료**(`9e6cd18`), 미커밋 변경 없음.
 - **주문관리(`OrderManage.tsx`) 실제 구현 완료 (2026-09-06)** — 실제 쇼핑몰(카페24 계열)/Shopify 관리자 주문관리 방식을 조사한 뒤(운송장번호 입력은 이번엔 생략하기로 결정) 반영:
   1. **`OrderStatus` 유니온 타입 도입** — `types.ts`의 `Order.status: string` → `'결제완료' | '배송준비' | '배송중' | '배송완료' | '취소'`로 변경(예전부터 설명만 해뒀던 개선 사항을 이번에 적용)
   2. **`OrderHistoryContext`에 `updateOrderStatuses(orderIds, status)` 추가** — 배열을 받아 한 번의 `setState`로 여러 건을 동시에 갱신(개별 변경도 이 함수에 길이 1 배열로 호출)
