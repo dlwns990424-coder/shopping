@@ -10,8 +10,13 @@
 
 ## 마지막 갱신
 - 날짜: 2026-09-06
-- **git 상태: 미커밋 변경 있음** — 아래 "관리자 페이지 착수" 항목. 그 이전 항목(상품 카드 hover 제거, `538cc89`)까지는 커밋 완료(미푸시).
-- **Supabase 프로젝트 연결됨** — 사용자가 실제 프로젝트 생성(`nkwofckgxfgsusgqabme`), `.env.local`에 `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` 기록함(gitignore 대상, 커밋 안 됨). anon key만 사용, service_role 키는 받지 않음. **상품관리(관리자)만 Supabase로 전환하기로 결정** — 공개 페이지(Men/Women/상세)는 계속 `src/mock/products.ts` 사용. 아직 실제 `products` 테이블은 안 만듦(다음 단계)
+- **git 상태: 미커밋 변경 있음** — 아래 "Supabase products 테이블 시딩" 항목(`scripts/seed-products.ts` 신규). 그 이전 항목(관리자 가드+대시보드, `8c173e6`)까지는 커밋 완료(미푸시).
+- **Supabase 연동 진행 중 — 테이블 생성 + 시딩 완료 (2026-09-06)**:
+  1. 사용자가 Supabase 프로젝트 생성(`nkwofckgxfgsusgqabme`), `.env.local`에 `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` 기록(gitignore 대상, 커밋 안 됨). anon key만 사용, service_role 키는 받지 않음
+  2. **RLS 정책 결정**: 지금 로그인이 Supabase Auth가 아니라 localStorage 가짜 인증이라 `auth.uid()` 기반 권한 분리가 불가능함을 설명 → 사용자가 "지금은 전체 공개(A안)"로 결정. `products` 테이블에 RLS는 켜두되 `for all using (true) with check (true)` 정책 하나로 사실상 전체 공개. **주의**: anon key가 프론트 번들에 노출되므로 지금은 누구나 상품을 수정/삭제할 수 있는 상태 — 실제 배포 전에는 반드시 Supabase Auth 전환 + 관리자 전용 쓰기 정책으로 승격 필요
+  3. 사용자가 Supabase SQL Editor에서 `products` 테이블 생성 SQL 실행 완료(컬럼: id/name/price(정수)/gender/category/sub_category/image/color_label/color_hex/description/created_at/updated_at). **상품관리(관리자)만 이 테이블을 쓰기로 결정** — 공개 페이지(Men/Women/상세)는 계속 `src/mock/products.ts` 사용, price도 여기선 문자열(`"₩198,000"`)인 채로 안 건드림(둘은 당분간 별개 데이터 소스)
+  4. **`scripts/seed-products.ts` 신규** — `src/mock/products.ts`의 60개 상품을 읽어 Supabase `products` 테이블에 upsert하는 1회성 스크립트. `price` 문자열→정수 변환, `subCategory`→`sub_category`, `color.{label,hex}`→`color_label`/`color_hex`로 매핑. `npx tsx scripts/seed-products.ts`로 실행, 60개 전부 삽입 확인(`select count`, 샘플 로우 조회로 검증)
+  5. **다음 단계**: `src/admin/pages/ProductManage.tsx` 실제 구현 — 목록(필터/검색) + 추가/수정 폼(가격은 숫자 입력, 화면엔 포맷) + 삭제, `src/lib/supabaseClient.ts`(기존 파일)로 CRUD
 - **관리자 페이지 착수 — 인증가드 + role + 대시보드 (2026-09-06, 미커밋)**:
   1. **`User`에 `role: 'admin' | 'user'` 필드 추가**(`types.ts`에 `UserRole` 타입 신규). 회원가입 시 항상 `role: 'user'`로 생성
   2. **테스트 관리자 계정 추가** — `AuthContext.tsx`의 `ensureTestAccounts()`(기존 `ensureTestAccount` 단수→복수로 변경)가 이제 `test@test.com`(일반)과 `admin@test.com` / `admin1234`(관리자, `role: 'admin'`) 둘 다 없으면 생성
