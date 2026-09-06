@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import type { CartItem, Order } from '../types'
+import type { CartItem, Order, OrderStatus } from '../types'
 import { safeSetItem } from '../utils/storage'
 
 type OrderShippingInfo = Pick<
@@ -10,6 +10,7 @@ type OrderShippingInfo = Pick<
 interface OrderHistoryContextValue {
   orders: Order[]
   addOrder: (userEmail: string, items: CartItem[], shipping: OrderShippingInfo) => void
+  updateOrderStatuses: (orderIds: string[], status: OrderStatus) => void
 }
 
 const OrderHistoryContext = createContext<OrderHistoryContextValue | null>(null)
@@ -43,8 +44,17 @@ export function OrderHistoryProvider({ children }: { children: ReactNode }) {
     })
   }
 
+  const updateOrderStatuses = (orderIds: string[], status: OrderStatus) => {
+    setOrders((prev) => {
+      const idSet = new Set(orderIds)
+      const next = prev.map((order) => (idSet.has(order.id) ? { ...order, status } : order))
+      safeSetItem(ORDERS_KEY, next)
+      return next
+    })
+  }
+
   return (
-    <OrderHistoryContext.Provider value={{ orders, addOrder }}>
+    <OrderHistoryContext.Provider value={{ orders, addOrder, updateOrderStatuses }}>
       {children}
     </OrderHistoryContext.Provider>
   )

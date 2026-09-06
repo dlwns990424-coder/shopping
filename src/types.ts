@@ -55,10 +55,12 @@ export interface CartItem {
   image: string | null
 }
 
+export type OrderStatus = '결제완료' | '배송준비' | '배송중' | '배송완료' | '취소'
+
 export interface Order {
   id: string
   date: string
-  status: string
+  status: OrderStatus
   userEmail: string
   items: CartItem[]
   shippingName: string
