@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { ShoppingBag } from 'lucide-react'
 import CartItemRow from '../components/CartItemRow'
 import Checkbox from '../components/Checkbox'
@@ -42,6 +43,9 @@ function Cart() {
   if (cartItems.length === 0) {
     return (
       <div className="flex min-h-560 flex-col items-center justify-center gap-16 px-24 py-64 text-center">
+        <Helmet>
+          <title>T&amp;L | 장바구니</title>
+        </Helmet>
         <ShoppingBag size={48} strokeWidth={1.2} className="text-disabled" />
         <p className="text-h3">장바구니가 비어있습니다</p>
         <p className="text-body text-secondary">마음에 드는 상품을 담아보세요</p>
@@ -59,6 +63,10 @@ function Cart() {
 
   return (
     <div>
+      <Helmet>
+        <title>T&amp;L | 장바구니</title>
+      </Helmet>
+
       <div className="flex flex-col gap-4 px-24 pb-16 pt-32 md:px-32 lg:px-40 lg:pb-24 lg:pt-48">
         <h1 className="text-h2">장바구니</h1>
         <p className="text-body-sm text-secondary">총 {cartItems.length}개 상품</p>

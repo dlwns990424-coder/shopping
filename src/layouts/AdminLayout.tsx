@@ -10,6 +10,7 @@ function AdminLayout() {
           <Link to="/admin/orders">주문관리</Link>
           <Link to="/admin/members">회원관리</Link>
           <Link to="/admin/sales">매출관리</Link>
+          <Link to="/admin/content">콘텐츠 관리</Link>
         </nav>
       </aside>
 

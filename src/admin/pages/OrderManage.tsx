@@ -1,4 +1,5 @@
 import { Fragment, useState } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { useOrderHistory } from '../../context/OrderHistoryContext'
 import OrderItemRow from '../../components/OrderItemRow'
 import Button from '../../components/Button'
@@ -52,6 +53,9 @@ function OrderManage() {
 
   return (
     <div className="flex flex-col gap-24">
+      <Helmet>
+        <title>T&amp;L Admin | 주문관리</title>
+      </Helmet>
       <h1 className="text-h1">주문관리</h1>
 
       <div className="flex flex-wrap items-center gap-8">

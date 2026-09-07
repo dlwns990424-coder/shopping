@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import ProductCard from './ProductCard'
 import type { Product } from '../types'
 
@@ -47,6 +48,9 @@ function CategoryListing({ genderLabel, basePath, products, categoryParam }: Cat
 
   return (
     <div className="px-24 pb-32 pt-32 md:px-32 md:pt-48 lg:px-40 lg:pb-64">
+      <Helmet>
+        <title>{`T&L | ${genderLabel} | ${title}`}</title>
+      </Helmet>
       <div className="mb-24">
         <p className="text-caption mb-8 tracking-[0.08em] text-secondary">
           T&amp;L | {genderLabel}

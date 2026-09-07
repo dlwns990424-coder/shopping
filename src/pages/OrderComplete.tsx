@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { CheckCircle } from 'lucide-react'
 import Button from '../components/Button'
 
@@ -24,6 +25,9 @@ function OrderComplete() {
 
   return (
     <div className="flex min-h-480 flex-col items-center justify-center gap-16 px-24 py-64 text-center lg:min-h-640">
+      <Helmet>
+        <title>T&amp;L | 주문완료</title>
+      </Helmet>
       <CheckCircle size={48} strokeWidth={1.2} className="text-point" />
       <p className="text-h3">주문이 완료되었습니다</p>
       <p className="text-body text-secondary">

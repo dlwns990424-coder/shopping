@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { useAuth } from '../../context/AuthContext'
 import { useOrderHistory } from '../../context/OrderHistoryContext'
 import type { Order } from '../../types'
@@ -30,6 +31,9 @@ function Dashboard() {
 
   return (
     <div className="flex flex-col gap-32">
+      <Helmet>
+        <title>T&amp;L Admin | 대시보드</title>
+      </Helmet>
       <h1 className="text-h1">대시보드</h1>
 
       <div className="grid grid-cols-2 gap-16 lg:grid-cols-4">

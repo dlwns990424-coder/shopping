@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { ArrowRight } from 'lucide-react'
+import { useContent } from '../context/ContentContext'
 
 interface EventBanner {
   id: string
@@ -15,8 +17,14 @@ const EVENT_BANNERS: EventBanner[] = [
 ]
 
 function Home() {
+  const { content } = useContent()
+
   return (
     <div>
+      <Helmet>
+        <title>T&amp;L</title>
+      </Helmet>
+
       <section className="relative -mt-64 flex h-screen items-end overflow-hidden">
         <div className="absolute inset-0 grid grid-cols-3 gap-[2px]">
           <div className="bg-line" />
@@ -25,8 +33,12 @@ function Home() {
         </div>
         <div className="absolute inset-0 bg-black/35" />
         <div className="relative z-10 px-24 py-32 text-surface lg:p-64">
-          <p className="text-caption mb-8 tracking-[0.08em] text-surface">T&amp;L</p>
-          <h1 className="text-h1 text-surface">계절을 입다, 데일리를 완성하다</h1>
+          <p className="text-caption mb-8 tracking-[0.08em] text-surface">
+            {content['home.hero.eyebrow'] ?? 'T&L'}
+          </p>
+          <h1 className="text-h1 text-surface">
+            {content['home.hero.title'] ?? '계절을 입다, 데일리를 완성하다'}
+          </h1>
         </div>
       </section>
 
@@ -34,8 +46,12 @@ function Home() {
         <div className="relative flex h-screen items-end overflow-hidden rounded-none bg-secondary">
           <div className="absolute inset-0 bg-black/15" />
           <div className="relative z-10 px-24 pt-32 pb-48 md:px-32 lg:px-40">
-            <h2 className="text-h2 text-surface">NEW SEASON LAYER</h2>
-            <p className="text-body-sm text-surface">이번 시즌 놓치면 안될 아이템을 만나보세요</p>
+            <h2 className="text-h2 text-surface">
+              {content['home.season_banner.title'] ?? 'NEW SEASON LAYER'}
+            </h2>
+            <p className="text-body-sm text-surface">
+              {content['home.season_banner.subtitle'] ?? '이번 시즌 놓치면 안될 아이템을 만나보세요'}
+            </p>
           </div>
         </div>
       </section>
@@ -46,7 +62,9 @@ function Home() {
             <div className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
             <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
               <h2 className="text-h1 mb-8 text-surface">MEN</h2>
-              <p className="text-body-sm mb-16 text-surface">댄디하고 심플한 무드의 새 시즌 컬렉션</p>
+              <p className="text-body-sm mb-16 text-surface">
+                {content['home.men_banner.copy'] ?? '댄디하고 심플한 무드의 새 시즌 컬렉션'}
+              </p>
               <span className="text-button border-b border-surface pb-2 text-surface">SHOP MEN&apos;S</span>
             </div>
           </Link>
@@ -57,7 +75,9 @@ function Home() {
             <div className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
             <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
               <h2 className="text-h1 mb-8 text-surface">WOMEN</h2>
-              <p className="text-body-sm mb-16 text-surface">세련되고 감각적인 무드의 새 시즌 컬렉션</p>
+              <p className="text-body-sm mb-16 text-surface">
+                {content['home.women_banner.copy'] ?? '세련되고 감각적인 무드의 새 시즌 컬렉션'}
+              </p>
               <span className="text-button border-b border-surface pb-2 text-surface">SHOP WOMEN&apos;S</span>
             </div>
           </Link>
@@ -74,7 +94,9 @@ function Home() {
             >
               <div className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
               <div className="relative z-10 flex flex-col gap-8 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
-                <p className="text-h3 text-surface">{banner.label}</p>
+                <p className="text-h3 text-surface">
+                  {content[`home.event_banner.${banner.id}.label`] ?? banner.label}
+                </p>
                 <span className="text-button inline-flex w-fit items-center gap-4 border-b border-surface pb-2 text-surface">
                   이동
                   <ArrowRight size={14} strokeWidth={1.5} />

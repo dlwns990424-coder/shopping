@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { useAuth } from '../context/AuthContext'
 import MyPageNav from '../components/MyPageNav'
 import AccountSettingsForm from '../components/AccountSettingsForm'
@@ -21,6 +22,9 @@ function MyPage() {
 
   return (
     <div className="page-section flex flex-col gap-32">
+      <Helmet>
+        <title>T&amp;L | 마이페이지</title>
+      </Helmet>
       <h1 className="text-h1">마이페이지</h1>
 
       <div className="grid grid-cols-1 gap-32 md:grid-cols-[200px_1fr] md:gap-48 lg:gap-64">

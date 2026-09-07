@@ -1,13 +1,16 @@
 import { useSearchParams } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import CategoryCard from '../components/CategoryCard'
 import ProductCard from '../components/ProductCard'
 import CategoryListing from '../components/CategoryListing'
 import { useProducts } from '../context/ProductsContext'
+import { useContent } from '../context/ContentContext'
 import { womenCategories } from '../mock/categories'
 
 function Women() {
   const [searchParams] = useSearchParams()
   const { products } = useProducts()
+  const { content } = useContent()
   const categoryParam = searchParams.get('category')
   const womenProducts = products.filter((product) => product.gender === 'women')
 
@@ -27,6 +30,10 @@ function Women() {
 
   return (
     <div>
+      <Helmet>
+        <title>T&amp;L | WOMEN</title>
+      </Helmet>
+
       <section className="relative -mt-64 flex h-screen items-end overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
@@ -37,8 +44,12 @@ function Women() {
         />
         <div className="absolute inset-0 bg-black/35" />
         <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
-          <p className="text-caption mb-8 tracking-[0.08em] text-surface">T&amp;L | WOMEN</p>
-          <h1 className="text-h1 text-surface">댄디하고 심플한 무드의 새 시즌 컬렉션</h1>
+          <p className="text-caption mb-8 tracking-[0.08em] text-surface">
+            {content['women.hero.eyebrow'] ?? 'T&L | WOMEN'}
+          </p>
+          <h1 className="text-h1 text-surface">
+            {content['women.hero.title'] ?? '세련되고 감각적인 무드의 새 시즌 컬렉션'}
+          </h1>
         </div>
       </section>
 
@@ -60,7 +71,7 @@ function Women() {
         >
           <div className="absolute inset-0 bg-black/15" />
           <div className="relative z-10 px-24 pt-32 pb-48 md:px-32 lg:px-40">
-            <h2 className="text-h2 text-surface">Sale&apos;s up to 50% off</h2>
+            <h2 className="text-h2 text-surface">{content['women.sale_banner.title'] ?? "Sale's up to 50% off"}</h2>
           </div>
         </div>
       </section>

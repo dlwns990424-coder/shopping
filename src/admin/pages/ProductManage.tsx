@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { supabase } from '../../lib/supabaseClient'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
@@ -147,6 +148,9 @@ function ProductManage() {
 
   return (
     <div className="flex flex-col gap-24">
+      <Helmet>
+        <title>T&amp;L Admin | 상품관리</title>
+      </Helmet>
       <div className="flex items-center justify-between">
         <h1 className="text-h1">상품관리</h1>
         <Button size="small" onClick={openCreateForm}>

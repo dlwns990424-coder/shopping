@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async'
 import ProductCard from '../components/ProductCard'
 import { useProducts } from '../context/ProductsContext'
 import { useWishlist } from '../context/WishlistContext'
@@ -9,6 +10,9 @@ function Wishlist() {
 
   return (
     <div className="page-section">
+      <Helmet>
+        <title>T&amp;L | 위시리스트</title>
+      </Helmet>
       <h1 className="text-h1 mb-24">찜한 상품</h1>
       {items.length === 0 ? (
         <p className="text-body-sm text-secondary">아직 찜한 상품이 없습니다.</p>

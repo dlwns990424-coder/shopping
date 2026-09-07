@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { useAuth } from '../context/AuthContext'
 import Input from '../components/Input'
 import Button from '../components/Button'
@@ -42,6 +43,9 @@ function Login() {
 
   return (
     <div className="flex justify-center px-24 pb-96 pt-48 lg:pb-128 lg:pt-96">
+      <Helmet>
+        <title>T&amp;L | 로그인</title>
+      </Helmet>
       <div className="flex w-full max-w-400 flex-col gap-32">
         <h1 className="text-h1 text-center">로그인</h1>
 

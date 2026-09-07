@@ -1,5 +1,14 @@
+import { Helmet } from 'react-helmet-async'
+
 function MemberManage() {
-  return <h1>회원관리</h1>
+  return (
+    <>
+      <Helmet>
+        <title>T&amp;L Admin | 회원관리</title>
+      </Helmet>
+      <h1>회원관리</h1>
+    </>
+  )
 }
 
 export default MemberManage

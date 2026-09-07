@@ -1,5 +1,14 @@
+import { Helmet } from 'react-helmet-async'
+
 function SalesManage() {
-  return <h1>매출관리</h1>
+  return (
+    <>
+      <Helmet>
+        <title>T&amp;L Admin | 매출관리</title>
+      </Helmet>
+      <h1>매출관리</h1>
+    </>
+  )
 }
 
 export default SalesManage
