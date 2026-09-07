@@ -6,7 +6,7 @@ import MyPageNav from '../components/MyPageNav'
 import AccountSettingsForm from '../components/AccountSettingsForm'
 import OrderHistory from '../components/OrderHistory'
 import RecentlyViewed from '../components/RecentlyViewed'
-import Button from '../components/Button'
+import ConfirmModal from '../components/ConfirmModal'
 
 function MyPage() {
   const { logout } = useAuth()
@@ -38,24 +38,12 @@ function MyPage() {
       </div>
 
       {showLogoutConfirm && (
-        <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 px-24">
-          <div className="flex w-full max-w-360 flex-col gap-16 rounded-md bg-surface p-24 text-center">
-            <p className="text-h3">로그아웃 하시겠습니까?</p>
-            <div className="mt-8 flex flex-col gap-8">
-              <Button variant="primary" size="large" className="w-full" onClick={handleConfirmLogout}>
-                로그아웃
-              </Button>
-              <Button
-                variant="secondary"
-                size="large"
-                className="w-full"
-                onClick={() => setShowLogoutConfirm(false)}
-              >
-                취소
-              </Button>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal
+          message="로그아웃 하시겠습니까?"
+          confirmLabel="로그아웃"
+          onConfirm={handleConfirmLogout}
+          onCancel={() => setShowLogoutConfirm(false)}
+        />
       )}
     </div>
   )

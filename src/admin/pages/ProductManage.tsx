@@ -1,9 +1,11 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { supabase } from '../../lib/supabaseClient'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
+import ConfirmModal from '../../components/ConfirmModal'
 import { formatPrice } from '../../utils/formatPrice'
+import { uploadImage } from '../../utils/uploadImage'
 
 interface AdminProduct {
   id: string
@@ -51,6 +53,8 @@ function ProductManage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
 
   const loadProducts = async () => {
     const { data, error } = await supabase
@@ -100,6 +104,24 @@ function ProductManage() {
     setForm((prev) => ({ ...prev, category, sub_category: SUB_CATEGORIES[category]?.[0] ?? '' }))
   }
 
+  const handleImageSelect = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    setError(null)
+
+    try {
+      const url = await uploadImage(file, 'products')
+      setForm((prev) => ({ ...prev, image: url }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.')
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setSaving(true)
@@ -132,10 +154,12 @@ function ProductManage() {
     loadProducts()
   }
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('이 상품을 삭제할까요?')) return
+  const confirmDelete = async () => {
+    if (!deleteTargetId) return
 
-    const { error } = await supabase.from('products').delete().eq('id', id)
+    const { error } = await supabase.from('products').delete().eq('id', deleteTargetId)
+    setDeleteTargetId(null)
+
     if (error) {
       setError(error.message)
       return
@@ -249,12 +273,20 @@ function ProductManage() {
               </select>
             </div>
 
-            <Input
-              label="이미지 URL"
-              value={form.image}
-              onChange={(e) => setForm((prev) => ({ ...prev, image: e.target.value }))}
-              required
-            />
+            <div className="flex flex-col gap-8">
+              <label className="text-caption text-secondary">상품 이미지</label>
+              <div className="flex items-center gap-12">
+                {form.image && (
+                  <img
+                    src={form.image}
+                    alt="상품 이미지 미리보기"
+                    className="h-64 w-64 rounded-sm border border-line object-cover"
+                  />
+                )}
+                <input type="file" accept="image/*" onChange={handleImageSelect} disabled={uploading} />
+              </div>
+              {uploading && <p className="text-caption text-secondary">업로드 중...</p>}
+            </div>
             <Input
               label="색상명"
               value={form.color_label}
@@ -282,7 +314,7 @@ function ProductManage() {
           </div>
 
           <div className="flex gap-8">
-            <Button type="submit" size="small" disabled={saving}>
+            <Button type="submit" size="small" disabled={saving || uploading || !form.image}>
               {saving ? '저장 중...' : '저장'}
             </Button>
             <Button type="button" variant="secondary" size="small" onClick={() => setShowForm(false)}>
@@ -301,6 +333,7 @@ function ProductManage() {
           <table className="w-full min-w-720 border-collapse text-left">
             <thead>
               <tr className="text-body-sm border-b border-line text-secondary">
+                <th className="w-56 py-8 pr-16 font-medium">사진</th>
                 <th className="py-8 pr-16 font-medium">상품명</th>
                 <th className="py-8 pr-16 font-medium">성별</th>
                 <th className="py-8 pr-16 font-medium">카테고리</th>
@@ -312,6 +345,13 @@ function ProductManage() {
             <tbody>
               {filteredProducts.map((product) => (
                 <tr key={product.id} className="text-body-sm border-b border-line">
+                  <td className="py-8 pr-16">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="h-40 w-40 rounded-sm border border-line object-cover"
+                    />
+                  </td>
                   <td className="py-8 pr-16">{product.name}</td>
                   <td className="py-8 pr-16">{product.gender === 'men' ? 'MEN' : 'WOMEN'}</td>
                   <td className="py-8 pr-16">
@@ -338,7 +378,7 @@ function ProductManage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDelete(product.id)}
+                        onClick={() => setDeleteTargetId(product.id)}
                         className="text-body-sm text-secondary hover:text-point"
                       >
                         삭제
@@ -350,6 +390,15 @@ function ProductManage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {deleteTargetId && (
+        <ConfirmModal
+          message="이 상품을 삭제할까요?"
+          confirmLabel="삭제"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteTargetId(null)}
+        />
       )}
     </div>
   )
