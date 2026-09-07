@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import ProductCard from './ProductCard'
-import { products } from '../mock/products'
+import { useProducts } from '../context/ProductsContext'
 import { getRecentlyViewedIds } from '../utils/recentlyViewed'
 import type { Product } from '../types'
 
 function RecentlyViewed() {
+  const { products } = useProducts()
   const [ids] = useState(getRecentlyViewedIds)
 
   const items = ids

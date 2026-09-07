@@ -1,9 +1,10 @@
 import ProductCard from '../components/ProductCard'
-import { products } from '../mock/products'
+import { useProducts } from '../context/ProductsContext'
 import { useWishlist } from '../context/WishlistContext'
 
 function Wishlist() {
   const { ids } = useWishlist()
+  const { products } = useProducts()
   const items = products.filter((product) => ids.includes(product.id))
 
   return (

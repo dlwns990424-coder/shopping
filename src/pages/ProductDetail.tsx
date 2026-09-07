@@ -5,17 +5,14 @@ import SizeSelector from '../components/SizeSelector'
 import Button from '../components/Button'
 import ProductCard from '../components/ProductCard'
 import Toast from '../components/Toast'
-import { products } from '../mock/products'
+import { useProducts } from '../context/ProductsContext'
 import { sizeOptions } from '../mock/productDetail'
 import { addRecentlyViewed } from '../utils/recentlyViewed'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
-
-function parsePrice(formatted: string) {
-  return Number(formatted.replace(/[^0-9]/g, ''))
-}
+import { formatPrice } from '../utils/formatPrice'
 
 function ProductDetail() {
   const { productId } = useParams()
@@ -24,6 +21,7 @@ function ProductDetail() {
   const { isWishlisted, toggle } = useWishlist()
   const { user } = useAuth()
   const { openLoginModal } = useAuthModal()
+  const { products, loading } = useProducts()
   const product = products.find((item) => item.id === productId)
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const [sizeError, setSizeError] = useState(false)
@@ -32,6 +30,14 @@ function ProductDetail() {
   useEffect(() => {
     if (product) addRecentlyViewed(product.id)
   }, [product])
+
+  if (loading) {
+    return (
+      <div className="page-section">
+        <p className="text-body-lg">불러오는 중...</p>
+      </div>
+    )
+  }
 
   if (!product) {
     return (
@@ -79,7 +85,7 @@ function ProductDetail() {
             id: `${product.id}-${product.color.label}-${selectedSize}`,
             name: product.name,
             option: `${product.color.label} · ${selectedSize}`,
-            price: parsePrice(product.price),
+            price: product.price,
             quantity: 1,
             image: product.image,
           },
@@ -105,7 +111,7 @@ function ProductDetail() {
           <div className="flex items-start justify-between gap-16">
             <div>
               <h1 className="text-h3 font-bold mb-8">{product.name}</h1>
-              <p className="text-price font-medium">{product.price}</p>
+              <p className="text-price font-medium">{formatPrice(product.price)}</p>
             </div>
             <button
               type="button"

@@ -2,11 +2,12 @@ import { useSearchParams } from 'react-router-dom'
 import CategoryCard from '../components/CategoryCard'
 import ProductCard from '../components/ProductCard'
 import CategoryListing from '../components/CategoryListing'
-import { products } from '../mock/products'
+import { useProducts } from '../context/ProductsContext'
 import { womenCategories } from '../mock/categories'
 
 function Women() {
   const [searchParams] = useSearchParams()
+  const { products } = useProducts()
   const categoryParam = searchParams.get('category')
   const womenProducts = products.filter((product) => product.gender === 'women')
 

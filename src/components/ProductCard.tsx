@@ -2,11 +2,12 @@ import type { MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import { useWishlist } from '../context/WishlistContext'
+import { formatPrice } from '../utils/formatPrice'
 
 interface ProductCardProps {
   id: string
   name: string
-  price: string
+  price: number
   image?: string | null
 }
 
@@ -38,7 +39,7 @@ function ProductCard({ id, name, price, image }: ProductCardProps) {
       </div>
       <div className="mt-12 flex flex-col gap-4">
         <p className="text-body text-primary">{name}</p>
-        <p className="text-sm font-semibold text-primary">{price}</p>
+        <p className="text-sm font-semibold text-primary">{formatPrice(price)}</p>
       </div>
     </Link>
   )

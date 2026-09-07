@@ -21,8 +21,17 @@
 5. 테스트 계정(로그인 시 자동 생성됨, 별도 설정 불필요): 일반 `test@test.com` / `test1234`, 관리자 `admin@test.com` / `admin1234`
 
 ## 마지막 갱신
-- 날짜: 2026-09-06
-- **git 상태: 커밋+push 완료**(`9e6cd18`), 미커밋 변경 없음.
+- 날짜: 2026-09-08
+- **git 상태: 미커밋 변경 있음**(공개 페이지 Supabase 전환 작업, 아래 항목). 커밋은 사용자 요청 시 진행 예정.
+- **공개 페이지(Men/Women/ProductDetail/CategoryListing 등)를 mock 데이터에서 Supabase로 전환 완료 (2026-09-08)** — 그동안 관리자 페이지(Supabase)와 공개 페이지(mock)가 서로 다른 데이터 소스를 써서 관리자가 상품을 수정해도 실제 화면에 반영 안 되던 이원화 문제를 해소. "운영자가 관리자 페이지에서 상품을 관리하면 실제 서비스에 반영되어야 한다"는 프로젝트 핵심 목표의 첫 단계:
+  1. **`ProductsContext` 신규**(`src/context/ProductsContext.tsx`) — 앱 마운트 시 `supabase.from('products').select('*').order('created_at', {ascending: true})`로 전체 상품을 한 번 조회해 전역 상태로 제공(`AuthContext` 등과 동일한 Context 패턴). `App.tsx`에 Provider 추가(`AuthProvider` 바로 안쪽)
+  2. **`Product.price` 타입을 `string`(`"₩198,000"`) → `number`로 전면 변경**(`types.ts`) — 코드 전체를 훑어본 결과 `CartItem.price`를 비롯해 장바구니/주문/관리자 쪽은 이미 전부 숫자로 다루고 있었고 `Product.price`만 예외적으로 문자열이었음이 확인되어, 표시할 때만 `formatPrice()`(신규 `src/utils/formatPrice.ts`)로 포맷하는 기존 지배적 패턴에 맞춤. `mock/products.ts`의 60개 상품 `price` 리터럴도 문자열→숫자로 일괄 변환, `scripts/seed-products.ts`의 `parsePrice()` 변환 로직도 제거(이제 그대로 숫자 전달)
+  3. **`mock/products` 직접 import 6곳을 `useProducts()` 훅으로 교체**: `Men.tsx`, `Women.tsx`, `ProductDetail.tsx`, `Wishlist.tsx`, `Header.tsx`(활성 gender 판별용, `getActiveGender`를 모듈 스코프 함수에서 products를 파라미터로 받는 형태로 변경), `RecentlyViewed.tsx`
+  4. **`ProductCard.tsx`/`ProductDetail.tsx` 가격 표시에 `formatPrice()` 적용**, `CartContext.tsx`의 `parsePrice()`(문자열→숫자 변환용, 이제 불필요) 삭제하고 `product.price` 그대로 전달
+  5. **`ProductDetail.tsx`에 로딩 상태 추가** — Supabase 조회가 비동기라 데이터 도착 전에는 `!product`가 참이 되어 "상품을 찾을 수 없습니다"가 잘못 뜨는 문제를 막기 위해 `loading` 우선 체크 후 "불러오는 중..." 표시
+  6. **스키마는 기존 `products` 테이블 그대로 사용, 변경 없음** — 실제 테이블을 조회해 확인한 결과(`id/name/price/gender/category/sub_category/image/color_label/color_hex/description/created_at/updated_at`) 공개 페이지가 필요로 하는 필드를 전부 커버하고 있어 컬럼 추가/변경 불필요
+  7. **검증**: 브라우저로 (a) Men 페이지 상품 그리드가 Supabase 데이터로 정상 렌더링, 가격 포맷 정상 (b) 상품상세 페이지 정상 (c) 카테고리 소분류 필터(하의→12개) 정상 (d) **관리자로 로그인 후 `상품관리`에서 가격을 59,000→77,000으로 수정 → 상품상세 페이지 새로고침 시 77,000으로 즉시 반영되는 것까지 확인**(이번 작업의 핵심 목표 검증), 이후 원래 값으로 복구. `npx tsc -b` 에러 0건, `npm run lint` 신규 경고는 `ProductsContext.tsx`의 `react(only-export-components)` 1건뿐(기존 5개 Context 파일과 동일한 이미 알려진 패턴)
+  8. **다음 단계**: `mock/products.ts`는 UI에서는 더 이상 쓰이지 않지만 `scripts/seed-products.ts`가 여전히 참조하므로 삭제하지 않고 시딩용 원본으로 유지. 다음 우선순위 후보는 "사이트 콘텐츠(히어로/배너 문구) 관리 기능"을 관리자 페이지에 신규로 만드는 것 — Supabase에 콘텐츠 테이블을 추가하고 `ProductManage.tsx`와 유사한 CRUD 화면을 만들어 Men/Women/Home의 하드코딩된 문구(그중 Women.tsx 히어로 카피가 Men.tsx와 동일하게 복붙된 실수도 포함)를 교체하는 작업. `formatPrice()`가 `Cart.tsx`/`Order.tsx`/`OrderHistory.tsx`/`OrderComplete.tsx`/`Dashboard.tsx`/`OrderManage.tsx`/`ProductManage.tsx` 7개 파일에 중복 정의되어 있는 것도 정리 후보(이번 범위에서는 손대지 않음)
 - **주문관리(`OrderManage.tsx`) 실제 구현 완료 (2026-09-06)** — 실제 쇼핑몰(카페24 계열)/Shopify 관리자 주문관리 방식을 조사한 뒤(운송장번호 입력은 이번엔 생략하기로 결정) 반영:
   1. **`OrderStatus` 유니온 타입 도입** — `types.ts`의 `Order.status: string` → `'결제완료' | '배송준비' | '배송중' | '배송완료' | '취소'`로 변경(예전부터 설명만 해뒀던 개선 사항을 이번에 적용)
   2. **`OrderHistoryContext`에 `updateOrderStatuses(orderIds, status)` 추가** — 배열을 받아 한 번의 `setState`로 여러 건을 동시에 갱신(개별 변경도 이 함수에 길이 1 배열로 호출)

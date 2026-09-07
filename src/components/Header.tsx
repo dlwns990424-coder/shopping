@@ -3,19 +3,19 @@ import { Link, useLocation } from 'react-router-dom'
 import { Search, Heart, ShoppingBag, User } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
-import { products } from '../mock/products'
+import { useProducts } from '../context/ProductsContext'
 import logo from '../assets/logo.png'
 
 type Gender = 'men' | 'women'
 
-function getActiveGender(pathname: string): Gender | null {
+function getActiveGender(pathname: string, products: { id: string; gender: Gender }[]): Gender | null {
   if (pathname === '/men') return 'men'
   if (pathname === '/women') return 'women'
 
   const match = pathname.match(/^\/products\/(.+)$/)
   if (match) {
     const product = products.find((item) => item.id === match[1])
-    if (product) return product.gender as Gender
+    if (product) return product.gender
   }
 
   return null
@@ -55,8 +55,9 @@ function IconButton({ label, to, onClick, children }: IconButtonProps) {
 function Header() {
   const { user } = useAuth()
   const { openLoginModal } = useAuthModal()
+  const { products } = useProducts()
   const location = useLocation()
-  const activeGender = getActiveGender(location.pathname)
+  const activeGender = getActiveGender(location.pathname, products)
 
   const navLinkClass = (active: boolean) =>
     `border-b py-4 text-sm font-medium no-underline transition-colors hover:border-primary hover:text-primary ${

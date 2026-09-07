@@ -14,10 +14,6 @@ const CartContext = createContext<CartContextValue | null>(null)
 
 const CART_KEY = 'shop_cart'
 
-function parsePrice(formatted: string): number {
-  return Number(formatted.replace(/[^0-9]/g, ''))
-}
-
 function readCart(): CartItem[] {
   try {
     return JSON.parse(localStorage.getItem(CART_KEY) ?? '[]') || []
@@ -50,7 +46,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [
         ...prev,
-        { id, name: product.name, option, price: parsePrice(product.price), quantity, image: product.image },
+        { id, name: product.name, option, price: product.price, quantity, image: product.image },
       ]
     })
   }

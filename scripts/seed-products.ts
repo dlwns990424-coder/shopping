@@ -20,14 +20,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-function parsePrice(price: string) {
-  return Number(price.replace(/[^0-9]/g, ''))
-}
-
 const rows = products.map((p) => ({
   id: p.id,
   name: p.name,
-  price: parsePrice(p.price),
+  price: p.price,
   gender: p.gender,
   category: p.category,
   sub_category: p.subCategory,

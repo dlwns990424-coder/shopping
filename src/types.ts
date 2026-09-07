@@ -8,7 +8,7 @@ export interface ProductColor {
 export interface Product {
   id: string
   name: string
-  price: string
+  price: number
   gender: Gender
   category: string
   subCategory: string
