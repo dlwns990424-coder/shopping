@@ -22,7 +22,16 @@
 
 ## 마지막 갱신
 - 날짜: 2026-09-08
-- **git 상태: 미커밋 변경 있음**(공개 페이지 Supabase 전환 작업, 아래 항목). 커밋은 사용자 요청 시 진행 예정.
+- **git 상태: 커밋 완료**(`79601ff`), 미커밋 변경 없음.
+- **페이지별 브라우저 탭 제목 + 사이트 콘텐츠 관리 기능 추가 (2026-09-08)**:
+  1. **`react-helmet-async` 설치** — 모든 페이지에서 브라우저 탭 제목이 방치된 Vite 기본값 `vite-tmp` 그대로였던 문제 발견 후 수정. `index.html` 기본값을 `T&L`로, 사용자 11개+관리자 5개 페이지 전부에 `<Helmet><title>...</title></Helmet>` 추가(예: "T&L \| MEN", "T&L \| 옥스포드 셔츠")
+  2. **알려진 라이브러리 이슈 발견+수정**: `<title>` 안에 문자열과 변수를 여러 JSX 자식으로 섞어 쓰면(`T&L | {name}`처럼) react-helmet-async가 제목을 빈 값으로 렌더링하는 버그 확인 — 템플릿 리터럴 하나로 합쳐서(`{`T&L | ${name}`}`) 해결. 상품상세/카테고리 필터 페이지 2곳 해당
+  3. **`site_content` 테이블 신규**(`key`/`page`/`label`/`value`) — Men/Women/Home의 히어로·배너·이벤트배너 하드코딩 문구 16개를 이 테이블로 이전. `products`와 동일하게 RLS `for all using(true)` 전체공개 정책
+  4. **`ContentContext` 신규**(`ProductsContext`와 동일 패턴) — 앱 마운트 시 전체 조회 후 `{key: value}` 맵으로 제공. `Men.tsx`/`Women.tsx`/`Home.tsx`가 하드코딩 문자열 대신 `content[key] ?? 기본값` 형태로 조회(기본값은 원래 하드코딩돼 있던 문구 그대로 유지, row 없을 때 대비)
+  5. **관리자 페이지에 `콘텐츠 관리`(`/admin/content`) 신규** — 페이지별(홈/MEN/WOMEN)로 그룹핑된 목록 + 인라인 수정(추가/삭제 불필요, key 고정)
+  6. **Women.tsx 히어로 카피 복붙 버그 해소** — 기존엔 Men.tsx와 똑같은 "댄디하고 심플한..." 문구가 그대로 있었는데, 이번 시딩에서 "세련되고 감각적인 무드의 새 시즌 컬렉션"으로 다르게 채움
+  7. **검증**: 브라우저로 Home/Men/Women/카테고리필터/상품상세 탭 제목 정상 표시 확인, 관리자 `콘텐츠 관리`에서 여성 히어로 타이틀 수정 → `/women` 새로고침 시 즉시 반영 확인(테스트 후 원복). `npx tsc -b` 에러 0건, `npm run lint` 신규 경고는 `ContentContext`/`ContentManage.tsx`의 기존과 동일한 패턴(2건)뿐
+  8. **다음 단계**: 이미지/링크는 이번 범위에서 의도적으로 제외(문구만 관리자 편집 가능). `formatPrice()` 중복 정의(7개 파일) 정리는 여전히 후보로 남아있음
 - **공개 페이지(Men/Women/ProductDetail/CategoryListing 등)를 mock 데이터에서 Supabase로 전환 완료 (2026-09-08)** — 그동안 관리자 페이지(Supabase)와 공개 페이지(mock)가 서로 다른 데이터 소스를 써서 관리자가 상품을 수정해도 실제 화면에 반영 안 되던 이원화 문제를 해소. "운영자가 관리자 페이지에서 상품을 관리하면 실제 서비스에 반영되어야 한다"는 프로젝트 핵심 목표의 첫 단계:
   1. **`ProductsContext` 신규**(`src/context/ProductsContext.tsx`) — 앱 마운트 시 `supabase.from('products').select('*').order('created_at', {ascending: true})`로 전체 상품을 한 번 조회해 전역 상태로 제공(`AuthContext` 등과 동일한 Context 패턴). `App.tsx`에 Provider 추가(`AuthProvider` 바로 안쪽)
   2. **`Product.price` 타입을 `string`(`"₩198,000"`) → `number`로 전면 변경**(`types.ts`) — 코드 전체를 훑어본 결과 `CartItem.price`를 비롯해 장바구니/주문/관리자 쪽은 이미 전부 숫자로 다루고 있었고 `Product.price`만 예외적으로 문자열이었음이 확인되어, 표시할 때만 `formatPrice()`(신규 `src/utils/formatPrice.ts`)로 포맷하는 기존 지배적 패턴에 맞춤. `mock/products.ts`의 60개 상품 `price` 리터럴도 문자열→숫자로 일괄 변환, `scripts/seed-products.ts`의 `parsePrice()` 변환 로직도 제거(이제 그대로 숫자 전달)
