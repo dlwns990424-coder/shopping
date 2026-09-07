@@ -2,6 +2,7 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { supabase } from '../../lib/supabaseClient'
 import Button from '../../components/Button'
+import ConfirmModal from '../../components/ConfirmModal'
 import { uploadImage } from '../../utils/uploadImage'
 
 interface ContentRow {
@@ -25,6 +26,7 @@ function ContentManage() {
   const [draftValue, setDraftValue] = useState('')
   const [saving, setSaving] = useState(false)
   const [uploadingKey, setUploadingKey] = useState<string | null>(null)
+  const [resetTargetKey, setResetTargetKey] = useState<string | null>(null)
 
   const loadRows = async () => {
     const { data, error } = await supabase.from('site_content').select('*').order('key', { ascending: true })
@@ -83,6 +85,19 @@ function ContentManage() {
       setUploadingKey(null)
       e.target.value = ''
     }
+  }
+
+  const confirmResetImage = async () => {
+    if (!resetTargetKey) return
+
+    const { error } = await supabase.from('site_content').update({ value: '' }).eq('key', resetTargetKey)
+    setResetTargetKey(null)
+
+    if (error) {
+      setError(error.message)
+      return
+    }
+    loadRows()
   }
 
   const groupedByPage = rows.reduce<Record<string, ContentRow[]>>((groups, row) => {
@@ -145,7 +160,17 @@ function ContentManage() {
                               <p className="text-caption text-secondary">업로드 중...</p>
                             )}
                           </td>
-                          <td className="py-8 pl-16" />
+                          <td className="py-8 pl-16">
+                            {row.value && (
+                              <button
+                                type="button"
+                                onClick={() => setResetTargetKey(row.key)}
+                                className="text-body-sm text-secondary hover:text-point"
+                              >
+                                제거
+                              </button>
+                            )}
+                          </td>
                         </tr>
                       )
                     }
@@ -193,6 +218,15 @@ function ContentManage() {
             </div>
           </div>
         ))
+      )}
+
+      {resetTargetKey && (
+        <ConfirmModal
+          message="이 이미지를 제거하고 기본 화면으로 되돌릴까요?"
+          confirmLabel="제거"
+          onConfirm={confirmResetImage}
+          onCancel={() => setResetTargetKey(null)}
+        />
       )}
     </div>
   )
