@@ -35,11 +35,18 @@ function Men() {
       </Helmet>
 
       <section className="relative -mt-64 flex h-screen items-end overflow-hidden">
-        <div className="absolute inset-0 grid grid-cols-3 gap-[2px]">
-          <div className="bg-line" />
-          <div className="bg-disabled" />
-          <div className="bg-line" />
-        </div>
+        {content['men.hero.image'] ? (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${content['men.hero.image']})` }}
+          />
+        ) : (
+          <div className="absolute inset-0 grid grid-cols-3 gap-[2px]">
+            <div className="bg-line" />
+            <div className="bg-disabled" />
+            <div className="bg-line" />
+          </div>
+        )}
         <div className="absolute inset-0 bg-black/35" />
         <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
           <p className="text-caption mb-8 tracking-[0.08em] text-surface">
@@ -63,8 +70,10 @@ function Men() {
         <div
           className="relative flex aspect-[21/8] min-h-280 items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
           style={{
-            backgroundImage:
-              "url(https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_1920/v1/home%20banner%202025/9.2%20Sale%20Third%20Banner.desktop?_i=AH)",
+            backgroundImage: `url(${
+              content['men.sale_banner.image'] ||
+              'https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_1920/v1/home%20banner%202025/9.2%20Sale%20Third%20Banner.desktop?_i=AH'
+            })`,
           }}
         >
           <div className="absolute inset-0 bg-black/15" />

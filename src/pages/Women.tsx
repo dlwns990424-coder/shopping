@@ -38,8 +38,10 @@ function Women() {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage:
-              "url(https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_2000/v1/home%20banner%202025/craftcore_des?_i=AH)",
+            backgroundImage: `url(${
+              content['women.hero.image'] ||
+              'https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_2000/v1/home%20banner%202025/craftcore_des?_i=AH'
+            })`,
           }}
         />
         <div className="absolute inset-0 bg-black/35" />
@@ -65,8 +67,10 @@ function Women() {
         <div
           className="relative flex aspect-[21/8] min-h-280 items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
           style={{
-            backgroundImage:
-              "url(https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_1920/v1/home%20banner%202025/9.2%20Sale%20Third%20Banner.desktop?_i=AH)",
+            backgroundImage: `url(${
+              content['women.sale_banner.image'] ||
+              'https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_1920/v1/home%20banner%202025/9.2%20Sale%20Third%20Banner.desktop?_i=AH'
+            })`,
           }}
         >
           <div className="absolute inset-0 bg-black/15" />

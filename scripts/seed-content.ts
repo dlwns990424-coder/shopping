@@ -38,6 +38,39 @@ const rows = [
   { key: 'home.event_banner.women-knit.label', page: 'home', label: '홈 이벤트배너 2 라벨', value: '니트 · 스웨트' },
   { key: 'home.event_banner.men-denim.label', page: 'home', label: '홈 이벤트배너 3 라벨', value: '데님 컬렉션' },
   { key: 'home.event_banner.women-shirt.label', page: 'home', label: '홈 이벤트배너 4 라벨', value: '셔츠 & 블라우스' },
+
+  { key: 'men.hero.image', page: 'men', label: '남성 히어로 이미지', value: '' },
+  {
+    key: 'men.sale_banner.image',
+    page: 'men',
+    label: '남성 세일배너 이미지',
+    value:
+      'https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_1920/v1/home%20banner%202025/9.2%20Sale%20Third%20Banner.desktop?_i=AH',
+  },
+
+  {
+    key: 'women.hero.image',
+    page: 'women',
+    label: '여성 히어로 이미지',
+    value:
+      'https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_2000/v1/home%20banner%202025/craftcore_des?_i=AH',
+  },
+  {
+    key: 'women.sale_banner.image',
+    page: 'women',
+    label: '여성 세일배너 이미지',
+    value:
+      'https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_1920/v1/home%20banner%202025/9.2%20Sale%20Third%20Banner.desktop?_i=AH',
+  },
+
+  { key: 'home.hero.image', page: 'home', label: '홈 히어로 이미지', value: '' },
+  { key: 'home.season_banner.image', page: 'home', label: '홈 시즌배너 이미지', value: '' },
+  { key: 'home.men_banner.image', page: 'home', label: '홈 MEN 배너 이미지', value: '' },
+  { key: 'home.women_banner.image', page: 'home', label: '홈 WOMEN 배너 이미지', value: '' },
+  { key: 'home.event_banner.men-outer.image', page: 'home', label: '홈 이벤트배너 1 이미지', value: '' },
+  { key: 'home.event_banner.women-knit.image', page: 'home', label: '홈 이벤트배너 2 이미지', value: '' },
+  { key: 'home.event_banner.men-denim.image', page: 'home', label: '홈 이벤트배너 3 이미지', value: '' },
+  { key: 'home.event_banner.women-shirt.image', page: 'home', label: '홈 이벤트배너 4 이미지', value: '' },
 ]
 
 const { data, error } = await supabase.from('site_content').upsert(rows, { onConflict: 'key' }).select('key')

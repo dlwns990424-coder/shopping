@@ -26,11 +26,18 @@ function Home() {
       </Helmet>
 
       <section className="relative -mt-64 flex h-screen items-end overflow-hidden">
-        <div className="absolute inset-0 grid grid-cols-3 gap-[2px]">
-          <div className="bg-line" />
-          <div className="bg-disabled" />
-          <div className="bg-line" />
-        </div>
+        {content['home.hero.image'] ? (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${content['home.hero.image']})` }}
+          />
+        ) : (
+          <div className="absolute inset-0 grid grid-cols-3 gap-[2px]">
+            <div className="bg-line" />
+            <div className="bg-disabled" />
+            <div className="bg-line" />
+          </div>
+        )}
         <div className="absolute inset-0 bg-black/35" />
         <div className="relative z-10 px-24 py-32 text-surface lg:p-64">
           <p className="text-caption mb-8 tracking-[0.08em] text-surface">
@@ -43,7 +50,14 @@ function Home() {
       </section>
 
       <section className="mt-20">
-        <div className="relative flex h-screen items-end overflow-hidden rounded-none bg-secondary">
+        <div
+          className="relative flex h-screen items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
+          style={
+            content['home.season_banner.image']
+              ? { backgroundImage: `url(${content['home.season_banner.image']})` }
+              : undefined
+          }
+        >
           <div className="absolute inset-0 bg-black/15" />
           <div className="relative z-10 px-24 pt-32 pb-48 md:px-32 lg:px-40">
             <h2 className="text-h2 text-surface">
@@ -58,7 +72,15 @@ function Home() {
 
       <section className="mt-20">
         <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
-          <Link to="/men" className="group relative flex h-screen items-end overflow-hidden rounded-none bg-secondary">
+          <Link
+            to="/men"
+            className="group relative flex h-screen items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
+            style={
+              content['home.men_banner.image']
+                ? { backgroundImage: `url(${content['home.men_banner.image']})` }
+                : undefined
+            }
+          >
             <div className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
             <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
               <h2 className="text-h1 mb-8 text-surface">MEN</h2>
@@ -70,7 +92,12 @@ function Home() {
           </Link>
           <Link
             to="/women"
-            className="group relative flex h-screen items-end overflow-hidden rounded-none bg-secondary"
+            className="group relative flex h-screen items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
+            style={
+              content['home.women_banner.image']
+                ? { backgroundImage: `url(${content['home.women_banner.image']})` }
+                : undefined
+            }
           >
             <div className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
             <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
@@ -90,7 +117,12 @@ function Home() {
             <Link
               key={banner.id}
               to={banner.to}
-              className="group relative flex aspect-[2/3] items-end overflow-hidden rounded-none bg-secondary"
+              className="group relative flex aspect-[2/3] items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
+              style={
+                content[`home.event_banner.${banner.id}.image`]
+                  ? { backgroundImage: `url(${content[`home.event_banner.${banner.id}.image`]})` }
+                  : undefined
+              }
             >
               <div className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
               <div className="relative z-10 flex flex-col gap-8 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
