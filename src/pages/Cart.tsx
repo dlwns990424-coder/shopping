@@ -7,10 +7,7 @@ import Checkbox from '../components/Checkbox'
 import Button from '../components/Button'
 import { useCart } from '../context/CartContext'
 import { SHIPPING_FEE } from '../constants'
-
-function formatPrice(amount: number) {
-  return `₩${amount.toLocaleString('ko-KR')}`
-}
+import { formatPrice } from '../utils/formatPrice'
 
 function Cart() {
   const navigate = useNavigate()

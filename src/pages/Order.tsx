@@ -12,6 +12,7 @@ import { useCart } from '../context/CartContext'
 import { useOrderHistory } from '../context/OrderHistoryContext'
 import type { CartItem } from '../types'
 import { SHIPPING_FEE } from '../constants'
+import { formatPrice } from '../utils/formatPrice'
 
 const PHONE_REGEX = /^01[0-9]-?\d{3,4}-?\d{4}$/
 
@@ -27,10 +28,6 @@ interface ShippingForm {
   shippingPhone: string
   shippingAddress: string
   shippingAddressDetail: string
-}
-
-function formatPrice(amount: number) {
-  return `₩${amount.toLocaleString('ko-KR')}`
 }
 
 function Order() {

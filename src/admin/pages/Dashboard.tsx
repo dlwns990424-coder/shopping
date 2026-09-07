@@ -3,10 +3,7 @@ import { Helmet } from 'react-helmet-async'
 import { useAuth } from '../../context/AuthContext'
 import { useOrderHistory } from '../../context/OrderHistoryContext'
 import type { Order } from '../../types'
-
-function formatPrice(amount: number) {
-  return `₩${amount.toLocaleString('ko-KR')}`
-}
+import { formatPrice } from '../../utils/formatPrice'
 
 function orderTotal(order: Order) {
   return order.items.reduce((sum, item) => sum + item.price * item.quantity, 0)

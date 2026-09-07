@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async'
 import { supabase } from '../../lib/supabaseClient'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
+import { formatPrice } from '../../utils/formatPrice'
 
 interface AdminProduct {
   id: string
@@ -35,10 +36,6 @@ const EMPTY_FORM = {
   color_label: '',
   color_hex: '#000000',
   description: '',
-}
-
-function formatPrice(amount: number) {
-  return `₩${amount.toLocaleString('ko-KR')}`
 }
 
 function ProductManage() {

@@ -3,10 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { CheckCircle } from 'lucide-react'
 import Button from '../components/Button'
-
-function formatPrice(amount: number) {
-  return `₩${amount.toLocaleString('ko-KR')}`
-}
+import { formatPrice } from '../utils/formatPrice'
 
 function OrderComplete() {
   const location = useLocation()
