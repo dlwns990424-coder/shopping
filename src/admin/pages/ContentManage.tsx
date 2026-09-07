@@ -27,6 +27,7 @@ function ContentManage() {
   const [saving, setSaving] = useState(false)
   const [uploadingKey, setUploadingKey] = useState<string | null>(null)
   const [resetTargetKey, setResetTargetKey] = useState<string | null>(null)
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
 
   const loadRows = async () => {
     const { data, error } = await supabase.from('site_content').select('*').order('key', { ascending: true })
@@ -106,7 +107,7 @@ function ContentManage() {
   }, {})
 
   return (
-    <div className="flex flex-col gap-24">
+    <div className="flex flex-col gap-32">
       <Helmet>
         <title>T&amp;L Admin | 콘텐츠 관리</title>
       </Helmet>
@@ -119,102 +120,94 @@ function ContentManage() {
         <p className="text-body-sm text-secondary">불러오는 중...</p>
       ) : (
         Object.entries(groupedByPage).map(([page, pageRows]) => (
-          <div key={page} className="flex flex-col gap-12">
-            <h2 className="text-h3 font-bold">{PAGE_LABELS[page] ?? page}</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-720 border-collapse text-left">
-                <thead>
-                  <tr className="text-body-sm border-b border-line text-secondary">
-                    <th className="w-240 py-8 pr-16 font-medium">항목</th>
-                    <th className="py-8 pr-16 font-medium">문구 / 이미지</th>
-                    <th className="w-120 py-8 pl-16 font-medium">관리</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pageRows.map((row) => {
-                    const isImage = row.key.endsWith('.image')
+          <div key={page} className="flex flex-col gap-16">
+            <h2 className="text-h3 border-b border-line pb-8 font-bold">{PAGE_LABELS[page] ?? page}</h2>
+            <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-3">
+              {pageRows.map((row) => {
+                const isImage = row.key.endsWith('.image')
 
-                    if (isImage) {
-                      return (
-                        <tr key={row.key} className="text-body-sm border-b border-line align-top">
-                          <td className="py-8 pr-16 text-secondary">{row.label}</td>
-                          <td className="py-8 pr-16">
-                            <div className="flex items-center gap-12">
-                              {row.value ? (
-                                <img
-                                  src={row.value}
-                                  alt={row.label}
-                                  className="h-64 w-64 rounded-sm border border-line object-cover"
-                                />
-                              ) : (
-                                <span className="text-caption text-secondary">이미지 없음</span>
-                              )}
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleImageSelect(row.key, e)}
-                                disabled={uploadingKey === row.key}
-                              />
-                            </div>
-                            {uploadingKey === row.key && (
-                              <p className="text-caption text-secondary">업로드 중...</p>
-                            )}
-                          </td>
-                          <td className="py-8 pl-16">
-                            {row.value && (
-                              <button
-                                type="button"
-                                onClick={() => setResetTargetKey(row.key)}
-                                className="text-body-sm text-secondary hover:text-point"
-                              >
-                                제거
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      )
-                    }
+                if (isImage) {
+                  return (
+                    <div key={row.key} className="flex flex-col gap-12 rounded-md border border-line p-16">
+                      <p className="text-caption text-secondary">{row.label}</p>
 
-                    return (
-                      <tr key={row.key} className="text-body-sm border-b border-line align-top">
-                        <td className="py-8 pr-16 text-secondary">{row.label}</td>
-                        <td className="py-8 pr-16">
-                          {editingKey === row.key ? (
-                            <textarea
-                              value={draftValue}
-                              onChange={(e) => setDraftValue(e.target.value)}
-                              rows={2}
-                              className="text-body-sm w-full rounded-sm border border-line px-12 py-8"
-                            />
-                          ) : (
-                            row.value
-                          )}
-                        </td>
-                        <td className="py-8 pl-16">
-                          {editingKey === row.key ? (
-                            <div className="flex gap-8">
-                              <Button size="small" onClick={() => saveEdit(row.key)} disabled={saving}>
-                                {saving ? '저장 중...' : '저장'}
-                              </Button>
-                              <Button size="small" variant="secondary" onClick={cancelEdit}>
-                                취소
-                              </Button>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => startEdit(row)}
-                              className="text-body-sm text-secondary hover:text-primary"
-                            >
-                              수정
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+                      {row.value ? (
+                        <button
+                          type="button"
+                          onClick={() => setLightboxUrl(row.value)}
+                          className="block h-120 w-full cursor-zoom-in overflow-hidden rounded-sm border border-line bg-transparent p-0"
+                        >
+                          <img src={row.value} alt={row.label} className="h-full w-full object-cover" />
+                        </button>
+                      ) : (
+                        <div className="flex h-120 w-full items-center justify-center rounded-sm border border-dashed border-line">
+                          <span className="text-caption text-secondary">이미지 없음</span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-12">
+                        <Button
+                          as="label"
+                          variant="secondary"
+                          size="small"
+                          className="cursor-pointer"
+                          aria-disabled={uploadingKey === row.key}
+                        >
+                          {uploadingKey === row.key ? '업로드 중...' : '이미지 변경'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleImageSelect(row.key, e)}
+                            disabled={uploadingKey === row.key}
+                          />
+                        </Button>
+                        {row.value && (
+                          <button
+                            type="button"
+                            onClick={() => setResetTargetKey(row.key)}
+                            className="text-body-sm text-secondary hover:text-point"
+                          >
+                            제거
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                }
+
+                return (
+                  <div key={row.key} className="flex flex-col gap-12 rounded-md border border-line p-16">
+                    <p className="text-caption text-secondary">{row.label}</p>
+
+                    {editingKey === row.key ? (
+                      <textarea
+                        value={draftValue}
+                        onChange={(e) => setDraftValue(e.target.value)}
+                        rows={3}
+                        className="text-body-sm w-full flex-1 rounded-sm border border-line px-12 py-8"
+                      />
+                    ) : (
+                      <p className="text-body-sm flex-1">{row.value}</p>
+                    )}
+
+                    {editingKey === row.key ? (
+                      <div className="flex gap-8">
+                        <Button size="small" onClick={() => saveEdit(row.key)} disabled={saving}>
+                          {saving ? '저장 중...' : '저장'}
+                        </Button>
+                        <Button size="small" variant="secondary" onClick={cancelEdit}>
+                          취소
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button size="small" variant="secondary" onClick={() => startEdit(row)} className="self-start">
+                        수정
+                      </Button>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         ))
@@ -227,6 +220,20 @@ function ContentManage() {
           onConfirm={confirmResetImage}
           onCancel={() => setResetTargetKey(null)}
         />
+      )}
+
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-modal flex cursor-zoom-out items-center justify-center bg-black/80 p-24"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <img
+            src={lightboxUrl}
+            alt="이미지 확대 보기"
+            className="max-h-full max-w-full cursor-default object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
       )}
     </div>
   )
