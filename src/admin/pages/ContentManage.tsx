@@ -18,6 +18,45 @@ const PAGE_LABELS: Record<string, string> = {
   women: 'WOMEN',
 }
 
+// 화면에 보이는 실제 배치 순서(예: 이벤트배너 1~4)와 맞추기 위한 표시 순서.
+// key 알파벳 순서로는 이 순서가 나오지 않아서(men-denim < men-outer) 별도로 정의함.
+const KEY_ORDER = [
+  'home.hero.eyebrow',
+  'home.hero.title',
+  'home.hero.image',
+  'home.season_banner.title',
+  'home.season_banner.subtitle',
+  'home.season_banner.image',
+  'home.men_banner.copy',
+  'home.men_banner.image',
+  'home.women_banner.copy',
+  'home.women_banner.image',
+  'home.event_banner.men-outer.label',
+  'home.event_banner.men-outer.image',
+  'home.event_banner.women-knit.label',
+  'home.event_banner.women-knit.image',
+  'home.event_banner.men-denim.label',
+  'home.event_banner.men-denim.image',
+  'home.event_banner.women-shirt.label',
+  'home.event_banner.women-shirt.image',
+
+  'men.hero.eyebrow',
+  'men.hero.title',
+  'men.hero.image',
+  'men.sale_banner.title',
+  'men.sale_banner.image',
+
+  'women.hero.eyebrow',
+  'women.hero.title',
+  'women.hero.image',
+  'women.sale_banner.title',
+  'women.sale_banner.image',
+]
+
+function sortByDisplayOrder(rows: ContentRow[]) {
+  return [...rows].sort((a, b) => KEY_ORDER.indexOf(a.key) - KEY_ORDER.indexOf(b.key))
+}
+
 function ContentManage() {
   const [rows, setRows] = useState<ContentRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,10 +69,10 @@ function ContentManage() {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
 
   const loadRows = async () => {
-    const { data, error } = await supabase.from('site_content').select('*').order('key', { ascending: true })
+    const { data, error } = await supabase.from('site_content').select('*')
 
     if (error) setError(error.message)
-    else setRows(data ?? [])
+    else setRows(sortByDisplayOrder(data ?? []))
     setLoading(false)
   }
 
