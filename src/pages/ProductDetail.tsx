@@ -7,7 +7,6 @@ import Button from '../components/Button'
 import ProductCard from '../components/ProductCard'
 import Toast from '../components/Toast'
 import { useProducts } from '../context/ProductsContext'
-import { sizeOptions } from '../mock/productDetail'
 import { addRecentlyViewed } from '../utils/recentlyViewed'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
@@ -86,7 +85,7 @@ function ProductDetail() {
             id: `${product.id}-${product.color.label}-${selectedSize}`,
             name: product.name,
             option: `${product.color.label} · ${selectedSize}`,
-            price: product.price,
+            price: product.salePrice ?? product.price,
             quantity: 1,
             image: product.image,
           },
@@ -116,7 +115,14 @@ function ProductDetail() {
           <div className="flex items-start justify-between gap-16">
             <div>
               <h1 className="text-h3 font-bold mb-8">{product.name}</h1>
-              <p className="text-price font-medium">{formatPrice(product.price)}</p>
+              {product.salePrice != null ? (
+                <p className="flex items-center gap-8">
+                  <span className="text-body-sm text-disabled line-through">{formatPrice(product.price)}</span>
+                  <span className="text-price font-medium text-point">{formatPrice(product.salePrice)}</span>
+                </p>
+              ) : (
+                <p className="text-price font-medium">{formatPrice(product.price)}</p>
+              )}
             </div>
             <button
               type="button"
@@ -143,7 +149,7 @@ function ProductDetail() {
           <div className="flex flex-col gap-12">
             <p className="text-body-lg">사이즈</p>
             <div className="flex flex-wrap gap-8">
-              {sizeOptions.map((size) => (
+              {product.sizes.map((size) => (
                 <SizeSelector
                   key={size}
                   size={size}

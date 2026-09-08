@@ -1,11 +1,12 @@
 import type { Gender, Product } from '../types'
+import { sizeOptions } from './productDetail'
 
 function img(gender: Gender, folder: string, file: string, index: number, ext: string = 'png') {
   const num = String(index).padStart(2, '0')
   return `/images/products/${gender}/${folder}/${gender}-${file}-${num}.${ext}`
 }
 
-export const products: Product[] = [
+const rawProducts: Omit<Product, 'salePrice' | 'sizes' | 'featured' | 'featuredOrder'>[] = [
   // ── MEN · 아우터 · 코트 ──
   {
     id: 'men-coat-1', name: '오버핏 울 코트', price: 198000, gender: 'men', category: '아우터', subCategory: '코트',
@@ -338,3 +339,11 @@ export const products: Product[] = [
     description: '차콜 그레이 톤의 테일러드 반바지. 핀턱 디테일로 단정한 인상을 줍니다.\n허리단면 32cm · 밑위 25cm · 총장 31cm\n폴리에스터 65% · 레이온 35%\n드라이클리닝 권장',
   },
 ]
+
+export const products: Product[] = rawProducts.map((product) => ({
+  ...product,
+  salePrice: null,
+  sizes: [...sizeOptions],
+  featured: false,
+  featuredOrder: null,
+}))

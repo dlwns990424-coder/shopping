@@ -1,7 +1,7 @@
 import { useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import CategoryCard from '../components/CategoryCard'
-import ProductCard from '../components/ProductCard'
+import ProductCarousel from '../components/ProductCarousel'
 import CategoryListing from '../components/CategoryListing'
 import { useProducts } from '../context/ProductsContext'
 import { useContent } from '../context/ContentContext'
@@ -25,8 +25,9 @@ function Women() {
     )
   }
 
-  const shirtProducts = womenProducts.filter((product) => product.subCategory === '셔츠').slice(0, 4)
-  const outerProducts = womenProducts.filter((product) => product.category === '아우터').slice(0, 4)
+  const featuredProducts = womenProducts
+    .filter((product) => product.featured)
+    .sort((a, b) => (a.featuredOrder ?? 0) - (b.featuredOrder ?? 0))
 
   return (
     <div>
@@ -34,7 +35,7 @@ function Women() {
         <title>T&amp;L | WOMEN</title>
       </Helmet>
 
-      <section className="relative -mt-64 flex h-screen items-end overflow-hidden">
+      <section className="relative -mt-64 flex h-[60vh] items-end overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
@@ -55,38 +56,11 @@ function Women() {
         </div>
       </section>
 
-      <section className="mt-20 px-24 md:px-32 lg:px-40">
-        <div className="product-grid">
-          {shirtProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
-        </div>
-      </section>
-
-      <section className="mt-20">
-        <div
-          className="relative flex aspect-[21/8] min-h-280 items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${
-              content['women.sale_banner.image'] ||
-              'https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_1920/v1/home%20banner%202025/9.2%20Sale%20Third%20Banner.desktop?_i=AH'
-            })`,
-          }}
-        >
-          <div className="absolute inset-0 bg-black/15" />
-          <div className="relative z-10 px-24 pt-32 pb-48 md:px-32 lg:px-40">
-            <h2 className="text-h2 text-surface">{content['women.sale_banner.title'] ?? "Sale's up to 50% off"}</h2>
-          </div>
-        </div>
-      </section>
-
-      <section className="mt-20 px-24 md:px-32 lg:px-40">
-        <div className="product-grid">
-          {outerProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
-        </div>
-      </section>
+      {featuredProducts.length > 0 && (
+        <section className="mt-20 px-24 md:px-32 lg:px-40">
+          <ProductCarousel products={featuredProducts} />
+        </section>
+      )}
 
       <section className="mt-20 px-24 pb-20 md:px-32 lg:px-40">
         <div className="page-section__header">

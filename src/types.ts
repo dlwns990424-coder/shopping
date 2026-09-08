@@ -9,11 +9,15 @@ export interface Product {
   id: string
   name: string
   price: number
+  salePrice: number | null
   gender: Gender
   category: string
   subCategory: string
   image: string
   color: ProductColor
+  sizes: string[]
+  featured: boolean
+  featuredOrder: number | null
   description: string
 }
 

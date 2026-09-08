@@ -24,12 +24,16 @@ const rows = products.map((p) => ({
   id: p.id,
   name: p.name,
   price: p.price,
+  sale_price: p.salePrice,
   gender: p.gender,
   category: p.category,
   sub_category: p.subCategory,
   image: p.image,
   color_label: p.color.label,
   color_hex: p.color.hex,
+  sizes: p.sizes,
+  featured: p.featured,
+  featured_order: p.featuredOrder,
   description: p.description,
 }))
 

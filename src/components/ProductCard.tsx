@@ -8,10 +8,11 @@ interface ProductCardProps {
   id: string
   name: string
   price: number
+  salePrice?: number | null
   image?: string | null
 }
 
-function ProductCard({ id, name, price, image }: ProductCardProps) {
+function ProductCard({ id, name, price, salePrice, image }: ProductCardProps) {
   const { isWishlisted, toggle } = useWishlist()
   const wishlisted = isWishlisted(id)
 
@@ -39,7 +40,14 @@ function ProductCard({ id, name, price, image }: ProductCardProps) {
       </div>
       <div className="mt-12 flex flex-col gap-4">
         <p className="text-body text-primary">{name}</p>
-        <p className="text-sm font-semibold text-primary">{formatPrice(price)}</p>
+        {salePrice != null ? (
+          <p className="flex items-center gap-8">
+            <span className="text-caption text-disabled line-through">{formatPrice(price)}</span>
+            <span className="text-sm font-semibold text-point">{formatPrice(salePrice)}</span>
+          </p>
+        ) : (
+          <p className="text-sm font-semibold text-primary">{formatPrice(price)}</p>
+        )}
       </div>
     </Link>
   )

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { ChevronDown, GripVertical } from 'lucide-react'
 import { supabase } from '../../lib/supabaseClient'
@@ -7,17 +7,20 @@ import Input from '../../components/Input'
 import ConfirmModal from '../../components/ConfirmModal'
 import { formatPrice } from '../../utils/formatPrice'
 import { uploadImage } from '../../utils/uploadImage'
+import { sizeOptions } from '../../mock/productDetail'
 
 interface AdminProduct {
   id: string
   name: string
   price: number
+  sale_price: number | null
   gender: 'men' | 'women'
   category: string
   sub_category: string
   image: string
   color_label: string
   color_hex: string
+  sizes: string[]
   description: string
   sort_order: number
 }
@@ -33,12 +36,14 @@ const SUB_CATEGORIES: Record<string, string[]> = {
 const EMPTY_FORM = {
   name: '',
   price: '',
+  sale_price: '',
   gender: 'men' as 'men' | 'women',
   category: CATEGORIES[0],
   sub_category: SUB_CATEGORIES[CATEGORIES[0]][0],
   image: '',
   color_label: '',
   color_hex: '#000000',
+  sizes: [] as string[],
   description: '',
 }
 
@@ -58,6 +63,7 @@ function ProductManage() {
   const [uploading, setUploading] = useState(false)
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
   const [draggedId, setDraggedId] = useState<string | null>(null)
+  const dragSlotsRef = useRef<number[]>([])
 
   const loadProducts = async () => {
     const { data, error } = await supabase
@@ -81,14 +87,16 @@ function ProductManage() {
     return true
   })
 
-  const handleDrop = async (targetId: string) => {
-    const sourceId = draggedId
-    setDraggedId(null)
-    if (!sourceId || sourceId === targetId) return
+  const handleDragStart = (id: string) => {
+    setDraggedId(id)
+    dragSlotsRef.current = filteredProducts.map((product) => product.sort_order)
+  }
+
+  const handleDragEnter = (targetId: string) => {
+    if (!draggedId || draggedId === targetId) return
 
     const ids = filteredProducts.map((product) => product.id)
-    const slots = filteredProducts.map((product) => product.sort_order)
-    const fromIndex = ids.indexOf(sourceId)
+    const fromIndex = ids.indexOf(draggedId)
     const toIndex = ids.indexOf(targetId)
     if (fromIndex === -1 || toIndex === -1) return
 
@@ -96,17 +104,34 @@ function ProductManage() {
     const [movedId] = reorderedIds.splice(fromIndex, 1)
     reorderedIds.splice(toIndex, 0, movedId)
 
-    const updates = reorderedIds
-      .map((id, index) => ({ id, sort_order: slots[index] }))
+    const filteredIdSet = new Set(ids)
+    const byId = new Map(products.map((product) => [product.id, product]))
+    let cursor = 0
+    setProducts(
+      products.map((product) =>
+        filteredIdSet.has(product.id) ? byId.get(reorderedIds[cursor++])! : product,
+      ),
+    )
+  }
+
+  const handleDragEnd = async () => {
+    const sourceId = draggedId
+    setDraggedId(null)
+    const slots = dragSlotsRef.current
+    dragSlotsRef.current = []
+    if (!sourceId) return
+
+    const updates = filteredProducts
+      .map((product, index) => ({ id: product.id, sort_order: slots[index] }))
       .filter((update) => update.sort_order !== products.find((product) => product.id === update.id)?.sort_order)
+
+    if (updates.length === 0) return
 
     setProducts((prev) => {
       const sortOrderById = new Map(updates.map((update) => [update.id, update.sort_order]))
-      return prev
-        .map((product) =>
-          sortOrderById.has(product.id) ? { ...product, sort_order: sortOrderById.get(product.id)! } : product,
-        )
-        .sort((a, b) => a.sort_order - b.sort_order)
+      return prev.map((product) =>
+        sortOrderById.has(product.id) ? { ...product, sort_order: sortOrderById.get(product.id)! } : product,
+      )
     })
 
     const results = await Promise.all(
@@ -127,12 +152,14 @@ function ProductManage() {
     setForm({
       name: product.name,
       price: String(product.price),
+      sale_price: product.sale_price != null ? String(product.sale_price) : '',
       gender: product.gender,
       category: product.category,
       sub_category: product.sub_category,
       image: product.image,
       color_label: product.color_label,
       color_hex: product.color_hex,
+      sizes: product.sizes,
       description: product.description,
     })
     setShowForm(true)
@@ -140,6 +167,13 @@ function ProductManage() {
 
   const handleCategoryChange = (category: string) => {
     setForm((prev) => ({ ...prev, category, sub_category: SUB_CATEGORIES[category]?.[0] ?? '' }))
+  }
+
+  const handleSizeToggle = (size: string) => {
+    setForm((prev) => ({
+      ...prev,
+      sizes: prev.sizes.includes(size) ? prev.sizes.filter((item) => item !== size) : [...prev.sizes, size],
+    }))
   }
 
   const handleImageSelect = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -168,12 +202,14 @@ function ProductManage() {
     const payload = {
       name: form.name,
       price: Number(form.price),
+      sale_price: form.sale_price ? Number(form.sale_price) : null,
       gender: form.gender,
       category: form.category,
       sub_category: form.sub_category,
       image: form.image,
       color_label: form.color_label,
       color_hex: form.color_hex,
+      sizes: form.sizes,
       description: form.description,
     }
 
@@ -285,6 +321,13 @@ function ProductManage() {
               value={form.price}
               onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
               required
+            />
+            <Input
+              label="할인가 (선택, 비워두면 할인 없음)"
+              type="number"
+              min={0}
+              value={form.sale_price}
+              onChange={(e) => setForm((prev) => ({ ...prev, sale_price: e.target.value }))}
             />
 
             <div className="flex flex-col gap-8">
@@ -400,6 +443,29 @@ function ProductManage() {
                 <span className="text-sm text-secondary">{form.color_hex}</span>
               </div>
             </div>
+
+            <div className="flex flex-col gap-8">
+              <label className="text-caption text-secondary">사이즈 (1개 이상 선택)</label>
+              <div className="flex flex-wrap gap-8">
+                {sizeOptions.map((size) => {
+                  const selected = form.sizes.includes(size)
+                  return (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => handleSizeToggle(size)}
+                      className={`h-36 min-w-44 rounded-sm border px-12 text-sm transition-colors ${
+                        selected
+                          ? 'border-primary bg-primary text-surface'
+                          : 'border-line bg-surface text-primary hover:border-primary'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col gap-8">
@@ -414,7 +480,11 @@ function ProductManage() {
           </div>
 
           <div className="flex gap-8">
-            <Button type="submit" size="small" disabled={saving || uploading || !form.image}>
+            <Button
+              type="submit"
+              size="small"
+              disabled={saving || uploading || !form.image || form.sizes.length === 0}
+            >
               {saving ? '저장 중...' : '저장'}
             </Button>
             <Button type="button" variant="secondary" size="small" onClick={() => setShowForm(false)}>
@@ -449,14 +519,16 @@ function ProductManage() {
                 <tr
                   key={product.id}
                   onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => handleDrop(product.id)}
-                  className={`text-body-sm border-b border-line ${draggedId === product.id ? 'opacity-40' : ''}`}
+                  onDragEnter={() => handleDragEnter(product.id)}
+                  className={`text-body-sm border-b border-line transition-opacity duration-150 ${
+                    draggedId === product.id ? 'opacity-40' : ''
+                  }`}
                 >
                   <td className="py-8 pr-8">
                     <span
                       draggable
-                      onDragStart={() => setDraggedId(product.id)}
-                      onDragEnd={() => setDraggedId(null)}
+                      onDragStart={() => handleDragStart(product.id)}
+                      onDragEnd={handleDragEnd}
                       className="inline-flex cursor-grab text-secondary active:cursor-grabbing"
                     >
                       <GripVertical size={16} strokeWidth={1.5} />
@@ -483,7 +555,16 @@ function ProductManage() {
                       {product.color_label}
                     </span>
                   </td>
-                  <td className="py-8 pr-16 text-right">{formatPrice(product.price)}</td>
+                  <td className="py-8 pr-16 text-right">
+                    {product.sale_price != null ? (
+                      <span className="inline-flex flex-col items-end">
+                        <span className="text-caption text-secondary line-through">{formatPrice(product.price)}</span>
+                        <span className="text-point">{formatPrice(product.sale_price)}</span>
+                      </span>
+                    ) : (
+                      formatPrice(product.price)
+                    )}
+                  </td>
                   <td className="py-8 pl-16">
                     <div className="flex gap-8">
                       <button

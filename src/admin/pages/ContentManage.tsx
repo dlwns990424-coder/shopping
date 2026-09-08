@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabaseClient'
 import Button from '../../components/Button'
 import ConfirmModal from '../../components/ConfirmModal'
 import { uploadImage } from '../../utils/uploadImage'
+import FeaturedCarouselManager from '../components/FeaturedCarouselManager'
 
 interface ContentRow {
   key: string
@@ -152,6 +153,14 @@ function ContentManage() {
       </Helmet>
 
       <h1 className="text-h1">콘텐츠 관리</h1>
+
+      <div className="flex flex-col gap-16">
+        <h2 className="text-h3 border-b border-line pb-8 font-bold">메인 캐러셀 상품</h2>
+        <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
+          <FeaturedCarouselManager gender="men" label="MEN" />
+          <FeaturedCarouselManager gender="women" label="WOMEN" />
+        </div>
+      </div>
 
       {error && <p className="text-body-sm text-point">{error}</p>}
 

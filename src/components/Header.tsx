@@ -1,9 +1,10 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Search, Heart, ShoppingBag, User } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 import { useProducts } from '../context/ProductsContext'
+import SearchOverlay from './SearchOverlay'
 import logo from '../assets/logo.png'
 
 type Gender = 'men' | 'women'
@@ -58,6 +59,11 @@ function Header() {
   const { products } = useProducts()
   const location = useLocation()
   const activeGender = getActiveGender(location.pathname, products)
+  const [searchOpen, setSearchOpen] = useState(false)
+
+  useEffect(() => {
+    setSearchOpen(false)
+  }, [location.pathname])
 
   const navLinkClass = (active: boolean) =>
     `border-b py-4 text-sm font-medium no-underline transition-colors hover:border-primary hover:text-primary ${
@@ -80,7 +86,7 @@ function Header() {
       </nav>
 
       <div className="flex items-center gap-8 md:gap-16">
-        <IconButton label="검색">
+        <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)}>
           <Search size={20} strokeWidth={1.5} />
         </IconButton>
         <IconButton label="위시리스트" to="/wishlist">
@@ -101,6 +107,8 @@ function Header() {
           <User size={20} strokeWidth={1.5} />
         </IconButton>
       </div>
+
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   )
 }

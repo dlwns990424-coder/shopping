@@ -14,12 +14,16 @@ interface ProductRow {
   id: string
   name: string
   price: number
+  sale_price: number | null
   gender: 'men' | 'women'
   category: string
   sub_category: string
   image: string
   color_label: string
   color_hex: string
+  sizes: string[]
+  featured: boolean
+  featured_order: number | null
   description: string
 }
 
@@ -28,11 +32,15 @@ function toProduct(row: ProductRow): Product {
     id: row.id,
     name: row.name,
     price: row.price,
+    salePrice: row.sale_price,
     gender: row.gender,
     category: row.category,
     subCategory: row.sub_category,
     image: row.image,
     color: { label: row.color_label, hex: row.color_hex },
+    sizes: row.sizes ?? [],
+    featured: row.featured,
+    featuredOrder: row.featured_order,
     description: row.description,
   }
 }
