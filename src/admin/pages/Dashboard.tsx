@@ -2,19 +2,15 @@ import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useAuth } from '../../context/AuthContext'
 import { useOrderHistory } from '../../context/OrderHistoryContext'
-import type { Order } from '../../types'
 import { formatPrice } from '../../utils/formatPrice'
-
-function orderTotal(order: Order) {
-  return order.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-}
+import { orderTotal, isRevenueOrder } from '../../utils/orderStats'
 
 function Dashboard() {
   const { listUsers } = useAuth()
   const { orders } = useOrderHistory()
 
   const today = new Date().toISOString().slice(0, 10)
-  const totalRevenue = orders.reduce((sum, order) => sum + orderTotal(order), 0)
+  const totalRevenue = orders.filter(isRevenueOrder).reduce((sum, order) => sum + orderTotal(order), 0)
   const todayOrderCount = orders.filter((order) => order.date === today).length
   const memberCount = listUsers().length
   const recentOrders = orders.slice(0, 8)
