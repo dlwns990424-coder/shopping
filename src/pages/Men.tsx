@@ -29,6 +29,9 @@ function Men() {
     .filter((product) => product.featured)
     .sort((a, b) => (a.featuredOrder ?? 0) - (b.featuredOrder ?? 0))
 
+  const heroDesktop = content['men.hero.image_desktop']
+  const heroMobile = content['men.hero.image_mobile'] || heroDesktop
+
   return (
     <div>
       <Helmet>
@@ -36,11 +39,17 @@ function Men() {
       </Helmet>
 
       <section className="relative -mt-64 flex h-[60vh] items-end overflow-hidden">
-        {content['men.hero.image'] ? (
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${content['men.hero.image']})` }}
-          />
+        {heroDesktop || heroMobile ? (
+          <>
+            <div
+              className="absolute inset-0 hidden bg-cover bg-center lg:block"
+              style={heroDesktop ? { backgroundImage: `url(${heroDesktop})` } : undefined}
+            />
+            <div
+              className="absolute inset-0 bg-cover bg-center lg:hidden"
+              style={heroMobile ? { backgroundImage: `url(${heroMobile})` } : undefined}
+            />
+          </>
         ) : (
           <div className="absolute inset-0 grid grid-cols-3 gap-[2px]">
             <div className="bg-line" />

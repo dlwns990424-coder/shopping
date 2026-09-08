@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { Search } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import { useProducts } from '../context/ProductsContext'
 import { formatPrice } from '../utils/formatPrice'
 
@@ -37,20 +37,30 @@ function SearchOverlay({ open, onClose }: SearchOverlayProps) {
       <div className="fixed inset-0 top-64 z-modal bg-black/40" onClick={onClose} />
       <div className="fixed inset-x-0 top-64 z-modal max-h-[calc(100vh-64px)] overflow-y-auto border-b border-line bg-surface shadow-lg">
         <div className="mx-auto max-w-640 px-24 py-24 md:px-32 lg:px-40">
-          <div className="relative">
-            <Search
-              size={18}
-              strokeWidth={1.5}
-              className="pointer-events-none absolute left-16 top-1/2 -translate-y-1/2 text-secondary"
-            />
-            <input
-              ref={inputRef}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="상품명을 검색해보세요"
-              className="text-sm w-full rounded-sm border border-line py-12 pl-44 pr-16 text-primary outline-none focus:border-primary"
-            />
+          <div className="flex items-center gap-8">
+            <div className="relative flex-1">
+              <Search
+                size={18}
+                strokeWidth={1.5}
+                className="pointer-events-none absolute left-16 top-1/2 -translate-y-1/2 text-secondary"
+              />
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="상품명을 검색해보세요"
+                className="text-sm w-full rounded-sm border border-line py-12 pl-44 pr-16 text-primary outline-none focus:border-primary"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="검색 닫기"
+              className="flex h-44 w-44 shrink-0 items-center justify-center text-secondary transition-colors active:scale-90 hover:text-primary"
+            >
+              <X size={20} strokeWidth={1.5} />
+            </button>
           </div>
 
           {trimmedQuery && (

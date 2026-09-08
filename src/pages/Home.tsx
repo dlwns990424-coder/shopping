@@ -19,6 +19,13 @@ const EVENT_BANNERS: EventBanner[] = [
 function Home() {
   const { content } = useContent()
 
+  const heroDesktop = content['home.hero.image_desktop']
+  const heroMobile = content['home.hero.image_mobile'] || heroDesktop
+  const menBannerDesktop = content['home.men_banner.image_desktop']
+  const menBannerMobile = content['home.men_banner.image_mobile'] || menBannerDesktop
+  const womenBannerDesktop = content['home.women_banner.image_desktop']
+  const womenBannerMobile = content['home.women_banner.image_mobile'] || womenBannerDesktop
+
   return (
     <div>
       <Helmet>
@@ -26,11 +33,17 @@ function Home() {
       </Helmet>
 
       <section className="relative -mt-64 flex h-screen items-end overflow-hidden">
-        {content['home.hero.image'] ? (
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${content['home.hero.image']})` }}
-          />
+        {heroDesktop || heroMobile ? (
+          <>
+            <div
+              className="absolute inset-0 hidden bg-cover bg-center lg:block"
+              style={heroDesktop ? { backgroundImage: `url(${heroDesktop})` } : undefined}
+            />
+            <div
+              className="absolute inset-0 bg-cover bg-center lg:hidden"
+              style={heroMobile ? { backgroundImage: `url(${heroMobile})` } : undefined}
+            />
+          </>
         ) : (
           <div className="absolute inset-0 grid grid-cols-3 gap-[2px]">
             <div className="bg-line" />
@@ -50,13 +63,16 @@ function Home() {
         <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
           <Link
             to="/men"
-            className="group relative flex h-screen items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
-            style={
-              content['home.men_banner.image']
-                ? { backgroundImage: `url(${content['home.men_banner.image']})` }
-                : undefined
-            }
+            className="group relative flex h-screen items-end overflow-hidden rounded-none bg-secondary"
           >
+            <div
+              className="absolute inset-0 hidden bg-cover bg-center lg:block"
+              style={menBannerDesktop ? { backgroundImage: `url(${menBannerDesktop})` } : undefined}
+            />
+            <div
+              className="absolute inset-0 bg-cover bg-center lg:hidden"
+              style={menBannerMobile ? { backgroundImage: `url(${menBannerMobile})` } : undefined}
+            />
             <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
               <h2 className="text-h1 mb-8 text-surface">MEN</h2>
               <p className="text-body-sm mb-16 text-surface">
@@ -67,13 +83,16 @@ function Home() {
           </Link>
           <Link
             to="/women"
-            className="group relative flex h-screen items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
-            style={
-              content['home.women_banner.image']
-                ? { backgroundImage: `url(${content['home.women_banner.image']})` }
-                : undefined
-            }
+            className="group relative flex h-screen items-end overflow-hidden rounded-none bg-secondary"
           >
+            <div
+              className="absolute inset-0 hidden bg-cover bg-center lg:block"
+              style={womenBannerDesktop ? { backgroundImage: `url(${womenBannerDesktop})` } : undefined}
+            />
+            <div
+              className="absolute inset-0 bg-cover bg-center lg:hidden"
+              style={womenBannerMobile ? { backgroundImage: `url(${womenBannerMobile})` } : undefined}
+            />
             <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
               <h2 className="text-h1 mb-8 text-surface">WOMEN</h2>
               <p className="text-body-sm mb-16 text-surface">

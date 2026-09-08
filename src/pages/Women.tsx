@@ -29,6 +29,11 @@ function Women() {
     .filter((product) => product.featured)
     .sort((a, b) => (a.featuredOrder ?? 0) - (b.featuredOrder ?? 0))
 
+  const heroFallback =
+    'https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_2000/v1/home%20banner%202025/craftcore_des?_i=AH'
+  const heroDesktop = content['women.hero.image_desktop'] || heroFallback
+  const heroMobile = content['women.hero.image_mobile'] || content['women.hero.image_desktop'] || heroFallback
+
   return (
     <div>
       <Helmet>
@@ -37,13 +42,12 @@ function Women() {
 
       <section className="relative -mt-64 flex h-[60vh] items-end overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${
-              content['women.hero.image'] ||
-              'https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_2000/v1/home%20banner%202025/craftcore_des?_i=AH'
-            })`,
-          }}
+          className="absolute inset-0 hidden bg-cover bg-center lg:block"
+          style={{ backgroundImage: `url(${heroDesktop})` }}
+        />
+        <div
+          className="absolute inset-0 bg-cover bg-center lg:hidden"
+          style={{ backgroundImage: `url(${heroMobile})` }}
         />
         <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
           <h1 className="text-h1 text-surface">

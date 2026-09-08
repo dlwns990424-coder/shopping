@@ -32,19 +32,18 @@ const rows = [
   { key: 'home.event_banner.men-denim.label', page: 'home', label: '홈 이벤트배너 3 라벨', value: '데님 컬렉션' },
   { key: 'home.event_banner.women-shirt.label', page: 'home', label: '홈 이벤트배너 4 라벨', value: '셔츠 & 블라우스' },
 
-  { key: 'men.hero.image', page: 'men', label: '남성 히어로 이미지', value: '' },
+  { key: 'men.hero.image_mobile', page: 'men', label: '남성 히어로 이미지 (모바일)', value: '' },
+  { key: 'men.hero.image_desktop', page: 'men', label: '남성 히어로 이미지 (데스크톱)', value: '' },
 
-  {
-    key: 'women.hero.image',
-    page: 'women',
-    label: '여성 히어로 이미지',
-    value:
-      'https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_2000/v1/home%20banner%202025/craftcore_des?_i=AH',
-  },
+  { key: 'women.hero.image_mobile', page: 'women', label: '여성 히어로 이미지 (모바일)', value: '' },
+  { key: 'women.hero.image_desktop', page: 'women', label: '여성 히어로 이미지 (데스크톱)', value: '' },
 
-  { key: 'home.hero.image', page: 'home', label: '홈 히어로 이미지', value: '' },
-  { key: 'home.men_banner.image', page: 'home', label: '홈 MEN 배너 이미지', value: '' },
-  { key: 'home.women_banner.image', page: 'home', label: '홈 WOMEN 배너 이미지', value: '' },
+  { key: 'home.hero.image_mobile', page: 'home', label: '홈 히어로 이미지 (모바일)', value: '' },
+  { key: 'home.hero.image_desktop', page: 'home', label: '홈 히어로 이미지 (데스크톱)', value: '' },
+  { key: 'home.men_banner.image_mobile', page: 'home', label: '홈 MEN 배너 이미지 (모바일)', value: '' },
+  { key: 'home.men_banner.image_desktop', page: 'home', label: '홈 MEN 배너 이미지 (데스크톱)', value: '' },
+  { key: 'home.women_banner.image_mobile', page: 'home', label: '홈 WOMEN 배너 이미지 (모바일)', value: '' },
+  { key: 'home.women_banner.image_desktop', page: 'home', label: '홈 WOMEN 배너 이미지 (데스크톱)', value: '' },
   { key: 'home.event_banner.men-outer.image', page: 'home', label: '홈 이벤트배너 1 이미지', value: '' },
   { key: 'home.event_banner.women-knit.image', page: 'home', label: '홈 이벤트배너 2 이미지', value: '' },
   { key: 'home.event_banner.men-denim.image', page: 'home', label: '홈 이벤트배너 3 이미지', value: '' },

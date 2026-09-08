@@ -9,7 +9,15 @@ interface ProductCarouselProps {
 }
 
 function ProductCarousel({ products }: ProductCarouselProps) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start', slidesToScroll: 4 })
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    align: 'start',
+    slidesToScroll: 4,
+    containScroll: 'trimSnaps',
+    skipSnaps: true,
+    breakpoints: {
+      '(max-width: 767px)': { slidesToScroll: 1 },
+    },
+  })
   const [canScrollPrev, setCanScrollPrev] = useState(false)
   const [canScrollNext, setCanScrollNext] = useState(false)
 
@@ -30,10 +38,10 @@ function ProductCarousel({ products }: ProductCarouselProps) {
 
   return (
     <div className="relative">
-      <div className="overflow-hidden" ref={emblaRef}>
+      <div className="overflow-hidden touch-pan-y" ref={emblaRef}>
         <div className="-ml-16 flex">
           {products.map((product) => (
-            <div key={product.id} className="min-w-0 flex-[0_0_25%] pl-16">
+            <div key={product.id} className="min-w-0 flex-[0_0_45%] pl-16 md:flex-[0_0_33.333%] lg:flex-[0_0_25%]">
               <ProductCard {...product} />
             </div>
           ))}

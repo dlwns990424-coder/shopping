@@ -1,6 +1,6 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Search, Heart, ShoppingBag, User } from 'lucide-react'
+import { Search, Heart, ShoppingBag, User, Menu, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 import { useProducts } from '../context/ProductsContext'
@@ -36,7 +36,7 @@ function IconButton({ label, to, onClick, children }: IconButtonProps) {
     </>
   )
   const className =
-    'inline-flex h-32 w-32 cursor-pointer items-center justify-center border-none bg-transparent p-0 text-primary transition-colors hover:text-disabled'
+    'inline-flex h-44 w-44 cursor-pointer items-center justify-center border-none bg-transparent p-0 text-primary transition-colors hover:text-disabled active:scale-90'
 
   if (to) {
     return (
@@ -59,10 +59,20 @@ function Header() {
   const location = useLocation()
   const activeGender = getActiveGender(location.pathname, products)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     setSearchOpen(false)
+    setMenuOpen(false)
   }, [location.pathname])
+
+  const handleMobileProtectedClick = (e: MouseEvent) => {
+    setMenuOpen(false)
+    if (!user) {
+      e.preventDefault()
+      openLoginModal()
+    }
+  }
 
   const navLinkClass = (active: boolean) =>
     `border-b py-4 text-sm font-medium no-underline transition-colors hover:border-primary hover:text-primary ${
@@ -84,7 +94,7 @@ function Header() {
         </Link>
       </nav>
 
-      <div className="flex items-center gap-8 md:gap-16">
+      <div className="hidden items-center gap-8 md:flex md:gap-16">
         <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)}>
           <Search size={20} strokeWidth={1.5} />
         </IconButton>
@@ -107,7 +117,61 @@ function Header() {
         </IconButton>
       </div>
 
+      <div className="md:hidden">
+        <IconButton label={menuOpen ? '메뉴 닫기' : '메뉴 열기'} onClick={() => setMenuOpen((prev) => !prev)}>
+          {menuOpen ? <X size={22} strokeWidth={1.5} /> : <Menu size={22} strokeWidth={1.5} />}
+        </IconButton>
+      </div>
+
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {menuOpen && (
+        <>
+          <div
+            className="fixed inset-0 top-64 z-modal bg-black/40 md:hidden"
+            onClick={() => setMenuOpen(false)}
+          />
+          <div className="fixed inset-x-0 top-64 z-modal border-b border-line bg-surface shadow-lg md:hidden">
+            <nav className="flex flex-col px-24">
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false)
+                  setSearchOpen(true)
+                }}
+                className="flex items-center gap-12 border-none bg-transparent py-16 text-left text-body text-primary"
+              >
+                <Search size={20} strokeWidth={1.5} />
+                검색
+              </button>
+              <Link
+                to="/wishlist"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-12 py-16 text-body text-primary no-underline"
+              >
+                <Heart size={20} strokeWidth={1.5} />
+                위시리스트
+              </Link>
+              <Link
+                to={user ? '/cart' : '#'}
+                onClick={handleMobileProtectedClick}
+                className="flex items-center gap-12 py-16 text-body text-primary no-underline"
+              >
+                <ShoppingBag size={20} strokeWidth={1.5} />
+                장바구니
+              </Link>
+              <Link
+                to={user ? '/mypage' : '#'}
+                onClick={handleMobileProtectedClick}
+                className="flex items-center gap-12 py-16 text-body text-primary no-underline"
+              >
+                <User size={20} strokeWidth={1.5} />
+                마이페이지
+              </Link>
+            </nav>
+          </div>
+        </>
+      )}
     </header>
   )
 }

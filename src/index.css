@@ -61,6 +61,15 @@
     display: flex;
     flex-direction: column;
   }
+
+  button,
+  a,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
 }
 
 /* 여러 페이지/컴포넌트에서 반복 사용하는 타이포·레이아웃 패턴만 공용 유틸리티로 유지.

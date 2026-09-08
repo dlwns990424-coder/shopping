@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async'
 import { supabase } from '../../lib/supabaseClient'
 import Button from '../../components/Button'
 import ConfirmModal from '../../components/ConfirmModal'
+import ImageCropModal from '../../components/ImageCropModal'
 import { uploadImage } from '../../utils/uploadImage'
 import FeaturedCarouselManager from '../components/FeaturedCarouselManager'
 
@@ -32,6 +33,27 @@ function sectionOf(key: string) {
   return key.split('.')[1] ?? ''
 }
 
+// hero/men_banner/women_banner는 화면 크기에 따라 실제로 잘리는 비율이 크게 달라서
+// 모바일용/데스크톱용 이미지를 따로 받는다(_mobile/_desktop 접미사). event_banner는
+// aspect-[2/3]로 화면 크기와 무관하게 고정이라 이미지 1장(2:3)만 받는다.
+const RESPONSIVE_ASPECT: Record<string, { mobile: number; desktop: number }> = {
+  hero: { mobile: 9 / 19.5, desktop: 16 / 9 },
+  men_banner: { mobile: 9 / 19.5, desktop: 4 / 5 },
+  women_banner: { mobile: 9 / 19.5, desktop: 4 / 5 },
+}
+const FIXED_ASPECT = 2 / 3
+const RESPONSIVE_SECTIONS = new Set(Object.keys(RESPONSIVE_ASPECT))
+
+// null이면 "모바일/데스크톱으로 나뉘어야 하는데 아직 안 나뉜 비정상 상태"라는 뜻.
+// 이 경우 잘못된 비율(예: 2:3)로 조용히 넘기지 않고 화면에서 바로 경고를 띄운다.
+function aspectForKey(key: string): number | null {
+  const section = sectionOf(key)
+  if (key.endsWith('_mobile')) return RESPONSIVE_ASPECT[section]?.mobile ?? null
+  if (key.endsWith('_desktop')) return RESPONSIVE_ASPECT[section]?.desktop ?? null
+  if (RESPONSIVE_SECTIONS.has(section)) return null
+  return FIXED_ASPECT
+}
+
 function ContentManage() {
   const [rows, setRows] = useState<ContentRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,6 +64,7 @@ function ContentManage() {
   const [uploadingKey, setUploadingKey] = useState<string | null>(null)
   const [resetTargetKey, setResetTargetKey] = useState<string | null>(null)
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
+  const [cropTarget, setCropTarget] = useState<{ key: string; file: File; aspect: number } | null>(null)
 
   const loadRows = async () => {
     const { data, error } = await supabase
@@ -85,15 +108,33 @@ function ContentManage() {
     loadRows()
   }
 
-  const handleImageSelect = async (key: string, e: ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = (key: string, e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    e.target.value = ''
     if (!file) return
 
+    const aspect = aspectForKey(key)
+    if (aspect === null) {
+      setError('이 섹션은 모바일/데스크톱 이미지로 나뉘어야 합니다. SQL 마이그레이션이 실행됐는지 확인해주세요.')
+      return
+    }
+
+    setCropTarget({ key, file, aspect })
+  }
+
+  const handleCropCancel = () => setCropTarget(null)
+
+  const handleCropConfirm = async (blob: Blob) => {
+    if (!cropTarget) return
+    const { key } = cropTarget
+
+    setCropTarget(null)
     setUploadingKey(key)
     setError(null)
 
     try {
-      const url = await uploadImage(file, 'content')
+      const croppedFile = new File([blob], `${key.replace(/\./g, '-')}.jpg`, { type: blob.type })
+      const url = await uploadImage(croppedFile, 'content')
       const { error } = await supabase.from('site_content').update({ value: url }).eq('key', key)
       if (error) throw error
       loadRows()
@@ -101,7 +142,6 @@ function ContentManage() {
       setError(err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.')
     } finally {
       setUploadingKey(null)
-      e.target.value = ''
     }
   }
 
@@ -154,12 +194,20 @@ function ContentManage() {
                 <h3 className="text-body-sm font-bold text-secondary">{SECTION_LABELS[section] ?? section}</h3>
                 <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-3">
                   {sectionRows.map((row) => {
-                const isImage = row.key.endsWith('.image')
+                const isImage = /\.image(_mobile|_desktop)?$/.test(row.key)
 
                 if (isImage) {
+                  const aspect = aspectForKey(row.key)
+
                   return (
                     <div key={row.key} className="flex flex-col gap-12 rounded-md border border-line p-16">
                       <p className="text-caption text-secondary">{row.label}</p>
+
+                      {aspect === null && (
+                        <p className="text-caption text-point">
+                          이 섹션은 모바일/데스크톱 이미지로 나뉘어야 합니다. SQL 마이그레이션이 실행됐는지 확인해주세요.
+                        </p>
+                      )}
 
                       {row.value ? (
                         <button
@@ -176,22 +224,24 @@ function ContentManage() {
                       )}
 
                       <div className="flex items-center gap-12">
-                        <Button
-                          as="label"
-                          variant="secondary"
-                          size="small"
-                          className="cursor-pointer"
-                          aria-disabled={uploadingKey === row.key}
-                        >
-                          {uploadingKey === row.key ? '업로드 중...' : '이미지 변경'}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => handleImageSelect(row.key, e)}
-                            disabled={uploadingKey === row.key}
-                          />
-                        </Button>
+                        {aspect !== null && (
+                          <Button
+                            as="label"
+                            variant="secondary"
+                            size="small"
+                            className="cursor-pointer"
+                            aria-disabled={uploadingKey === row.key}
+                          >
+                            {uploadingKey === row.key ? '업로드 중...' : '이미지 변경'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleImageSelect(row.key, e)}
+                              disabled={uploadingKey === row.key}
+                            />
+                          </Button>
+                        )}
                         {row.value && (
                           <button
                             type="button"
@@ -251,6 +301,15 @@ function ContentManage() {
           confirmLabel="제거"
           onConfirm={confirmResetImage}
           onCancel={() => setResetTargetKey(null)}
+        />
+      )}
+
+      {cropTarget && (
+        <ImageCropModal
+          file={cropTarget.file}
+          aspect={cropTarget.aspect}
+          onCancel={handleCropCancel}
+          onConfirm={handleCropConfirm}
         />
       )}
 

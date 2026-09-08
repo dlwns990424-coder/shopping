@@ -41,7 +41,7 @@ function Button({
 
   return (
     <Component
-      className={`inline-flex items-center justify-center rounded-sm border cursor-pointer transition-colors no-underline disabled:cursor-not-allowed disabled:opacity-50 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${paddingX} ${className}`.trim()}
+      className={`inline-flex items-center justify-center rounded-sm border cursor-pointer transition-colors no-underline enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${paddingX} ${className}`.trim()}
       {...rest}
     >
       {children}

@@ -109,7 +109,7 @@ function CategoryListing({ basePath, products, defaultGender, categoryParam }: C
   })
 
   const subTabClass = (active: boolean) =>
-    `rounded-full border px-16 py-6 text-body-sm no-underline transition-colors ${
+    `rounded-full border px-16 py-6 text-body-sm no-underline transition-colors active:scale-95 ${
       active
         ? 'border-primary bg-primary text-surface'
         : 'border-line text-secondary hover:border-primary hover:text-primary'
@@ -142,7 +142,7 @@ function CategoryListing({ basePath, products, defaultGender, categoryParam }: C
             type="button"
             onClick={() => navigate(buildUrl({ q: undefined, gender: undefined }))}
             aria-label="검색어 지우기"
-            className="absolute right-12 top-1/2 flex h-24 w-24 -translate-y-1/2 items-center justify-center text-secondary hover:text-primary"
+            className="absolute right-12 top-1/2 flex h-24 w-24 -translate-y-1/2 items-center justify-center text-secondary transition-colors active:scale-90 hover:text-primary"
           >
             <X size={16} strokeWidth={1.5} />
           </button>
@@ -168,7 +168,7 @@ function CategoryListing({ basePath, products, defaultGender, categoryParam }: C
           <Link
             key={tab.id}
             to={categoryTabUrl(tab.id)}
-            className={`-mb-px border-b py-12 text-sm font-medium no-underline transition-colors hover:border-primary hover:text-primary ${
+            className={`-mb-px border-b py-12 text-sm font-medium no-underline transition-colors active:scale-95 hover:border-primary hover:text-primary ${
               categoryParam === tab.id ? 'border-primary text-primary' : 'border-transparent text-disabled'
             }`}
           >

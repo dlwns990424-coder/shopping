@@ -22,8 +22,22 @@
 5. **테스트 계정 — 2026-09-09부터 Supabase Auth 실계정으로 전환됨** (더 이상 localStorage 자동생성 아님, 실제 DB에 존재하는 계정): 일반 `test@test.com`(비밀번호는 사용자 본인 계정이라 기록 안 함), 관리자 `admin@test.com` / `admin1234`. 같은 Supabase 프로젝트를 쓰는 한 새 컴퓨터에서도 그대로 로그인 가능(계정이 서버에 있어서 로컬 설정 불필요) — `.env.local`만 있으면 됨
 
 ## 마지막 갱신
-- 날짜: 2026-09-09
-- **git 상태: 매출관리까지의 작업은 전부 커밋+push 완료(`master` 최신 커밋 `f754055`). 이번 세션(Supabase Auth 전환)은 아직 미커밋**(다음 세션 시작 지점 참고)
+- 날짜: 2026-09-09 (같은 날 두 번째 세션)
+- **git 상태: Supabase Auth 전환(커밋 `980a560`)까지 커밋 완료. 이번 세션(반응형 UX + 이미지 크롭 기능) 작업분은 이 갱신 직후 커밋+push 예정** — 다음 세션 시작 지점 참고
+- **이번 세션(반응형 UX 점검 + 반응형 이미지 크롭 기능) 요약**:
+  1. **사용자 페이지 반응형 점검** — Home/Header/CategoryListing은 이미 정상이었고, `ProductCarousel.tsx`(Men/Women 상단 캐러셀)가 모바일에서도 4개 고정폭이라 카드가 지나치게 작아지는 문제 발견 → 모바일 2.2개(45%)/태블릿 3개(33%)/PC 4개(25%)로 반응형 처리, embla 옵션에 `containScroll:'trimSnaps'`(끝 여백 정리) 추가
+  2. **캐러셀 스와이프 조작감 개선(사용자 실사용 피드백 반영)** — `touch-pan-y`(세로 스크롤과 제스처 충돌 방지) 추가. 이후 "많이 드래그해도 한 칸만 이동한다"는 피드백을 embla 소스코드(`allowedForce` 함수) 분석으로 원인 확인 — `skipSnaps: true` 없으면 드래그 거리/속도와 무관하게 항상 딱 1칸만 이동하는 게 기본 동작이었음. `skipSnaps: true` 추가로 해결, 사용자 확인 완료("자연스럽다")
+  3. **관리자 페이지 반응형 — `AdminLayout.tsx`** — `w-240` 고정 사이드바가 모바일에서 화면의 60% 이상을 차지해 전 관리자 페이지가 사실상 사용 불가였던 문제 발견. `lg:` 미만에서 사이드바를 오프캔버스(슬라이드인 + 배경 오버레이)로 전환, `lg:` 이상은 기존과 동일
+  4. **`Header.tsx` 모바일 햄버거 메뉴 신규** — `md:` 미만에서 검색/찜/장바구니/마이페이지 아이콘 4개를 햄버거 1개로 축약, 클릭 시 드롭다운 목록(아이콘+라벨). 검색 선택 시 기존 `SearchOverlay` 그대로 재사용. 사용자 피드백으로 목록 구분선 제거, `SearchOverlay`에 명시적 닫기(X) 버튼 추가(모바일에서 배경 클릭 외엔 닫을 방법이 불명확했던 문제)
+  5. **모바일 터치/클릭 UX 리서치 기반 전면 보강** — 다른 커머스 사이트(무신사/29CM/Zara/Uniqlo 등) 리서치 후 6가지 적용: ① hover는 이미 `lg:group-hover:` 등으로 데스크톱 전용 처리돼 있어 손 안 댐 ② `-webkit-tap-highlight-color:transparent` ③ `:active` 눌림 피드백(`Button`/`IconButton`/`ProductCard` 찜버튼/`CategoryCard`/`SizeSelector`/`CategoryListing`/`MyPageNav`) ④ 터치 타겟 최소 44px(헤더 `IconButton` 32→44px, 찜버튼 32→40px) ⑤ `touch-action: manipulation`(더블탭 확대/클릭 지연 방지) ⑥ `user-select: none` — ②⑤⑥은 `index.css` 전역 `button, a, [role="button"]` 셀렉터 한 곳에서 처리. 전부 사용자 페이지 공용 컴포넌트 대상, 관리자 페이지는 데스크톱 중심이라 제외
+  6. **콘텐츠 관리 — 반응형 이미지 크롭 기능 신규(가장 큰 작업)** — "카카오톡 프로필 사진처럼 보여질 영역을 직접 정할 수 있게" 요청으로 시작. 코드(`h-screen`/`h-[60vh]`/`grid-cols-2` 등)를 실제로 뜯어서 각 배너 섹션이 화면 크기에 따라 실제로 어떤 비율로 잘리는지 정밀 계산(hero/men_banner/women_banner는 데스크톱↔모바일 비율 차이가 극단적이라 하나의 크롭으로 해결 불가 확인) → 반응형 섹션(hero, men_banner, women_banner)은 이미지를 **모바일용/데스크톱용 2장**으로 분리(`_mobile`/`_desktop` 접미사), `lg`(1024px) 기준 분기. event_banner는 `aspect-[2/3]` 고정이라 1장 그대로.
+     - `scripts/sql/006_responsive_content_images.sql` — 기존 `.image` 값을 유지한 채 `_desktop`으로 이름 변경 + `_mobile` 빈 값 신규 추가. **사용자가 Supabase SQL Editor에서 이미 실행 완료.**
+     - `react-easy-crop` 신규 의존성 추가, `src/components/ImageCropModal.tsx`(드래그 이동+확대축소 슬라이더+고정비율 프레임) + `src/utils/cropImage.ts`(canvas로 실제 크롭해서 Blob 생성) 신규
+     - `ContentManage.tsx`: 파일 선택 시 바로 업로드하지 않고 크롭 모달을 거치도록 변경, 섹션별 목표 비율 매핑(`hero` 데스크톱 16:9/모바일 9:19.5, `men_banner`·`women_banner` 데스크톱 4:5/모바일 9:19.5, `event_banner` 2:3 고정)
+     - `Home.tsx`/`Men.tsx`/`Women.tsx`: 반응형 섹션을 `hidden lg:block`(데스크톱용)/`lg:hidden`(모바일용) 2개 div로 분리 렌더링, 모바일 이미지가 비어있으면 데스크톱 이미지로 자동 폴백(마이그레이션 직후 과도기 대응)
+     - **버그 발견+수정**: SQL 미실행 상태에서 `aspectForKey()`가 `_mobile`/`_desktop` 접미사 없는 키를 전부 이벤트배너용 고정비율(2:3)로 취급해버려서, 히어로처럼 가로로 넓어야 할 이미지에 세로형 크롭 프레임이 뜨는 버그를 사용자가 실사용 중 발견. `hero`/`men_banner`/`women_banner` 섹션인데 접미사가 없으면 `aspectForKey`가 `null`을 반환하도록 고치고, 업로드 버튼 대신 "마이그레이션 확인 필요" 경고를 보여주는 방어 로직 추가(향후 비슷한 상태 실수를 조용히 넘기지 않도록)
+     - **검증**: 브라우저로 이벤트배너 이미지 실제 업로드→크롭→적용→저장까지 전체 플로우 확인, home 히어로 모바일/데스크톱 슬롯 분리 확인, 각각 올바른 비율(세로/가로) 크롭 프레임이 뜨는지 실제 파일 업로드로 확인
+  7. **다음 세션에서 이어할 것**: `home.men_banner`/`home.women_banner`/`men.hero`/`women.hero`의 모바일용 이미지는 아직 비어있음(데스크톱 이미지로 자동 폴백 중) — 관리자가 실제로 모바일용 이미지를 새로 크롭해서 올려야 완전히 마무리됨. `npx tsc --noEmit` 에러 0건 확인 완료
 - **Supabase Auth 실연동 완료 — localStorage 가짜 인증 시대 종료** (앞으로 해야 할 것 1순위였던 작업). 이 항목이 이번 세션 핵심:
   1. **DB 준비**(`scripts/sql/001~005`, 사용자가 SQL Editor에서 직접 실행) — `public.profiles` 테이블(`id`=`auth.users.id`, `email`/`nickname`/`phone`/`role`/`suspended`/**`deleted_at`(휴지통용 소프트삭제)**/`joined_at`/배송지 4종) + `is_admin()` 헬퍼 함수(RLS 재귀 방지용 `security definer`) + RLS 정책(조회/수정은 본인 또는 관리자, 완전삭제는 관리자만) + **`prevent_self_privilege_escalation` 트리거**(일반 회원이 스스로 role/suspended/deleted_at 못 바꾸게 DB 레벨 이중 방어) + **`handle_new_user` 트리거**(auth.users 가입 시 profiles 자동 생성). Authentication → Providers → Email → "Confirm email"은 배포 전까지 꺼둠(가입 즉시 로그인 가능)
   2. **SQL 실행 트러블슈팅(중요, 재발 방지용 기록)**: 채팅창 코드블록에서 복사→붙여넣기 했을 때 서식이 같이 딸려와 `$$` 구분자나 키워드가 깨지는 문제를 두 번 겪음(`text`가 "텍스트"로 번역되어 붙거나, 세미콜론이 씹혀 다음 statement와 합쳐짐). **이후로는 항상 SQL을 실제 `.sql` 파일로 저장해서 "메모장으로 열어서 복사"하는 방식으로 전환**(채팅에서 직접 복사 금지) — 이후로는 문제없이 실행됨. 다음에 SQL 작업 시에도 이 방식 유지할 것
@@ -443,20 +457,21 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 ---
 
 ## 다음 세션 시작 지점 (2026-09-09 기준, 최신)
-**코드 쪽은 이번 세션(Supabase Auth 전환) 작업분 미커밋 상태 — 다음 세션 시작하면 가장 먼저 커밋+push부터.** 관리자 6종 전부 구현 완료 + 로그인/회원가입/회원관리가 전부 실제 Supabase Auth 기반으로 전환 완료. 다음은 아래부터:
-1. **`products`/`site_content`/`images` 버킷 RLS 강화** — `profiles`는 이번에 제대로 잠갔지만, 나머지는 여전히 "누구나 읽기/쓰기 가능"인 `for all using (true)` 상태. 이제 `is_admin()` 헬퍼가 있으니 "쓰기는 관리자만"으로 바꾸는 SQL을 짜면 됨(배포 전 필수)
-2. **본인 비밀번호 변경/찾기 기능 없음** — 마이페이지에 비밀번호 변경 폼 자체가 없고, 로그인 화면에 "비밀번호 찾기"도 없음. 관리자가 남의 비밀번호를 강제 재설정하는 기능(회원관리 보류 항목)과는 별개로, 이것도 언젠가 필요
-3. **상품 이미지 최적화** — `public/images/products/` 원본 그대로 사용 중(용량 큼), 리사이즈/webp 전환 여전히 미착수
-4. Figma 와이어프레임 정합화 — 격차가 계속 벌어지는 중, 재개 요청 있을 때까지 대기
-5. 브랜드 리뉴얼 후속 — Men 페이지 SHOP BY CATEGORY "모두 보기" 타일에 임시로 WOMEN 이미지를 재사용 중, 나중에 별도 사진으로 교체 예정
+**코드는 이번 세션(반응형 UX + 이미지 크롭 기능) 작업분까지 커밋+push 완료된 상태로 다음 세션 시작.** 관리자 6종 + Auth 전환 + 사용자/관리자 반응형 UX + 반응형 이미지 크롭 기능까지 전부 완료. 다음은 아래부터:
+1. **반응형 이미지 실제 업로드 마무리** — `home.men_banner`/`home.women_banner`/`men.hero`/`women.hero`의 모바일용(`_mobile`) 이미지가 아직 비어있음(지금은 데스크톱 이미지로 자동 폴백 중이라 사이트는 안 깨지지만, 진짜 모바일 최적화는 아님). 관리자 페이지에서 각각 모바일용 이미지를 새로 크롭해서 올려야 함
+2. **`products`/`site_content`/`images` 버킷 RLS 강화** — `profiles`는 이번에 제대로 잠갔지만, 나머지는 여전히 "누구나 읽기/쓰기 가능"인 `for all using (true)` 상태. 이제 `is_admin()` 헬퍼가 있으니 "쓰기는 관리자만"으로 바꾸는 SQL을 짜면 됨(배포 전 필수)
+3. **본인 비밀번호 변경/찾기 기능 없음** — 마이페이지에 비밀번호 변경 폼 자체가 없고, 로그인 화면에 "비밀번호 찾기"도 없음
+4. **상품 이미지 최적화** — `public/images/products/` 원본 그대로 사용 중(용량 큼), 리사이즈/webp 전환 여전히 미착수
+5. Figma 와이어프레임 정합화 — 격차가 계속 벌어지는 중, 재개 요청 있을 때까지 대기
 6. 반응형 실기기 정밀 검증(이 환경 브라우저 자동화가 실제 창 리사이즈를 지원하지 않아 iframe 트릭으로만 확인해옴)
 7. **작업 방식**: "이해 안 되거나 애매하면 먼저 되물어보고, 확정 지시 전엔 실행하지 않는다" 원칙 계속 적용. "검증/점검"은 코드를 실제로 읽고 로직을 추적. **alert/confirm/prompt 절대 금지, 항상 모달 컴포넌트로**. SQL은 채팅에 직접 붙여넣지 말고 항상 `.sql` 파일로 저장해서 "메모장으로 열어서 복사" 방식으로 전달(채팅 코드블록 복사 시 서식이 깨지는 문제를 반복적으로 겪음)
 
 ## 앞으로 해야 할 것 (우선순위 순, 2026-09-09 갱신)
-1. `products`/`site_content`/`images` RLS를 "쓰기는 관리자만"으로 강화(배포 전 필수, anon key 노출 상태라 지금은 누구나 데이터 조작 가능)
-2. 본인 비밀번호 변경/찾기 기능 추가
-3. `formatPrice()` 중복 정의 정리(여러 파일에 각자 정의돼 있음). `orderTotal()`은 이미 `src/utils/orderStats.ts`로 통합 완료
-4. 상품 이미지 최적화(리사이즈/webp)
-5. 카테고리 리스팅 페이지네이션/무한스크롤 — 상품 수가 더 늘어나면 필요(지금은 성별당 30개 안팎이라 아직 급하지 않음)
-6. Figma 와이어프레임을 최신 코드에 맞게 재정합
-7. `allowJs` 꺼둔 상태 유지(전체 `.ts`/`.tsx`), 실수로 `.js`/`.jsx` 재유입 주의
+1. 반응형 이미지 모바일용 슬롯(men_banner/women_banner/men.hero/women.hero) 실제 업로드
+2. `products`/`site_content`/`images` RLS를 "쓰기는 관리자만"으로 강화(배포 전 필수, anon key 노출 상태라 지금은 누구나 데이터 조작 가능)
+3. 본인 비밀번호 변경/찾기 기능 추가
+4. `formatPrice()` 중복 정의 정리(여러 파일에 각자 정의돼 있음). `orderTotal()`은 이미 `src/utils/orderStats.ts`로 통합 완료
+5. 상품 이미지 최적화(리사이즈/webp)
+6. 카테고리 리스팅 페이지네이션/무한스크롤 — 상품 수가 더 늘어나면 필요(지금은 성별당 30개 안팎이라 아직 급하지 않음)
+7. Figma 와이어프레임을 최신 코드에 맞게 재정합
+8. `allowJs` 꺼둔 상태 유지(전체 `.ts`/`.tsx`), 실수로 `.js`/`.jsx` 재유입 주의

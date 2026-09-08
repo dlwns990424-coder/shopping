@@ -9,7 +9,7 @@ interface CategoryCardProps {
 
 function CategoryCard({ to, label, image, imageFit = 'contain' }: CategoryCardProps) {
   return (
-    <Link to={to} className="group relative block aspect-[3/4] overflow-hidden rounded-sm bg-surface-muted text-inherit no-underline lg:aspect-[3/2]">
+    <Link to={to} className="group relative block aspect-[3/4] overflow-hidden rounded-sm bg-surface-muted text-inherit no-underline transition-transform active:scale-[0.98] lg:aspect-[3/2]">
       <div
         className={`absolute inset-0 bg-center bg-no-repeat ${imageFit === 'cover' ? 'bg-cover' : 'bg-contain'}`}
         style={image ? { backgroundImage: `url(${image})` } : undefined}
