@@ -105,7 +105,7 @@ function ProductDetail() {
           {[product.image, ...product.detailImages].map((src, index) => (
             <div
               key={index}
-              className="aspect-[4/5] bg-surface-muted bg-contain bg-center bg-no-repeat"
+              className="aspect-[4/5] bg-surface-muted bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${src})` }}
             />
           ))}

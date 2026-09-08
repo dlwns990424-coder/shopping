@@ -26,12 +26,12 @@ function ProductCard({ id, name, price, salePrice, image, hoverImage }: ProductC
   return (
     <Link to={`/products/${id}`} className="group block text-inherit no-underline">
       <div
-        className="relative aspect-[3/4] w-full overflow-hidden rounded-none bg-surface-muted bg-contain bg-center bg-no-repeat"
+        className="relative aspect-[3/4] w-full overflow-hidden rounded-none bg-surface-muted bg-cover bg-center bg-no-repeat"
         style={image ? { backgroundImage: `url(${image})` } : undefined}
       >
         {hoverImage && (
           <div
-            className="absolute inset-0 bg-contain bg-center bg-no-repeat opacity-0 transition-opacity duration-300 lg:group-hover:opacity-100"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-0 lg:group-hover:opacity-100"
             style={{ backgroundImage: `url(${hoverImage})` }}
           />
         )}

@@ -17,6 +17,7 @@ interface FeaturedCarouselManagerProps {
 
 function FeaturedCarouselManager({ gender, label }: FeaturedCarouselManagerProps) {
   const [products, setProducts] = useState<FeaturedProduct[]>([])
+  const [order, setOrder] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [draggedId, setDraggedId] = useState<string | null>(null)
@@ -29,8 +30,17 @@ function FeaturedCarouselManager({ gender, label }: FeaturedCarouselManagerProps
       .eq('gender', gender)
       .order('name', { ascending: true })
 
-    if (error) setError(error.message)
-    else setProducts(data ?? [])
+    if (error) {
+      setError(error.message)
+    } else {
+      setProducts(data ?? [])
+      setOrder(
+        (data ?? [])
+          .filter((product) => product.featured)
+          .sort((a, b) => (a.featured_order ?? 0) - (b.featured_order ?? 0))
+          .map((product) => product.id),
+      )
+    }
     setLoading(false)
   }, [gender])
 
@@ -38,9 +48,8 @@ function FeaturedCarouselManager({ gender, label }: FeaturedCarouselManagerProps
     load()
   }, [load])
 
-  const featured = products
-    .filter((product) => product.featured)
-    .sort((a, b) => (a.featured_order ?? 0) - (b.featured_order ?? 0))
+  const byId = new Map(products.map((product) => [product.id, product]))
+  const featured = order.map((id) => byId.get(id)).filter((product): product is FeaturedProduct => !!product)
   const available = products.filter((product) => !product.featured)
 
   const handleAdd = async (product: FeaturedProduct) => {
@@ -70,23 +79,16 @@ function FeaturedCarouselManager({ gender, label }: FeaturedCarouselManagerProps
   const handleDragEnter = (targetId: string) => {
     if (!draggedId || draggedId === targetId) return
 
-    const ids = featured.map((product) => product.id)
-    const fromIndex = ids.indexOf(draggedId)
-    const toIndex = ids.indexOf(targetId)
-    if (fromIndex === -1 || toIndex === -1) return
+    setOrder((prev) => {
+      const fromIndex = prev.indexOf(draggedId)
+      const toIndex = prev.indexOf(targetId)
+      if (fromIndex === -1 || toIndex === -1) return prev
 
-    const reorderedIds = [...ids]
-    const [movedId] = reorderedIds.splice(fromIndex, 1)
-    reorderedIds.splice(toIndex, 0, movedId)
-
-    const featuredIdSet = new Set(ids)
-    const byId = new Map(products.map((product) => [product.id, product]))
-    let cursor = 0
-    setProducts(
-      products.map((product) =>
-        featuredIdSet.has(product.id) ? byId.get(reorderedIds[cursor++])! : product,
-      ),
-    )
+      const next = [...prev]
+      const [movedId] = next.splice(fromIndex, 1)
+      next.splice(toIndex, 0, movedId)
+      return next
+    })
   }
 
   const handleDragEnd = async () => {
@@ -96,11 +98,9 @@ function FeaturedCarouselManager({ gender, label }: FeaturedCarouselManagerProps
     dragSlotsRef.current = []
     if (!sourceId) return
 
-    const updates = featured
-      .map((product, index) => ({ id: product.id, featured_order: slots[index] }))
-      .filter(
-        (update) => update.featured_order !== products.find((product) => product.id === update.id)?.featured_order,
-      )
+    const updates = order
+      .map((id, index) => ({ id, featured_order: slots[index] }))
+      .filter((update) => update.featured_order !== byId.get(update.id)?.featured_order)
 
     if (updates.length === 0) return
 

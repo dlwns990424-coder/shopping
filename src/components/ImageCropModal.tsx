@@ -17,6 +17,12 @@ function ImageCropModal({ file, aspect, onCancel, onConfirm }: ImageCropModalPro
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(null)
   const [processing, setProcessing] = useState(false)
+  const [cropBoxSize, setCropBoxSize] = useState<{ width: number; height: number } | null>(null)
+
+  // 실제 사이트는 화면 크기에 따라 이 프레임보다 더 타이트하게 잘릴 수 있다(예: hero의
+  // h-screen 배경은 브라우저 창의 실제 표시 영역 비율 그대로 적용됨). 그래서 바깥 프레임
+  // 안에 "여기 안쪽에만 두면 어떤 화면에서도 안 잘림"을 보여주는 안전영역을 겹쳐 그린다.
+  const SAFE_ZONE_RATIO = 0.7
 
   useEffect(() => {
     const url = URL.createObjectURL(file)
@@ -50,9 +56,23 @@ function ImageCropModal({ file, aspect, onCancel, onConfirm }: ImageCropModalPro
               onCropChange={setCrop}
               onZoomChange={setZoom}
               onCropComplete={(_area, areaPixels) => setCroppedAreaPixels(areaPixels)}
+              onCropSizeChange={setCropBoxSize}
+            />
+          )}
+          {cropBoxSize && (
+            <div
+              className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 border border-dashed border-surface"
+              style={{
+                width: cropBoxSize.width * SAFE_ZONE_RATIO,
+                height: cropBoxSize.height * SAFE_ZONE_RATIO,
+                boxShadow: '0 0 0 1px rgba(0,0,0,0.4)',
+              }}
             />
           )}
         </div>
+        <p className="text-caption text-secondary">
+          안쪽 점선 안에 얼굴 등 핵심 요소를 두면 화면 크기와 상관없이 항상 보입니다.
+        </p>
 
         <div className="flex items-center gap-12">
           <span className="text-caption shrink-0 text-secondary">확대</span>

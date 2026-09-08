@@ -6,10 +6,15 @@ function img(gender: Gender, folder: string, file: string, index: number, ext: s
   return `/images/products/${gender}/${folder}/${gender}-${file}-${num}.${ext}`
 }
 
-const rawProducts: Omit<
+function modelImg(gender: Gender, folder: string, file: string, index: number, suffix: string = 'model-01') {
+  const num = String(index).padStart(2, '0')
+  return `/images/products/${gender}/${folder}/${gender}-${file}-${num}-${suffix}.png`
+}
+
+const rawProducts: (Omit<
   Product,
   'salePrice' | 'sizes' | 'featured' | 'featuredOrder' | 'detailImages' | 'hoverImage'
->[] = [
+> & { hoverImage?: string })[] = [
   // ── MEN · 아우터 · 코트 ──
   {
     id: 'men-coat-1', name: '오버핏 울 코트', price: 198000, gender: 'men', category: '아우터', subCategory: '코트',
@@ -184,7 +189,7 @@ const rawProducts: Omit<
   },
   {
     id: 'women-coat-2', name: '오버핏 울 코트', price: 198000, gender: 'women', category: '아우터', subCategory: '코트',
-    image: img('women', 'coats', 'coat', 2), color: { label: '차콜', hex: '#35363a' },
+    image: img('women', 'coats', 'coat', 2), hoverImage: modelImg('women', 'coats', 'coat', 2), color: { label: '차콜', hex: '#35363a' },
     description: '차콜 톤의 오버핏 랩 코트. 벨트로 허리 라인을 살릴 수 있는 디자인입니다.\n어깨너비 43cm · 가슴단면 52cm · 총장 105cm\n울 75% · 폴리에스터 25%\n드라이클리닝 권장',
   },
   {
@@ -201,22 +206,22 @@ const rawProducts: Omit<
   // ── WOMEN · 상의 · 셔츠 ──
   {
     id: 'women-shirt-1', name: '셔츠 블라우스', price: 65000, gender: 'women', category: '상의', subCategory: '셔츠',
-    image: img('women', 'shirts', 'shirt', 1), color: { label: '화이트', hex: '#ffffff' },
+    image: img('women', 'shirts', 'shirt', 1), hoverImage: modelImg('women', 'shirts', 'shirt', 1), color: { label: '화이트', hex: '#ffffff' },
     description: '화이트 컬러의 오버사이즈 셔츠 블라우스. 여유로운 소매 볼륨이 포인트입니다.\n어깨너비 44cm · 가슴단면 54cm · 총장 58cm\n코튼 100%\n드라이클리닝 또는 손세탁 권장',
   },
   {
     id: 'women-shirt-2', name: '옥스포드 셔츠', price: 59000, gender: 'women', category: '상의', subCategory: '셔츠',
-    image: img('women', 'shirts', 'shirt', 2), color: { label: '블랙', hex: '#1f1f1f' },
+    image: img('women', 'shirts', 'shirt', 2), hoverImage: modelImg('women', 'shirts', 'shirt', 2), color: { label: '블랙', hex: '#1f1f1f' },
     description: '화이트 카라 포인트가 돋보이는 블랙 블라우스. 잔잔한 패턴 원단으로 디테일을 더했습니다.\n어깨너비 40cm · 가슴단면 50cm · 총장 56cm\n폴리에스터 100%\n드라이클리닝 권장',
   },
   {
     id: 'women-shirt-3', name: '스트라이프 셔츠', price: 62000, gender: 'women', category: '상의', subCategory: '셔츠',
-    image: img('women', 'shirts', 'shirt', 3), color: { label: '라이트블루', hex: '#b7d3e8' },
+    image: img('women', 'shirts', 'shirt', 3), hoverImage: modelImg('women', 'shirts', 'shirt', 3), color: { label: '라이트블루', hex: '#b7d3e8' },
     description: '라이트 블루 톤의 리넨 혼방 셔츠. 가슴 포켓 디테일로 캐주얼한 무드를 더했습니다.\n어깨너비 41cm · 가슴단면 51cm · 총장 57cm\n리넨 50% · 코튼 50%\n손세탁 권장',
   },
   {
     id: 'women-shirt-4', name: '리넨 블라우스', price: 68000, gender: 'women', category: '상의', subCategory: '셔츠',
-    image: img('women', 'shirts', 'shirt', 4), color: { label: '아이보리', hex: '#f0e6d2' },
+    image: img('women', 'shirts', 'shirt', 4), hoverImage: modelImg('women', 'shirts', 'shirt', 4), color: { label: '아이보리', hex: '#f0e6d2' },
     description: '아이보리 톤의 새틴 블라우스. 은은한 광택으로 포멀한 자리에도 어울립니다.\n어깨너비 39cm · 가슴단면 49cm · 총장 55cm\n폴리에스터 100%\n드라이클리닝 권장',
   },
 
@@ -245,22 +250,22 @@ const rawProducts: Omit<
   // ── WOMEN · 상의 · 니트·스웨트 ──
   {
     id: 'women-knit-1', name: '리브 니트 탑', price: 59000, gender: 'women', category: '상의', subCategory: '니트·스웨트',
-    image: img('women', 'tops', 'top', 1), color: { label: '아이보리', hex: '#f0e9d8' },
+    image: img('women', 'tops', 'top', 1), hoverImage: modelImg('women', 'tops', 'top', 1), color: { label: '아이보리', hex: '#f0e9d8' },
     description: '아이보리 톤의 크롭 카디건. 버튼 여밈으로 이너로 레이어드하기 좋습니다.\n어깨너비 39cm · 가슴단면 48cm · 총장 40cm\n울 30% · 아크릴 70%\n드라이클리닝 권장',
   },
   {
     id: 'women-knit-2', name: '크루넥 니트', price: 65000, gender: 'women', category: '상의', subCategory: '니트·스웨트',
-    image: img('women', 'tops', 'top', 2), color: { label: '차콜', hex: '#3d3d3f' },
+    image: img('women', 'tops', 'top', 2), hoverImage: modelImg('women', 'tops', 'top', 2, 'model-01-v2'), color: { label: '차콜', hex: '#3d3d3f' },
     description: '차콜 톤의 모크넥 니트. 목선을 감싸는 디자인으로 단정하게 연출됩니다.\n어깨너비 40cm · 가슴단면 49cm · 총장 58cm\n울 40% · 아크릴 60%\n드라이클리닝 권장',
   },
   {
     id: 'women-knit-3', name: '오버핏 스웨트셔츠', price: 62000, gender: 'women', category: '상의', subCategory: '니트·스웨트',
-    image: img('women', 'tops', 'top', 3), color: { label: '블랙', hex: '#1c1c1c' },
+    image: img('women', 'tops', 'top', 3), hoverImage: modelImg('women', 'tops', 'top', 3), color: { label: '블랙', hex: '#1c1c1c' },
     description: '블랙 컬러의 하프집업 스웨트셔츠. 스탠드 카라 디자인으로 캐주얼하게 매치하기 좋습니다.\n어깨너비 42cm · 가슴단면 50cm · 총장 57cm\n코튼 80% · 폴리에스터 20%\n드라이클리닝 권장',
   },
   {
     id: 'women-knit-4', name: '케이블 니트', price: 72000, gender: 'women', category: '상의', subCategory: '니트·스웨트',
-    image: img('women', 'tops', 'top', 4), color: { label: '오트밀베이지', hex: '#d9cfc0' },
+    image: img('women', 'tops', 'top', 4), hoverImage: modelImg('women', 'tops', 'top', 4), color: { label: '오트밀베이지', hex: '#d9cfc0' },
     description: '오트밀 베이지 톤의 케이블 니트. 클래식한 무늬가 포인트인 크루넥 디자인입니다.\n어깨너비 41cm · 가슴단면 50cm · 총장 59cm\n울 35% · 아크릴 65%\n드라이클리닝 권장',
   },
 
@@ -279,22 +284,22 @@ const rawProducts: Omit<
   // ── WOMEN · 하의 · 데님 ──
   {
     id: 'women-denim-1', name: '스트레이트 데님팬츠', price: 75000, gender: 'women', category: '하의', subCategory: '데님',
-    image: img('women', 'jeans', 'jeans', 1), color: { label: '블랙워시', hex: '#262626' },
+    image: img('women', 'jeans', 'jeans', 1), hoverImage: modelImg('women', 'jeans', 'jeans', 1), color: { label: '블랙워시', hex: '#262626' },
     description: '블랙 워싱의 스트레이트 데님 팬츠. 부담 없이 매치하기 좋은 기본 핏입니다.\n허리단면 34cm · 밑위 26cm · 밑단너비 18cm\n코튼 98% · 폴리우레탄 2%\n찬물 손세탁 권장',
   },
   {
     id: 'women-denim-2', name: '하이웨이스트 와이드 데님', price: 85000, gender: 'women', category: '하의', subCategory: '데님',
-    image: img('women', 'jeans', 'jeans', 2), color: { label: '미드블루', hex: '#6889a8' },
+    image: img('women', 'jeans', 'jeans', 2), hoverImage: modelImg('women', 'jeans', 'jeans', 2), color: { label: '미드블루', hex: '#6889a8' },
     description: '미드 블루 톤의 하이웨이스트 와이드 데님. 허리선을 높여 다리가 길어 보이는 라인입니다.\n허리단면 33cm · 밑위 28cm · 밑단너비 24cm\n코튼 100%\n찬물 손세탁 권장',
   },
   {
     id: 'women-denim-3', name: '슬림 데님', price: 72000, gender: 'women', category: '하의', subCategory: '데님',
-    image: img('women', 'jeans', 'jeans', 3), color: { label: '다크인디고', hex: '#1f2a42' },
+    image: img('women', 'jeans', 'jeans', 3), hoverImage: modelImg('women', 'jeans', 'jeans', 3), color: { label: '다크인디고', hex: '#1f2a42' },
     description: '다크 인디고 톤의 플레어 데님. 허벅지는 슬림하고 밑단으로 갈수록 퍼지는 라인입니다.\n허리단면 32cm · 밑위 25cm · 밑단너비 22cm\n코튼 98% · 폴리우레탄 2%\n찬물 손세탁 권장',
   },
   {
     id: 'women-denim-4', name: '부츠컷 데님', price: 79000, gender: 'women', category: '하의', subCategory: '데님',
-    image: img('women', 'jeans', 'jeans', 4), color: { label: '라이트워시', hex: '#9dbcd4' },
+    image: img('women', 'jeans', 'jeans', 4), hoverImage: modelImg('women', 'jeans', 'jeans', 4), color: { label: '라이트워시', hex: '#9dbcd4' },
     description: '라이트 워싱의 스트레이트 데님. 은은한 워시감으로 캐주얼하게 활용하기 좋습니다.\n허리단면 34cm · 밑위 27cm · 밑단너비 20cm\n코튼 100%\n찬물 손세탁 권장',
   },
 
@@ -347,7 +352,7 @@ export const products: Product[] = rawProducts.map((product) => ({
   ...product,
   salePrice: null,
   detailImages: [],
-  hoverImage: null,
+  hoverImage: product.hoverImage ?? null,
   sizes: [...sizeOptions],
   featured: false,
   featuredOrder: null,

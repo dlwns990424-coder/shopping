@@ -74,7 +74,7 @@ function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                     className="flex items-center gap-12 rounded-sm p-8 text-inherit no-underline transition-colors hover:bg-surface-muted"
                   >
                     <div
-                      className="h-56 w-56 shrink-0 rounded-sm bg-surface-muted bg-contain bg-center bg-no-repeat"
+                      className="h-56 w-56 shrink-0 rounded-sm bg-surface-muted bg-cover bg-center bg-no-repeat"
                       style={{ backgroundImage: `url(${product.image})` }}
                     />
                     <div className="flex flex-col gap-2">
