@@ -41,7 +41,7 @@ function Cart() {
     return (
       <div className="flex min-h-560 flex-col items-center justify-center gap-16 px-24 py-64 text-center">
         <Helmet>
-          <title>T&amp;L | 장바구니</title>
+          <title>NOVERA | 장바구니</title>
         </Helmet>
         <ShoppingBag size={48} strokeWidth={1.2} className="text-disabled" />
         <p className="text-h3">장바구니가 비어있습니다</p>
@@ -61,7 +61,7 @@ function Cart() {
   return (
     <div>
       <Helmet>
-        <title>T&amp;L | 장바구니</title>
+        <title>NOVERA | 장바구니</title>
       </Helmet>
 
       <div className="flex flex-col gap-4 px-24 pb-16 pt-32 md:px-32 lg:px-40 lg:pb-24 lg:pt-48">

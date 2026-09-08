@@ -32,7 +32,7 @@ function Men() {
   return (
     <div>
       <Helmet>
-        <title>T&amp;L | MEN</title>
+        <title>NOVERA | MEN</title>
       </Helmet>
 
       <section className="relative -mt-64 flex h-[60vh] items-end overflow-hidden">
@@ -48,11 +48,7 @@ function Men() {
             <div className="bg-line" />
           </div>
         )}
-        <div className="absolute inset-0 bg-black/35" />
         <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
-          <p className="text-caption mb-8 tracking-[0.08em] text-surface">
-            {content['men.hero.eyebrow'] ?? 'T&L | MEN'}
-          </p>
           <h1 className="text-h1 text-surface">
             {content['men.hero.title'] ?? '댄디하고 심플한 무드의 새 시즌 컬렉션'}
           </h1>
@@ -71,7 +67,13 @@ function Men() {
         </div>
         <div className="category-grid">
           {menCategories.map((category) => (
-            <CategoryCard key={category.id} to={category.to} label={category.label} image={category.image} />
+            <CategoryCard
+              key={category.id}
+              to={category.to}
+              label={category.label}
+              image={category.image}
+              imageFit={category.imageFit}
+            />
           ))}
         </div>
       </section>

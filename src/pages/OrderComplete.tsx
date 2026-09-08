@@ -23,7 +23,7 @@ function OrderComplete() {
   return (
     <div className="flex min-h-480 flex-col items-center justify-center gap-16 px-24 py-64 text-center lg:min-h-640">
       <Helmet>
-        <title>T&amp;L | 주문완료</title>
+        <title>NOVERA | 주문완료</title>
       </Helmet>
       <CheckCircle size={48} strokeWidth={1.2} className="text-point" />
       <p className="text-h3">주문이 완료되었습니다</p>

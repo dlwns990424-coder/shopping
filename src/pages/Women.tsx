@@ -32,7 +32,7 @@ function Women() {
   return (
     <div>
       <Helmet>
-        <title>T&amp;L | WOMEN</title>
+        <title>NOVERA | WOMEN</title>
       </Helmet>
 
       <section className="relative -mt-64 flex h-[60vh] items-end overflow-hidden">
@@ -45,11 +45,7 @@ function Women() {
             })`,
           }}
         />
-        <div className="absolute inset-0 bg-black/35" />
         <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
-          <p className="text-caption mb-8 tracking-[0.08em] text-surface">
-            {content['women.hero.eyebrow'] ?? 'T&L | WOMEN'}
-          </p>
           <h1 className="text-h1 text-surface">
             {content['women.hero.title'] ?? '세련되고 감각적인 무드의 새 시즌 컬렉션'}
           </h1>
@@ -68,7 +64,13 @@ function Women() {
         </div>
         <div className="category-grid">
           {womenCategories.map((category) => (
-            <CategoryCard key={category.id} to={category.to} label={category.label} image={category.image} />
+            <CategoryCard
+              key={category.id}
+              to={category.to}
+              label={category.label}
+              image={category.image}
+              imageFit={category.imageFit}
+            />
           ))}
         </div>
       </section>

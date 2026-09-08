@@ -44,7 +44,7 @@ function Login() {
   return (
     <div className="flex justify-center px-24 pb-96 pt-48 lg:pb-128 lg:pt-96">
       <Helmet>
-        <title>T&amp;L | 로그인</title>
+        <title>NOVERA | 로그인</title>
       </Helmet>
       <div className="flex w-full max-w-400 flex-col gap-32">
         <h1 className="text-h1 text-center">로그인</h1>

@@ -11,6 +11,7 @@ interface ContentRow {
   page: string
   label: string
   value: string
+  display_order: number
 }
 
 const PAGE_LABELS: Record<string, string> = {
@@ -19,43 +20,16 @@ const PAGE_LABELS: Record<string, string> = {
   women: 'WOMEN',
 }
 
-// 화면에 보이는 실제 배치 순서(예: 이벤트배너 1~4)와 맞추기 위한 표시 순서.
-// key 알파벳 순서로는 이 순서가 나오지 않아서(men-denim < men-outer) 별도로 정의함.
-const KEY_ORDER = [
-  'home.hero.eyebrow',
-  'home.hero.title',
-  'home.hero.image',
-  'home.season_banner.title',
-  'home.season_banner.subtitle',
-  'home.season_banner.image',
-  'home.men_banner.copy',
-  'home.men_banner.image',
-  'home.women_banner.copy',
-  'home.women_banner.image',
-  'home.event_banner.men-outer.label',
-  'home.event_banner.men-outer.image',
-  'home.event_banner.women-knit.label',
-  'home.event_banner.women-knit.image',
-  'home.event_banner.men-denim.label',
-  'home.event_banner.men-denim.image',
-  'home.event_banner.women-shirt.label',
-  'home.event_banner.women-shirt.image',
+const SECTION_LABELS: Record<string, string> = {
+  hero: '히어로',
+  men_banner: 'MEN 배너',
+  women_banner: 'WOMEN 배너',
+  event_banner: '이벤트 배너',
+}
 
-  'men.hero.eyebrow',
-  'men.hero.title',
-  'men.hero.image',
-  'men.sale_banner.title',
-  'men.sale_banner.image',
-
-  'women.hero.eyebrow',
-  'women.hero.title',
-  'women.hero.image',
-  'women.sale_banner.title',
-  'women.sale_banner.image',
-]
-
-function sortByDisplayOrder(rows: ContentRow[]) {
-  return [...rows].sort((a, b) => KEY_ORDER.indexOf(a.key) - KEY_ORDER.indexOf(b.key))
+// key는 "page.section.나머지" 형태(예: home.event_banner.men-outer.label) — 두 번째 조각을 섹션으로 취급
+function sectionOf(key: string) {
+  return key.split('.')[1] ?? ''
 }
 
 function ContentManage() {
@@ -70,10 +44,13 @@ function ContentManage() {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
 
   const loadRows = async () => {
-    const { data, error } = await supabase.from('site_content').select('*')
+    const { data, error } = await supabase
+      .from('site_content')
+      .select('*')
+      .order('display_order', { ascending: true })
 
     if (error) setError(error.message)
-    else setRows(sortByDisplayOrder(data ?? []))
+    else setRows(data ?? [])
     setLoading(false)
   }
 
@@ -141,15 +118,17 @@ function ContentManage() {
     loadRows()
   }
 
-  const groupedByPage = rows.reduce<Record<string, ContentRow[]>>((groups, row) => {
-    ;(groups[row.page] ??= []).push(row)
-    return groups
+  const groupedByPage = rows.reduce<Record<string, Record<string, ContentRow[]>>>((pages, row) => {
+    const section = sectionOf(row.key)
+    const page = (pages[row.page] ??= {})
+    ;(page[section] ??= []).push(row)
+    return pages
   }, {})
 
   return (
     <div className="flex flex-col gap-32">
       <Helmet>
-        <title>T&amp;L Admin | 콘텐츠 관리</title>
+        <title>NOVERA Admin | 콘텐츠 관리</title>
       </Helmet>
 
       <h1 className="text-h1">콘텐츠 관리</h1>
@@ -167,11 +146,14 @@ function ContentManage() {
       {loading ? (
         <p className="text-body-sm text-secondary">불러오는 중...</p>
       ) : (
-        Object.entries(groupedByPage).map(([page, pageRows]) => (
-          <div key={page} className="flex flex-col gap-16">
+        Object.entries(groupedByPage).map(([page, sections]) => (
+          <div key={page} className="flex flex-col gap-24">
             <h2 className="text-h3 border-b border-line pb-8 font-bold">{PAGE_LABELS[page] ?? page}</h2>
-            <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-3">
-              {pageRows.map((row) => {
+            {Object.entries(sections).map(([section, sectionRows]) => (
+              <div key={section} className="flex flex-col gap-12">
+                <h3 className="text-body-sm font-bold text-secondary">{SECTION_LABELS[section] ?? section}</h3>
+                <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-3">
+                  {sectionRows.map((row) => {
                 const isImage = row.key.endsWith('.image')
 
                 if (isImage) {
@@ -255,8 +237,10 @@ function ContentManage() {
                     )}
                   </div>
                 )
-              })}
-            </div>
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         ))
       )}

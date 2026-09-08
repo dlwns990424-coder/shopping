@@ -23,7 +23,7 @@ function MyPage() {
   return (
     <div className="page-section flex flex-col gap-32">
       <Helmet>
-        <title>T&amp;L | 마이페이지</title>
+        <title>NOVERA | 마이페이지</title>
       </Helmet>
       <h1 className="text-h1">마이페이지</h1>
 

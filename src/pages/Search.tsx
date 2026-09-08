@@ -24,7 +24,7 @@ function Search() {
   return (
     <div className="px-24 pb-32 pt-32 md:px-32 md:pt-48 lg:px-40 lg:pb-64">
       <Helmet>
-        <title>T&amp;L | 검색</title>
+        <title>NOVERA | 검색</title>
       </Helmet>
 
       <h1 className="text-h1 mb-24">검색</h1>

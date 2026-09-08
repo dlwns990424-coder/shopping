@@ -4,7 +4,7 @@ function MemberManage() {
   return (
     <>
       <Helmet>
-        <title>T&amp;L Admin | 회원관리</title>
+        <title>NOVERA Admin | 회원관리</title>
       </Helmet>
       <h1>회원관리</h1>
     </>

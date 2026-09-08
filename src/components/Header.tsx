@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 import { useProducts } from '../context/ProductsContext'
 import SearchOverlay from './SearchOverlay'
-import logo from '../assets/logo.png'
 
 type Gender = 'men' | 'women'
 
@@ -73,7 +72,7 @@ function Header() {
   return (
     <header className="fixed inset-x-0 top-0 z-header flex h-64 items-center gap-16 border-b border-line bg-surface px-24 md:gap-32 md:px-32 lg:px-40">
       <Link to="/" className="inline-flex shrink-0 items-center">
-        <img src={logo} alt="T&L" className="block h-22 w-auto md:h-26" />
+        <img src="/images/brand/novera-logo-header.png" alt="NOVERA" className="block h-22 w-auto md:h-26" />
       </Link>
 
       <nav className="flex flex-1 gap-16 md:gap-24">

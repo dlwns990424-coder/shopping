@@ -97,7 +97,7 @@ function ProductDetail() {
   return (
     <div className="pb-112 lg:pb-0">
       <Helmet>
-        <title>{`T&L | ${product.name}`}</title>
+        <title>{`NOVERA | ${product.name}`}</title>
       </Helmet>
 
       <div className="grid grid-cols-1 gap-64 px-24 pt-32 md:px-32 lg:grid-cols-[1fr_456px] lg:px-40 lg:pt-48">

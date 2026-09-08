@@ -22,7 +22,7 @@ function Home() {
   return (
     <div>
       <Helmet>
-        <title>T&amp;L</title>
+        <title>NOVERA</title>
       </Helmet>
 
       <section className="relative -mt-64 flex h-screen items-end overflow-hidden">
@@ -38,35 +38,11 @@ function Home() {
             <div className="bg-line" />
           </div>
         )}
-        <div className="absolute inset-0 bg-black/35" />
+        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
         <div className="relative z-10 px-24 py-32 text-surface lg:p-64">
-          <p className="text-caption mb-8 tracking-[0.08em] text-surface">
-            {content['home.hero.eyebrow'] ?? 'T&L'}
-          </p>
-          <h1 className="text-h1 text-surface">
+          <h1 className="text-h1 text-[36px] text-[#fff] drop-shadow-md lg:text-[44px]">
             {content['home.hero.title'] ?? '계절을 입다, 데일리를 완성하다'}
           </h1>
-        </div>
-      </section>
-
-      <section className="mt-20">
-        <div
-          className="relative flex h-screen items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
-          style={
-            content['home.season_banner.image']
-              ? { backgroundImage: `url(${content['home.season_banner.image']})` }
-              : undefined
-          }
-        >
-          <div className="absolute inset-0 bg-black/15" />
-          <div className="relative z-10 px-24 pt-32 pb-48 md:px-32 lg:px-40">
-            <h2 className="text-h2 text-surface">
-              {content['home.season_banner.title'] ?? 'NEW SEASON LAYER'}
-            </h2>
-            <p className="text-body-sm text-surface">
-              {content['home.season_banner.subtitle'] ?? '이번 시즌 놓치면 안될 아이템을 만나보세요'}
-            </p>
-          </div>
         </div>
       </section>
 
@@ -81,7 +57,6 @@ function Home() {
                 : undefined
             }
           >
-            <div className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
             <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
               <h2 className="text-h1 mb-8 text-surface">MEN</h2>
               <p className="text-body-sm mb-16 text-surface">
@@ -99,7 +74,6 @@ function Home() {
                 : undefined
             }
           >
-            <div className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
             <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
               <h2 className="text-h1 mb-8 text-surface">WOMEN</h2>
               <p className="text-body-sm mb-16 text-surface">
@@ -124,7 +98,6 @@ function Home() {
                   : undefined
               }
             >
-              <div className="absolute inset-0 bg-black/25 transition-colors group-hover:bg-black/35" />
               <div className="relative z-10 flex flex-col gap-8 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
                 <p className="text-h3 text-surface">
                   {content[`home.event_banner.${banner.id}.label`] ?? banner.label}

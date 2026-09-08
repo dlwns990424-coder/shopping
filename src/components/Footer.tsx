@@ -1,11 +1,10 @@
 import { Link } from 'react-router-dom'
-import logo from '../assets/logo.png'
 
 function Footer() {
   return (
     <footer className="mt-auto bg-inverse text-surface">
       <div className="flex flex-wrap gap-48 px-24 pb-32 pt-64 md:px-32 lg:px-40">
-        <img src={logo} alt="T&L" className="block h-22 w-auto" />
+        <img src="/images/brand/novera-logo-header.png" alt="NOVERA" className="block h-22 w-auto invert" />
 
         <div className="flex min-w-160 flex-col gap-8">
           <p className="text-caption mb-4 text-disabled">SHOP</p>
@@ -26,7 +25,7 @@ function Footer() {
 
         <div className="flex min-w-160 flex-col gap-8">
           <p className="text-caption mb-4 text-disabled">COMPANY</p>
-          <span className="text-body-sm text-surface opacity-85">(주)티앤엘 · 대표 이준</span>
+          <span className="text-body-sm text-surface opacity-85">(주)노베라 · 대표 이준</span>
           <span className="text-body-sm text-surface opacity-85">사업자등록번호 000-00-00000</span>
           <span className="text-body-sm text-surface opacity-85">서울특별시 강남구 테헤란로 000</span>
           <span className="text-body-sm text-surface opacity-85">고객센터 1544-0000 (평일 10:00-18:00)</span>
@@ -44,7 +43,7 @@ function Footer() {
       </div>
 
       <div className="text-caption border-t border-white/15 px-24 py-16 text-disabled md:px-32 lg:px-40">
-        <p>© 2026 T&amp;L. All rights reserved.</p>
+        <p>© 2026 NOVERA. All rights reserved.</p>
       </div>
     </footer>
   )

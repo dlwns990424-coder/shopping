@@ -102,7 +102,7 @@ function Order() {
   return (
     <div>
       <Helmet>
-        <title>T&amp;L | 주문/결제</title>
+        <title>NOVERA | 주문/결제</title>
       </Helmet>
 
       <div className="px-24 pb-16 pt-32 md:px-32 lg:px-40 lg:pb-24 lg:pt-48">

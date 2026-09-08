@@ -4,7 +4,7 @@ function SalesManage() {
   return (
     <>
       <Helmet>
-        <title>T&amp;L Admin | 매출관리</title>
+        <title>NOVERA Admin | 매출관리</title>
       </Helmet>
       <h1>매출관리</h1>
     </>

@@ -29,7 +29,7 @@ function Dashboard() {
   return (
     <div className="flex flex-col gap-32">
       <Helmet>
-        <title>T&amp;L Admin | 대시보드</title>
+        <title>NOVERA Admin | 대시보드</title>
       </Helmet>
       <h1 className="text-h1">대시보드</h1>
 

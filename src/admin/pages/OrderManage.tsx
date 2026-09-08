@@ -51,7 +51,7 @@ function OrderManage() {
   return (
     <div className="flex flex-col gap-24">
       <Helmet>
-        <title>T&amp;L Admin | 주문관리</title>
+        <title>NOVERA Admin | 주문관리</title>
       </Helmet>
       <h1 className="text-h1">주문관리</h1>
 

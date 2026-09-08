@@ -6,6 +6,7 @@ import { sizeOptions } from '../mock/productDetail'
 import type { Product } from '../types'
 
 const TABS = [
+  { id: 'all', label: '모두 보기' },
   { id: '아우터', label: '아우터' },
   { id: '상의', label: '상의' },
   { id: '하의', label: '하의' },
@@ -77,11 +78,11 @@ function CategoryListing({ genderLabel, basePath, products, categoryParam }: Cat
   return (
     <div className="px-24 pb-32 pt-32 md:px-32 md:pt-48 lg:px-40 lg:pb-64">
       <Helmet>
-        <title>{`T&L | ${genderLabel} | ${title}`}</title>
+        <title>{`NOVERA | ${genderLabel} | ${title}`}</title>
       </Helmet>
       <div className="mb-24">
         <p className="text-caption mb-8 tracking-[0.08em] text-secondary">
-          T&amp;L | {genderLabel}
+          NOVERA | {genderLabel}
         </p>
         <h1 className="text-h1">{title}</h1>
       </div>

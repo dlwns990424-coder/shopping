@@ -26,6 +26,7 @@ export interface Category {
   label: string
   to: string
   image: string
+  imageFit?: 'contain' | 'cover'
 }
 
 export type UserRole = 'admin' | 'user'
