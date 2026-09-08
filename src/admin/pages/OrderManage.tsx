@@ -1,5 +1,7 @@
 import { Fragment, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { useSearchParams } from 'react-router-dom'
+import { ChevronDown } from 'lucide-react'
 import { useOrderHistory } from '../../context/OrderHistoryContext'
 import OrderItemRow from '../../components/OrderItemRow'
 import Button from '../../components/Button'
@@ -14,9 +16,10 @@ function orderTotal(order: Order) {
 
 function OrderManage() {
   const { orders, updateOrderStatuses } = useOrderHistory()
+  const [searchParams] = useSearchParams()
 
   const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all')
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(searchParams.get('search') ?? '')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [bulkStatus, setBulkStatus] = useState<OrderStatus>(ORDER_STATUSES[0])
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -56,18 +59,25 @@ function OrderManage() {
       <h1 className="text-h1">주문관리</h1>
 
       <div className="flex flex-wrap items-center gap-8">
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as 'all' | OrderStatus)}
-          className="text-body-sm rounded-sm border border-line px-12 py-8"
-        >
-          <option value="all">전체 상태</option>
-          {ORDER_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | OrderStatus)}
+            className="text-body-sm appearance-none rounded-sm border border-line py-8 pl-12 pr-36"
+          >
+            <option value="all">전체 상태</option>
+            {ORDER_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            size={16}
+            strokeWidth={1.5}
+            className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 text-secondary"
+          />
+        </div>
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -79,17 +89,24 @@ function OrderManage() {
       {selectedIds.size > 0 && (
         <div className="flex items-center gap-8 rounded-sm border border-line bg-surface-muted px-16 py-12">
           <span className="text-body-sm">{selectedIds.size}건 선택됨</span>
-          <select
-            value={bulkStatus}
-            onChange={(e) => setBulkStatus(e.target.value as OrderStatus)}
-            className="text-body-sm rounded-sm border border-line px-12 py-8"
-          >
-            {ORDER_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              value={bulkStatus}
+              onChange={(e) => setBulkStatus(e.target.value as OrderStatus)}
+              className="text-body-sm appearance-none rounded-sm border border-line py-8 pl-12 pr-36"
+            >
+              {ORDER_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={16}
+              strokeWidth={1.5}
+              className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 text-secondary"
+            />
+          </div>
           <Button size="small" onClick={handleBulkApply}>
             일괄 변경
           </Button>
@@ -134,17 +151,24 @@ function OrderManage() {
                     <td className="py-8 pr-16">{order.items.length}개</td>
                     <td className="py-8 pr-16 text-right">{formatPrice(orderTotal(order))}</td>
                     <td className="py-8 pl-16" onClick={(e) => e.stopPropagation()}>
-                      <select
-                        value={order.status}
-                        onChange={(e) => updateOrderStatuses([order.id], e.target.value as OrderStatus)}
-                        className="text-body-sm rounded-sm border border-line px-8 py-4"
-                      >
-                        {ORDER_STATUSES.map((status) => (
-                          <option key={status} value={status}>
-                            {status}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="relative inline-block">
+                        <select
+                          value={order.status}
+                          onChange={(e) => updateOrderStatuses([order.id], e.target.value as OrderStatus)}
+                          className="text-body-sm appearance-none rounded-sm border border-line py-4 pl-8 pr-28"
+                        >
+                          {ORDER_STATUSES.map((status) => (
+                            <option key={status} value={status}>
+                              {status}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown
+                          size={14}
+                          strokeWidth={1.5}
+                          className="pointer-events-none absolute right-8 top-1/2 -translate-y-1/2 text-secondary"
+                        />
+                      </div>
                     </td>
                   </tr>
                   {expandedId === order.id && (

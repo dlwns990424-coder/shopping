@@ -123,15 +123,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const listUsers = (): User[] => users.map(({ password: _password, ...safeUser }) => safeUser)
 
   const setUserRole = (email: string, role: UserRole): AuthResult => {
+    if (user?.email === email) {
+      return { success: false, message: '본인 계정의 권한은 변경할 수 없습니다.' }
+    }
     if (!users.some((u) => u.email === email)) {
       return { success: false, message: '존재하지 않는 회원입니다.' }
     }
     persistUsers(users.map((u) => (u.email === email ? { ...u, role } : u)))
-    if (user?.email === email) {
-      const nextUser = { ...user, role }
-      setUser(nextUser)
-      safeSetItem(SESSION_KEY, nextUser)
-    }
     return { success: true }
   }
 
