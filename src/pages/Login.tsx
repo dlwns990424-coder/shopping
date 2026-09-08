@@ -15,12 +15,13 @@ function Login() {
   const { login } = useAuth()
   const [form, setForm] = useState<FormState>({ email: '', password: '' })
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
+  const [submitting, setSubmitting] = useState(false)
 
   const handleChange = (field: keyof FormState) => (e: ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }))
   }
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     const nextErrors: Partial<Record<keyof FormState, string>> = {}
@@ -28,8 +29,9 @@ function Login() {
     if (!form.password.trim()) nextErrors.password = '비밀번호를 입력해주세요.'
 
     if (Object.keys(nextErrors).length === 0) {
-      // Supabase Auth 연동 후 실제 로그인 요청으로 교체 예정 (지금은 localStorage 기반 목업 계정 조회)
-      const result = login(form.email, form.password)
+      setSubmitting(true)
+      const result = await login(form.email, form.password)
+      setSubmitting(false)
       if (!result.success) {
         nextErrors.password = result.message
       }
@@ -69,8 +71,8 @@ function Login() {
             error={errors.password}
           />
 
-          <Button type="submit" className="mt-8 w-full">
-            로그인
+          <Button type="submit" className="mt-8 w-full" disabled={submitting}>
+            {submitting ? '로그인 중...' : '로그인'}
           </Button>
         </form>
 

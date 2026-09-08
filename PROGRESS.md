@@ -19,12 +19,25 @@
    값은 [Supabase 대시보드](https://supabase.com/dashboard/project/nkwofckgxfgsusgqabme) → Settings → API에서 Project URL / anon public key 복사(`service_role` 키는 절대 사용하지 않음)
    **주의**: Vite 개발서버는 `.env`/`.env.local` 둘 다 자동으로 읽지만(`npm run dev`만 할 거면 `.env`도 무방), `scripts/seed-*.ts`(시딩 스크립트)는 파일명을 `.env.local`로 직접 지정해서 읽기 때문에 **시딩 스크립트를 돌릴 일이 있으면 반드시 `.env.local`이라는 이름으로 만들어야 함**
 4. `npm run dev`로 로컬 서버 실행
-5. 테스트 계정(로그인 시 자동 생성됨, 별도 설정 불필요): 일반 `test@test.com` / `test1234`, 관리자 `admin@test.com` / `admin1234`
+5. **테스트 계정 — 2026-09-09부터 Supabase Auth 실계정으로 전환됨** (더 이상 localStorage 자동생성 아님, 실제 DB에 존재하는 계정): 일반 `test@test.com`(비밀번호는 사용자 본인 계정이라 기록 안 함), 관리자 `admin@test.com` / `admin1234`. 같은 Supabase 프로젝트를 쓰는 한 새 컴퓨터에서도 그대로 로그인 가능(계정이 서버에 있어서 로컬 설정 불필요) — `.env.local`만 있으면 됨
 
 ## 마지막 갱신
-- 날짜: 2026-09-08 (같은 날 세 번째 세션)
-- **git 상태: 이번 세션(회원관리+매출관리) 작업분 전부 커밋+원격 push 완료(`master` 최신 커밋 `5a78737`), 워킹트리 클린**
-- **git 상태: 회원관리 관련 작업 전부 커밋(`b677239`, `c1e644b`, `1393b16`) 완료, 원격 미푸시. 아래 20번(매출관리 신규 구현)은 그 이후 작업이라 아직 미커밋**(다음 세션 시작 지점 참고)
+- 날짜: 2026-09-09
+- **git 상태: 매출관리까지의 작업은 전부 커밋+push 완료(`master` 최신 커밋 `f754055`). 이번 세션(Supabase Auth 전환)은 아직 미커밋**(다음 세션 시작 지점 참고)
+- **Supabase Auth 실연동 완료 — localStorage 가짜 인증 시대 종료** (앞으로 해야 할 것 1순위였던 작업). 이 항목이 이번 세션 핵심:
+  1. **DB 준비**(`scripts/sql/001~005`, 사용자가 SQL Editor에서 직접 실행) — `public.profiles` 테이블(`id`=`auth.users.id`, `email`/`nickname`/`phone`/`role`/`suspended`/**`deleted_at`(휴지통용 소프트삭제)**/`joined_at`/배송지 4종) + `is_admin()` 헬퍼 함수(RLS 재귀 방지용 `security definer`) + RLS 정책(조회/수정은 본인 또는 관리자, 완전삭제는 관리자만) + **`prevent_self_privilege_escalation` 트리거**(일반 회원이 스스로 role/suspended/deleted_at 못 바꾸게 DB 레벨 이중 방어) + **`handle_new_user` 트리거**(auth.users 가입 시 profiles 자동 생성). Authentication → Providers → Email → "Confirm email"은 배포 전까지 꺼둠(가입 즉시 로그인 가능)
+  2. **SQL 실행 트러블슈팅(중요, 재발 방지용 기록)**: 채팅창 코드블록에서 복사→붙여넣기 했을 때 서식이 같이 딸려와 `$$` 구분자나 키워드가 깨지는 문제를 두 번 겪음(`text`가 "텍스트"로 번역되어 붙거나, 세미콜론이 씹혀 다음 statement와 합쳐짐). **이후로는 항상 SQL을 실제 `.sql` 파일로 저장해서 "메모장으로 열어서 복사"하는 방식으로 전환**(채팅에서 직접 복사 금지) — 이후로는 문제없이 실행됨. 다음에 SQL 작업 시에도 이 방식 유지할 것
+  3. **트리거 버그 발견+수정**: SQL Editor에서 `admin@test.com`을 관리자로 승격하는 UPDATE를 실행했는데 반영이 안 됨 — 원인은 SQL Editor엔 로그인 세션이 없어서 `auth.uid()`가 null이 되고 `is_admin()`이 항상 거짓으로 나와서, "일반 회원의 자기 권한 변경을 막는" 트리거가 SQL Editor의 정상적인 관리자 작업까지 막아버렸음. `prevent_self_privilege_escalation`에 `auth.uid() is not null and not is_admin()` 조건으로 수정(로그인 세션이 아예 없는 서버/SQL 컨텍스트는 트리거 통과, 로그인한 일반 사용자가 앱으로 시도하는 경우만 차단)
+  4. **`AuthContext.tsx` 전면 재작성** — `supabase.auth.signUp/signInWithPassword/signOut` + `onAuthStateChange` 구독(세션 복원·토큰 갱신 자동 처리, 예전에 직접 만들었던 `storage` 이벤트 리스너 수동 동기화 로직 불필요해짐). `loading` 상태 추가(세션 복원이 비동기라서). **회원관리 전용 함수(`listUsers`/`setUserRole`/`deleteUser`/`updateMemberInfo`/`setUserSuspended`)는 여기서 전부 제거** — `ProductManage.tsx`가 이미 쓰던 "관리자 페이지가 Supabase를 직접 조회/수정" 패턴으로 통일해서 `MemberManage.tsx`로 옮김
+  5. **영어 에러 메시지 노출 버그 발견+수정** — 사용자가 "가입할 때 영어로 에러 뜨는 거 아닌지 확인해보자"고 지적, 실제로 `signup()`이 Supabase의 원본 영어 에러(`error.message`)를 그대로 화면에 보여주고 있었음(레이트리밋 때 "email rate limit exceeded" 그대로 노출됨). `translateAuthError()` 함수 신규 — `error.code` 기준으로 알려진 코드는 한글로 매핑(이미 가입됨/이메일 형식 오류/요청 과다/약한 비밀번호/잘못된 자격증명), 모르는 코드는 원문 대신 "일시적인 오류가 발생했습니다" 같은 안전한 일반 문구로 대체
+  6. **`RequireAuth`/`RequireAdmin`에 `loading` 처리 추가** — 세션 복원 전에 리다이렉트해버리면 로그인된 사용자도 새로고침 시 잠깈 튕겨나가므로, loading 중엔 `null` 렌더링 후 대기
+  7. **`MemberManage.tsx` — Supabase 직접 연동 + 휴지통(소프트 삭제) 신규**: `profiles` 테이블에서 직접 조회(로컬 state + mutation 후 refetch, `ProductManage.tsx`와 동일 패턴). **"전체 회원"/"휴지통" 탭 신규** — 삭제 버튼은 이제 `deleted_at`에 타임스탬프만 기록하는 소프트 삭제(즉시 목록에서 사라지고 휴지통으로 이동), 휴지통에서 **복구**(즉시 적용) 또는 **완전 삭제**(강한 경고 문구의 확인모달, 진짜 DB row 삭제) 선택 가능. 기존 정렬/검색/페이지네이션/승격확인모달/정지확인모달/정보수정 전부 그대로 유지. 본인 여부 판별을 이메일 대신 `id`(UUID)로 비교하도록 개선
+  8. **완전 삭제가 안 되는 진짜 한계는 여전히 남아있음** — `auth.users`는 `service_role` 키 없이는 못 지우므로, "완전 삭제"는 `profiles` row만 지움(로그인 시도해도 프로필이 없어서 즉시 차단되니 실사용엔 문제 없지만, `auth.users`엔 유령 계정이 남음). 이건 애초에 이번 설계(휴지통 도입 논의) 때 사용자와 합의된 트레이드오프
+  9. **`Dashboard.tsx`**: `listUsers().length` → `profiles` count 쿼리(`deleted_at is null`)로 교체
+  10. **테스트 계정**: `test@test.com`은 이미 사용자 본인이 실제 닉네임("김원식")으로 가입해둔 진짜 계정이었음(건드리지 않음). `admin@test.com`/`admin1234` 신규 가입 후 SQL로 관리자 승격 완료
+  11. **`alert`/`confirm`/`prompt` 절대 금지 재확인** — 사용자가 명시적으로 재요청, 이미 `ConfirmModal`로 전부 대체돼 있음을 코드 검색으로 재확인(memory에도 기록)
+  12. **검증**: 브라우저로 (a) 회원가입(한글 에러 확인 포함) (b) 로그인 성공/실패(오답 비밀번호 한글 메시지)/정지계정 차단(한글 메시지) (c) 로그아웃 (d) 새로고침 후 세션 유지 (e) `/admin` 접근 제어 (f) 대시보드 회원수 (g) 회원관리: 목록/승격확인모달→적용/강등즉시/정지확인모달→실제 로그인 차단→해제/휴지통 이동→복구 가능한 상태 확인→완전삭제까지 전체 플로우 실제로 확인, 테스트 계정은 전부 정리. `npx tsc -b`/`npm run lint` 신규 에러·경고 0건
+  13. **다음 단계**: RLS를 지금은 `profiles`만 강화했고, `products`/`site_content`/`images` 버킷은 여전히 "전체공개" 상태 — `is_admin()`을 활용해서 마저 강화 필요(배포 전 필수). 본인 비밀번호 변경/찾기 기능도 여전히 없음(마이페이지 쪽 별도 작업)
 - **관리자 회원관리(`MemberManage.tsx`) 실제 구현 완료** — 카페24/Shopify 리서치 후 우리 규모에 맞게 간소화해서 반영(등급/마일리지/휴면회원/최근로그인일은 의도적으로 제외, 이유는 아래):
   1. **`User`에 `joinedAt` 필드 신규**(`types.ts`) — 회원가입 시점 ISO 문자열. `AuthContext.signup()`에서 채움, 기존 테스트 계정 2종에도 고정값(`2026-01-01`) 부여
   2. **`AuthContext.tsx`에 관리자 전용 함수 2개 추가** — `setUserRole(email, role)`(다른 회원 권한 변경), `deleteUser(email)`(다른 회원 삭제, **자기 자신 삭제는 막음**). 기존 `updateProfile`은 로그인한 본인 전용이라 관리자가 "남을" 수정/삭제할 수단이 없었음
@@ -429,19 +442,21 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 
 ---
 
-## 다음 세션 시작 지점 (2026-09-08 기준, 최신)
-**코드 쪽은 이번 세션 작업분(회원관리+매출관리) 전부 커밋+원격 push 완료, 워킹트리 클린.** 관리자 6종(대시보드/상품/주문/회원/콘텐츠/매출) 전부 실제 구현 완료 — 다음 세션은 아래부터 이어가면 됨:
-1. **Supabase Auth 실연동** — 지금도 여전히 `AuthContext.tsx`가 localStorage 가짜 인증. RLS도 전체공개 상태(배포 전 필수 보강 대상). 회원관리 작업 중 로그인/회원가입 방식을 점검해서 무엇이 바뀔지 정리해둔 상태(세션 대화 기록 참고) — 이메일 인증 여부, 기존 테스트 계정 처리, `profiles` 테이블 설계, RLS 정책(본인만/관리자만) 등 결정 필요. 회원관리에서 보류한 "비밀번호 재설정"과 발견한 "정지 즉시 강퇴 불가" 한계도 이 작업에서 함께 해소
-2. **상품 이미지 최적화** — `public/images/products/` 원본 그대로 사용 중(용량 큼), 리사이즈/webp 전환 여전히 미착수
-3. Figma 와이어프레임 정합화 — 코드가 최근 세션들에서 크게 바뀌어서(리브랜딩, 홈 재구성, 검색/카테고리 통합, 관리자 6종 전체 구현 등) 기존 Figma 문서와 격차가 더 벌어진 상태. 재개 요청 있을 때까지 대기
-4. 브랜드 리뉴얼 후속 — Men 페이지 SHOP BY CATEGORY "모두 보기" 타일에 임시로 WOMEN 이미지를 재사용 중, 나중에 별도 사진으로 교체 예정
-5. 반응형 실기기 정밀 검증(이 환경 브라우저 자동화가 실제 창 리사이즈를 지원하지 않아 iframe 트릭으로만 확인해옴)
-6. **작업 방식**: 여전히 "이해 안 되거나 애매하면 먼저 되물어보고, 확정 지시(예: '진행해') 전엔 실행하지 않는다" 원칙 적용 중. "검증/점검"은 코드를 실제로 읽고 로직을 추적하는 방식으로(브라우저 클릭만으로 확인됐다고 보고하지 않기)
+## 다음 세션 시작 지점 (2026-09-09 기준, 최신)
+**코드 쪽은 이번 세션(Supabase Auth 전환) 작업분 미커밋 상태 — 다음 세션 시작하면 가장 먼저 커밋+push부터.** 관리자 6종 전부 구현 완료 + 로그인/회원가입/회원관리가 전부 실제 Supabase Auth 기반으로 전환 완료. 다음은 아래부터:
+1. **`products`/`site_content`/`images` 버킷 RLS 강화** — `profiles`는 이번에 제대로 잠갔지만, 나머지는 여전히 "누구나 읽기/쓰기 가능"인 `for all using (true)` 상태. 이제 `is_admin()` 헬퍼가 있으니 "쓰기는 관리자만"으로 바꾸는 SQL을 짜면 됨(배포 전 필수)
+2. **본인 비밀번호 변경/찾기 기능 없음** — 마이페이지에 비밀번호 변경 폼 자체가 없고, 로그인 화면에 "비밀번호 찾기"도 없음. 관리자가 남의 비밀번호를 강제 재설정하는 기능(회원관리 보류 항목)과는 별개로, 이것도 언젠가 필요
+3. **상품 이미지 최적화** — `public/images/products/` 원본 그대로 사용 중(용량 큼), 리사이즈/webp 전환 여전히 미착수
+4. Figma 와이어프레임 정합화 — 격차가 계속 벌어지는 중, 재개 요청 있을 때까지 대기
+5. 브랜드 리뉴얼 후속 — Men 페이지 SHOP BY CATEGORY "모두 보기" 타일에 임시로 WOMEN 이미지를 재사용 중, 나중에 별도 사진으로 교체 예정
+6. 반응형 실기기 정밀 검증(이 환경 브라우저 자동화가 실제 창 리사이즈를 지원하지 않아 iframe 트릭으로만 확인해옴)
+7. **작업 방식**: "이해 안 되거나 애매하면 먼저 되물어보고, 확정 지시 전엔 실행하지 않는다" 원칙 계속 적용. "검증/점검"은 코드를 실제로 읽고 로직을 추적. **alert/confirm/prompt 절대 금지, 항상 모달 컴포넌트로**. SQL은 채팅에 직접 붙여넣지 말고 항상 `.sql` 파일로 저장해서 "메모장으로 열어서 복사" 방식으로 전달(채팅 코드블록 복사 시 서식이 깨지는 문제를 반복적으로 겪음)
 
-## 앞으로 해야 할 것 (우선순위 순, 2026-09-08 갱신)
-1. Supabase Auth 전환 + RLS 강화(현재 anon key로 전체 쓰기 가능한 상태, 배포 전 필수) — 회원관리에서 보류/발견된 항목들도 여기 포함
-2. `formatPrice()` 중복 정의 정리(여러 파일에 각자 정의돼 있음). `orderTotal()`은 이번 세션에 `src/utils/orderStats.ts`로 전부 통합 완료
-3. 상품 이미지 최적화(리사이즈/webp)
-4. 카테고리 리스팅 페이지네이션/무한스크롤 — 상품 수가 더 늘어나면 필요(지금은 성별당 30개 안팎이라 아직 급하지 않음)
-5. Figma 와이어프레임을 최신 코드에 맞게 재정합
-6. `allowJs` 꺼둔 상태 유지(전체 `.ts`/`.tsx`), 실수로 `.js`/`.jsx` 재유입 주의
+## 앞으로 해야 할 것 (우선순위 순, 2026-09-09 갱신)
+1. `products`/`site_content`/`images` RLS를 "쓰기는 관리자만"으로 강화(배포 전 필수, anon key 노출 상태라 지금은 누구나 데이터 조작 가능)
+2. 본인 비밀번호 변경/찾기 기능 추가
+3. `formatPrice()` 중복 정의 정리(여러 파일에 각자 정의돼 있음). `orderTotal()`은 이미 `src/utils/orderStats.ts`로 통합 완료
+4. 상품 이미지 최적화(리사이즈/webp)
+5. 카테고리 리스팅 페이지네이션/무한스크롤 — 상품 수가 더 늘어나면 필요(지금은 성별당 30개 안팎이라 아직 급하지 않음)
+6. Figma 와이어프레임을 최신 코드에 맞게 재정합
+7. `allowJs` 꺼둔 상태 유지(전체 `.ts`/`.tsx`), 실수로 `.js`/`.jsx` 재유입 주의

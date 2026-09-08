@@ -15,8 +15,8 @@ function MyPage() {
   const activeTab = searchParams.get('tab') || 'settings'
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
-  const handleConfirmLogout = () => {
-    logout()
+  const handleConfirmLogout = async () => {
+    await logout()
     navigate('/')
   }
 

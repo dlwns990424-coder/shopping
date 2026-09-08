@@ -4,15 +4,15 @@ import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 
 function RequireAuth() {
-  const { user, logout } = useAuth()
+  const { user, loading } = useAuth()
   const { openLoginModal } = useAuthModal()
 
   useEffect(() => {
-    if (!user) openLoginModal()
-    else if (user.suspended) logout()
-  }, [user, openLoginModal, logout])
+    if (!loading && !user) openLoginModal()
+  }, [loading, user, openLoginModal])
 
-  if (!user || user.suspended) return <Navigate to="/" replace />
+  if (loading) return null
+  if (!user) return <Navigate to="/" replace />
 
   return <Outlet />
 }

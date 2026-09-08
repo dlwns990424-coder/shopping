@@ -36,6 +36,7 @@ export interface Category {
 export type UserRole = 'admin' | 'user'
 
 export interface User {
+  id: string
   nickname: string
   email: string
   phone: string

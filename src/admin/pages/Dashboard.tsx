@@ -1,25 +1,33 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { useAuth } from '../../context/AuthContext'
+import { supabase } from '../../lib/supabaseClient'
 import { useOrderHistory } from '../../context/OrderHistoryContext'
 import { formatPrice } from '../../utils/formatPrice'
 import { orderTotal, isRevenueOrder } from '../../utils/orderStats'
 
 function Dashboard() {
-  const { listUsers } = useAuth()
   const { orders } = useOrderHistory()
+  const [memberCount, setMemberCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .is('deleted_at', null)
+      .then(({ count }) => setMemberCount(count ?? 0))
+  }, [])
 
   const today = new Date().toISOString().slice(0, 10)
   const totalRevenue = orders.filter(isRevenueOrder).reduce((sum, order) => sum + orderTotal(order), 0)
   const todayOrderCount = orders.filter((order) => order.date === today).length
-  const memberCount = listUsers().length
   const recentOrders = orders.slice(0, 8)
 
   const kpis = [
     { label: '총 매출', value: formatPrice(totalRevenue) },
     { label: '총 주문 수', value: `${orders.length}건` },
     { label: '오늘 주문 수', value: `${todayOrderCount}건` },
-    { label: '총 회원 수', value: `${memberCount}명` },
+    { label: '총 회원 수', value: memberCount === null ? '-' : `${memberCount}명` },
   ]
 
   return (
