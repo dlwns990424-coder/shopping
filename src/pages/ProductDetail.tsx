@@ -102,11 +102,11 @@ function ProductDetail() {
 
       <div className="grid grid-cols-1 gap-64 px-24 pt-32 md:px-32 lg:grid-cols-[1fr_456px] lg:px-40 lg:pt-48">
         <div className="flex flex-col gap-4">
-          {[0, 1, 2].map((index) => (
+          {[product.image, ...product.detailImages].map((src, index) => (
             <div
               key={index}
               className="aspect-[4/5] bg-surface-muted bg-contain bg-center bg-no-repeat"
-              style={{ backgroundImage: `url(${product.image})` }}
+              style={{ backgroundImage: `url(${src})` }}
             />
           ))}
         </div>

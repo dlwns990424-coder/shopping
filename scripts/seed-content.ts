@@ -20,13 +20,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 const rows = [
-  { key: 'men.hero.eyebrow', page: 'men', label: '남성 히어로 eyebrow', value: 'NOVERA | MEN' },
   { key: 'men.hero.title', page: 'men', label: '남성 히어로 타이틀', value: '댄디하고 심플한 무드의 새 시즌 컬렉션' },
 
-  { key: 'women.hero.eyebrow', page: 'women', label: '여성 히어로 eyebrow', value: 'NOVERA | WOMEN' },
   { key: 'women.hero.title', page: 'women', label: '여성 히어로 타이틀', value: '세련되고 감각적인 무드의 새 시즌 컬렉션' },
 
-  { key: 'home.hero.eyebrow', page: 'home', label: '홈 히어로 eyebrow', value: 'NOVERA' },
   { key: 'home.hero.title', page: 'home', label: '홈 히어로 타이틀', value: '계절을 입다, 데일리를 완성하다' },
   { key: 'home.men_banner.copy', page: 'home', label: '홈 MEN 배너 카피', value: '댄디하고 심플한 무드의 새 시즌 컬렉션' },
   { key: 'home.women_banner.copy', page: 'home', label: '홈 WOMEN 배너 카피', value: '세련되고 감각적인 무드의 새 시즌 컬렉션' },

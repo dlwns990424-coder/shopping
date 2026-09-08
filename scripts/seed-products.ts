@@ -29,6 +29,8 @@ const rows = products.map((p) => ({
   category: p.category,
   sub_category: p.subCategory,
   image: p.image,
+  detail_images: p.detailImages,
+  hover_image: p.hoverImage,
   color_label: p.color.label,
   color_hex: p.color.hex,
   sizes: p.sizes,

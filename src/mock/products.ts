@@ -6,7 +6,10 @@ function img(gender: Gender, folder: string, file: string, index: number, ext: s
   return `/images/products/${gender}/${folder}/${gender}-${file}-${num}.${ext}`
 }
 
-const rawProducts: Omit<Product, 'salePrice' | 'sizes' | 'featured' | 'featuredOrder'>[] = [
+const rawProducts: Omit<
+  Product,
+  'salePrice' | 'sizes' | 'featured' | 'featuredOrder' | 'detailImages' | 'hoverImage'
+>[] = [
   // ── MEN · 아우터 · 코트 ──
   {
     id: 'men-coat-1', name: '오버핏 울 코트', price: 198000, gender: 'men', category: '아우터', subCategory: '코트',
@@ -343,6 +346,8 @@ const rawProducts: Omit<Product, 'salePrice' | 'sizes' | 'featured' | 'featuredO
 export const products: Product[] = rawProducts.map((product) => ({
   ...product,
   salePrice: null,
+  detailImages: [],
+  hoverImage: null,
   sizes: [...sizeOptions],
   featured: false,
   featuredOrder: null,

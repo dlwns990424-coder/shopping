@@ -17,9 +17,9 @@ function Women() {
   if (categoryParam) {
     return (
       <CategoryListing
-        genderLabel="WOMEN"
         basePath="/women"
-        products={womenProducts}
+        products={products}
+        defaultGender="women"
         categoryParam={categoryParam}
       />
     )

@@ -14,12 +14,16 @@ export interface Product {
   category: string
   subCategory: string
   image: string
+  detailImages: string[]
+  hoverImage: string | null
   color: ProductColor
   sizes: string[]
   featured: boolean
   featuredOrder: number | null
   description: string
 }
+
+export const MAX_DETAIL_IMAGES = 6
 
 export interface Category {
   id: string

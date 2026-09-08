@@ -8,6 +8,7 @@ import ConfirmModal from '../../components/ConfirmModal'
 import { formatPrice } from '../../utils/formatPrice'
 import { uploadImage } from '../../utils/uploadImage'
 import { sizeOptions } from '../../mock/productDetail'
+import { MAX_DETAIL_IMAGES } from '../../types'
 
 interface AdminProduct {
   id: string
@@ -18,6 +19,8 @@ interface AdminProduct {
   category: string
   sub_category: string
   image: string
+  detail_images: string[]
+  hover_image: string | null
   color_label: string
   color_hex: string
   sizes: string[]
@@ -41,6 +44,8 @@ const EMPTY_FORM = {
   category: CATEGORIES[0],
   sub_category: SUB_CATEGORIES[CATEGORIES[0]][0],
   image: '',
+  detail_images: [] as string[],
+  hover_image: '',
   color_label: '',
   color_hex: '#000000',
   sizes: [] as string[],
@@ -61,6 +66,8 @@ function ProductManage() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadingDetailImage, setUploadingDetailImage] = useState(false)
+  const [uploadingHoverImage, setUploadingHoverImage] = useState(false)
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const dragSlotsRef = useRef<number[]>([])
@@ -157,6 +164,8 @@ function ProductManage() {
       category: product.category,
       sub_category: product.sub_category,
       image: product.image,
+      detail_images: product.detail_images,
+      hover_image: product.hover_image ?? '',
       color_label: product.color_label,
       color_hex: product.color_hex,
       sizes: product.sizes,
@@ -194,6 +203,50 @@ function ProductManage() {
     }
   }
 
+  const handleDetailImageAdd = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingDetailImage(true)
+    setError(null)
+
+    try {
+      const url = await uploadImage(file, 'products')
+      setForm((prev) => ({ ...prev, detail_images: [...prev.detail_images, url] }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.')
+    } finally {
+      setUploadingDetailImage(false)
+      e.target.value = ''
+    }
+  }
+
+  const handleDetailImageRemove = (index: number) => {
+    setForm((prev) => ({ ...prev, detail_images: prev.detail_images.filter((_, i) => i !== index) }))
+  }
+
+  const handleHoverImageSelect = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingHoverImage(true)
+    setError(null)
+
+    try {
+      const url = await uploadImage(file, 'products')
+      setForm((prev) => ({ ...prev, hover_image: url }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.')
+    } finally {
+      setUploadingHoverImage(false)
+      e.target.value = ''
+    }
+  }
+
+  const handleHoverImageRemove = () => {
+    setForm((prev) => ({ ...prev, hover_image: '' }))
+  }
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setSaving(true)
@@ -207,6 +260,8 @@ function ProductManage() {
       category: form.category,
       sub_category: form.sub_category,
       image: form.image,
+      detail_images: form.detail_images,
+      hover_image: form.hover_image || null,
       color_label: form.color_label,
       color_hex: form.color_hex,
       sizes: form.sizes,
@@ -425,6 +480,94 @@ function ProductManage() {
                 </Button>
               </div>
             </div>
+
+            <div className="col-span-2 flex flex-col gap-8">
+              <label className="text-caption text-secondary">
+                상세 이미지 (PDP에 노출, 최대 {MAX_DETAIL_IMAGES}장)
+              </label>
+              <div className="flex flex-wrap items-center gap-16">
+                {form.detail_images.map((src, index) => (
+                  <div key={src} className="relative">
+                    <img
+                      src={src}
+                      alt={`상세 이미지 ${index + 1}`}
+                      className="h-96 w-96 rounded-sm border border-line object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleDetailImageRemove(index)}
+                      className="absolute -right-8 -top-8 flex h-24 w-24 items-center justify-center rounded-full border border-line bg-surface text-secondary hover:text-point"
+                      aria-label="상세 이미지 제거"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                {form.detail_images.length < MAX_DETAIL_IMAGES && (
+                  <Button
+                    as="label"
+                    variant="secondary"
+                    size="small"
+                    className="cursor-pointer"
+                    aria-disabled={uploadingDetailImage}
+                  >
+                    {uploadingDetailImage ? '업로드 중...' : '이미지 추가'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleDetailImageAdd}
+                      disabled={uploadingDetailImage}
+                    />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="col-span-2 flex flex-col gap-8">
+              <label className="text-caption text-secondary">호버 이미지 (선택, 상품카드에 마우스 올리면 노출)</label>
+              <div className="flex items-center gap-16">
+                {form.hover_image ? (
+                  <img
+                    src={form.hover_image}
+                    alt="호버 이미지 미리보기"
+                    className="h-96 w-96 rounded-sm border border-line object-cover"
+                  />
+                ) : (
+                  <div className="flex h-96 w-96 items-center justify-center rounded-sm border border-dashed border-line">
+                    <span className="text-caption text-secondary">이미지 없음</span>
+                  </div>
+                )}
+                <div className="flex flex-col gap-8">
+                  <Button
+                    as="label"
+                    variant="secondary"
+                    size="small"
+                    className="cursor-pointer"
+                    aria-disabled={uploadingHoverImage}
+                  >
+                    {uploadingHoverImage ? '업로드 중...' : '이미지 선택'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleHoverImageSelect}
+                      disabled={uploadingHoverImage}
+                    />
+                  </Button>
+                  {form.hover_image && (
+                    <button
+                      type="button"
+                      onClick={handleHoverImageRemove}
+                      className="text-body-sm text-secondary hover:text-point"
+                    >
+                      제거
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <Input
               label="색상명"
               value={form.color_label}
@@ -483,7 +626,14 @@ function ProductManage() {
             <Button
               type="submit"
               size="small"
-              disabled={saving || uploading || !form.image || form.sizes.length === 0}
+              disabled={
+                saving ||
+                uploading ||
+                uploadingDetailImage ||
+                uploadingHoverImage ||
+                !form.image ||
+                form.sizes.length === 0
+              }
             >
               {saving ? '저장 중...' : '저장'}
             </Button>

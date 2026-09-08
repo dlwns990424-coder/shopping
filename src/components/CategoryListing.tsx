@@ -1,9 +1,10 @@
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Search, X } from 'lucide-react'
 import ProductCard from './ProductCard'
 import { sizeOptions } from '../mock/productDetail'
-import type { Product } from '../types'
+import type { Gender, Product } from '../types'
 
 const TABS = [
   { id: 'all', label: '모두 보기' },
@@ -24,19 +25,37 @@ const SORT_OPTIONS = [
   { id: 'price-desc', label: '가격 높은순' },
 ]
 
+const GENDER_TABS: { id: 'all' | Gender; label: string }[] = [
+  { id: 'all', label: '전체' },
+  { id: 'men', label: 'MEN' },
+  { id: 'women', label: 'WOMEN' },
+]
+
 interface CategoryListingProps {
-  genderLabel: string
   basePath: string
   products: Product[]
+  defaultGender: Gender
   categoryParam: string
 }
 
-function CategoryListing({ genderLabel, basePath, products, categoryParam }: CategoryListingProps) {
+function CategoryListing({ basePath, products, defaultGender, categoryParam }: CategoryListingProps) {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const subParam = searchParams.get('sub') ?? 'all'
   const sizeParam = searchParams.get('size') ?? 'all'
   const sortParam = searchParams.get('sort') ?? 'default'
+  const qParam = searchParams.get('q') ?? ''
+  const genderOverride = searchParams.get('gender')
+
+  const [queryInput, setQueryInput] = useState(qParam)
+
+  useEffect(() => {
+    setQueryInput(qParam)
+  }, [qParam])
+
+  const isSearching = qParam.trim().length > 0
+  const effectiveGender: 'all' | Gender = isSearching ? (genderOverride as 'all' | Gender) || 'all' : defaultGender
+  const genderLabel = effectiveGender === 'all' ? '전체' : effectiveGender.toUpperCase()
 
   const buildUrl = (overrides: Record<string, string | undefined>) => {
     const params = new URLSearchParams(searchParams)
@@ -47,11 +66,32 @@ function CategoryListing({ genderLabel, basePath, products, categoryParam }: Cat
     return `${basePath}?${params.toString()}`
   }
 
-  const title = categoryParam === 'all' ? '전체 상품' : categoryParam
+  // category는 'all'이어도 URL에 명시적으로 남아있어야 함(없으면 목록 화면 자체를 벗어나 랜딩 페이지로 취급됨)
+  const categoryTabUrl = (id: string) => {
+    const params = new URLSearchParams(searchParams)
+    params.set('category', id)
+    params.delete('sub')
+    return `${basePath}?${params.toString()}`
+  }
+
+  const handleQueryChange = (value: string) => {
+    setQueryInput(value)
+    navigate(buildUrl({ q: value || undefined }), { replace: true })
+  }
+
+  const title = isSearching ? `"${qParam}" 검색 결과` : categoryParam === 'all' ? '전체 상품' : categoryParam
+
+  const genderProducts =
+    effectiveGender === 'all' ? products : products.filter((product) => product.gender === effectiveGender)
+
+  const searchedProducts = isSearching
+    ? genderProducts.filter((product) => product.name.includes(qParam.trim()))
+    : genderProducts
+
   const categoryProducts =
     categoryParam === 'all'
-      ? products
-      : products.filter((product) => product.category === categoryParam)
+      ? searchedProducts
+      : searchedProducts.filter((product) => product.category === categoryParam)
 
   const subCategories = SUB_CATEGORIES[categoryParam] ?? []
 
@@ -81,17 +121,53 @@ function CategoryListing({ genderLabel, basePath, products, categoryParam }: Cat
         <title>{`NOVERA | ${genderLabel} | ${title}`}</title>
       </Helmet>
       <div className="mb-24">
-        <p className="text-caption mb-8 tracking-[0.08em] text-secondary">
-          NOVERA | {genderLabel}
-        </p>
+        <p className="text-caption mb-8 tracking-[0.08em] text-secondary">NOVERA | {genderLabel}</p>
         <h1 className="text-h1">{title}</h1>
       </div>
+
+      <div className="relative mb-24 max-w-480">
+        <Search
+          size={18}
+          strokeWidth={1.5}
+          className="pointer-events-none absolute left-16 top-1/2 -translate-y-1/2 text-secondary"
+        />
+        <input
+          value={queryInput}
+          onChange={(e) => handleQueryChange(e.target.value)}
+          placeholder="상품명을 검색해보세요"
+          className="text-sm w-full rounded-sm border border-line py-12 pl-44 pr-40 text-primary outline-none focus:border-primary"
+        />
+        {queryInput && (
+          <button
+            type="button"
+            onClick={() => navigate(buildUrl({ q: undefined, gender: undefined }))}
+            aria-label="검색어 지우기"
+            className="absolute right-12 top-1/2 flex h-24 w-24 -translate-y-1/2 items-center justify-center text-secondary hover:text-primary"
+          >
+            <X size={16} strokeWidth={1.5} />
+          </button>
+        )}
+      </div>
+
+      {isSearching && (
+        <div className="flex flex-wrap gap-8 pb-16">
+          {GENDER_TABS.map((tab) => (
+            <Link
+              key={tab.id}
+              to={buildUrl({ gender: tab.id === 'all' ? undefined : tab.id })}
+              className={subTabClass(effectiveGender === tab.id)}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </div>
+      )}
 
       <div className="flex gap-24 border-b border-line">
         {TABS.map((tab) => (
           <Link
             key={tab.id}
-            to={`${basePath}?category=${tab.id}`}
+            to={categoryTabUrl(tab.id)}
             className={`-mb-px border-b py-12 text-sm font-medium no-underline transition-colors hover:border-primary hover:text-primary ${
               categoryParam === tab.id ? 'border-primary text-primary' : 'border-transparent text-disabled'
             }`}

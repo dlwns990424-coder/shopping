@@ -10,9 +10,10 @@ interface ProductCardProps {
   price: number
   salePrice?: number | null
   image?: string | null
+  hoverImage?: string | null
 }
 
-function ProductCard({ id, name, price, salePrice, image }: ProductCardProps) {
+function ProductCard({ id, name, price, salePrice, image, hoverImage }: ProductCardProps) {
   const { isWishlisted, toggle } = useWishlist()
   const wishlisted = isWishlisted(id)
 
@@ -28,6 +29,12 @@ function ProductCard({ id, name, price, salePrice, image }: ProductCardProps) {
         className="relative aspect-[3/4] w-full overflow-hidden rounded-none bg-surface-muted bg-contain bg-center bg-no-repeat"
         style={image ? { backgroundImage: `url(${image})` } : undefined}
       >
+        {hoverImage && (
+          <div
+            className="absolute inset-0 bg-contain bg-center bg-no-repeat opacity-0 transition-opacity duration-300 lg:group-hover:opacity-100"
+            style={{ backgroundImage: `url(${hoverImage})` }}
+          />
+        )}
         <button
           type="button"
           onClick={handleToggleWishlist}

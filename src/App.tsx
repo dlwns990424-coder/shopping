@@ -19,7 +19,6 @@ import Home from './pages/Home'
 import Men from './pages/Men'
 import Women from './pages/Women'
 import ProductDetail from './pages/ProductDetail'
-import Search from './pages/Search'
 import Wishlist from './pages/Wishlist'
 import Cart from './pages/Cart'
 import Order from './pages/Order'
@@ -53,7 +52,6 @@ function App() {
                           <Route path="/men" element={<Men />} />
                           <Route path="/women" element={<Women />} />
                           <Route path="/products/:productId" element={<ProductDetail />} />
-                          <Route path="/search" element={<Search />} />
                           <Route path="/wishlist" element={<Wishlist />} />
                           <Route path="/login" element={<Login />} />
                           <Route path="/signup" element={<Signup />} />

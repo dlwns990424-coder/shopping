@@ -19,6 +19,8 @@ interface ProductRow {
   category: string
   sub_category: string
   image: string
+  detail_images: string[]
+  hover_image: string | null
   color_label: string
   color_hex: string
   sizes: string[]
@@ -37,6 +39,8 @@ function toProduct(row: ProductRow): Product {
     category: row.category,
     subCategory: row.sub_category,
     image: row.image,
+    detailImages: row.detail_images ?? [],
+    hoverImage: row.hover_image,
     color: { label: row.color_label, hex: row.color_hex },
     sizes: row.sizes ?? [],
     featured: row.featured,

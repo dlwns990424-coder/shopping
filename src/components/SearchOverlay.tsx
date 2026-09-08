@@ -68,13 +68,18 @@ function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                       style={{ backgroundImage: `url(${product.image})` }}
                     />
                     <div className="flex flex-col gap-2">
-                      <p className="text-body text-primary">{product.name}</p>
+                      <p className="text-body text-primary">
+                        {product.name}
+                        <span className="text-caption ml-8 text-secondary">
+                          {product.gender === 'men' ? 'MEN' : 'WOMEN'}
+                        </span>
+                      </p>
                       <p className="text-body-sm font-semibold text-primary">{formatPrice(product.price)}</p>
                     </div>
                   </Link>
                 ))}
                 <Link
-                  to={`/search?q=${encodeURIComponent(trimmedQuery)}`}
+                  to={`/men?category=all&q=${encodeURIComponent(trimmedQuery)}`}
                   onClick={onClose}
                   className="text-body-sm mt-8 text-secondary underline underline-offset-2 hover:text-primary"
                 >
