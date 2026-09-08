@@ -179,7 +179,7 @@ function SalesManage() {
                   formatter={(value) => formatPrice(Number(value))}
                   contentStyle={{ fontSize: 13, borderRadius: 4, borderColor: '#d4d4d4' }}
                 />
-                <Bar dataKey="revenue" fill="#45697a" radius={[4, 4, 0, 0]} maxBarSize={24} />
+                <Bar dataKey="revenue" name="매출" fill="#45697a" radius={[4, 4, 0, 0]} maxBarSize={24} />
               </BarChart>
             </ResponsiveContainer>
           </div>
