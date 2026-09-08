@@ -7,18 +7,15 @@ import { useOrderHistory } from '../../context/OrderHistoryContext'
 import ConfirmModal from '../../components/ConfirmModal'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
-import type { Order, User, UserRole } from '../../types'
+import type { User, UserRole } from '../../types'
 import { formatPrice } from '../../utils/formatPrice'
 import { NICKNAME_REGEX, PHONE_REGEX } from '../../utils/validators'
+import { orderTotal, isRevenueOrder } from '../../utils/orderStats'
 
 const MEMBERS_PER_PAGE = 20
 const RECENT_ORDERS_LIMIT = 5
 
 type SortKey = 'joinedAt' | 'orderCount' | 'total'
-
-function orderTotal(order: Order) {
-  return order.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-}
 
 function digitsOnly(value: string) {
   return value.replace(/\D/g, '')
@@ -48,7 +45,7 @@ function MemberManage() {
   for (const order of orders) {
     const stat = statsByEmail.get(order.userEmail) ?? { count: 0, total: 0 }
     stat.count += 1
-    stat.total += orderTotal(order)
+    if (isRevenueOrder(order)) stat.total += orderTotal(order)
     statsByEmail.set(order.userEmail, stat)
   }
 

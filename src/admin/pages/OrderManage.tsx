@@ -5,14 +5,11 @@ import { ChevronDown } from 'lucide-react'
 import { useOrderHistory } from '../../context/OrderHistoryContext'
 import OrderItemRow from '../../components/OrderItemRow'
 import Button from '../../components/Button'
-import type { Order, OrderStatus } from '../../types'
+import type { OrderStatus } from '../../types'
 import { formatPrice } from '../../utils/formatPrice'
+import { orderTotal } from '../../utils/orderStats'
 
 const ORDER_STATUSES: OrderStatus[] = ['결제완료', '배송준비', '배송중', '배송완료', '취소']
-
-function orderTotal(order: Order) {
-  return order.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-}
 
 function OrderManage() {
   const { orders, updateOrderStatuses } = useOrderHistory()
