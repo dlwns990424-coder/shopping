@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import type { AuthResult, SignupInput, User } from '../types'
+import type { AuthResult, SignupInput, User, UserRole } from '../types'
 import { safeSetItem } from '../utils/storage'
 
 interface StoredUser extends User {
@@ -13,6 +13,8 @@ interface AuthContextValue {
   logout: () => void
   updateProfile: (updates: Partial<User>) => AuthResult
   listUsers: () => User[]
+  setUserRole: (email: string, role: UserRole) => AuthResult
+  deleteUser: (email: string) => AuthResult
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -22,7 +24,9 @@ const SESSION_KEY = 'shop_current_user'
 
 function readUsers(): StoredUser[] {
   try {
-    return JSON.parse(localStorage.getItem(USERS_KEY) ?? '[]') || []
+    const users = JSON.parse(localStorage.getItem(USERS_KEY) ?? '[]') || []
+    // joinedAt 필드 도입 이전에 생성된 계정(이 브라우저의 과거 테스트 데이터) 방어
+    return users.map((u: StoredUser) => ({ ...u, joinedAt: u.joinedAt ?? '' }))
   } catch {
     return []
   }
@@ -44,6 +48,7 @@ const TEST_ACCOUNT: StoredUser = {
   password: 'test1234',
   phone: '010-1234-5678',
   role: 'user',
+  joinedAt: '2026-01-01T00:00:00.000Z',
 }
 
 const TEST_ADMIN_ACCOUNT: StoredUser = {
@@ -52,6 +57,7 @@ const TEST_ADMIN_ACCOUNT: StoredUser = {
   password: 'admin1234',
   phone: '010-0000-0000',
   role: 'admin',
+  joinedAt: '2026-01-01T00:00:00.000Z',
 }
 
 function ensureTestAccounts() {
@@ -68,18 +74,26 @@ ensureTestAccounts()
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(readSession)
+  const [users, setUsers] = useState<StoredUser[]>(readUsers)
+
+  const persistUsers = (nextUsers: StoredUser[]) => {
+    setUsers(nextUsers)
+    safeSetItem(USERS_KEY, nextUsers)
+  }
 
   const signup = ({ nickname, email, password, phone }: SignupInput): AuthResult => {
-    const users = readUsers()
     if (users.some((u) => u.email === email)) {
       return { success: false, message: '이미 가입된 이메일입니다.' }
     }
-    safeSetItem(USERS_KEY, [...users, { nickname, email, password, phone, role: 'user' }])
+    persistUsers([
+      ...users,
+      { nickname, email, password, phone, role: 'user', joinedAt: new Date().toISOString() },
+    ])
     return { success: true }
   }
 
   const login = (email: string, password: string): AuthResult => {
-    const found = readUsers().find((u) => u.email === email && u.password === password)
+    const found = users.find((u) => u.email === email && u.password === password)
     if (!found) {
       return { success: false, message: '이메일 또는 비밀번호가 올바르지 않습니다.' }
     }
@@ -98,9 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) {
       return { success: false, message: '로그인이 필요합니다.' }
     }
-    const users = readUsers()
-    const nextUsers = users.map((u) => (u.email === user.email ? { ...u, ...updates } : u))
-    safeSetItem(USERS_KEY, nextUsers)
+    persistUsers(users.map((u) => (u.email === user.email ? { ...u, ...updates } : u)))
 
     const nextUser = { ...user, ...updates }
     setUser(nextUser)
@@ -108,11 +120,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: true }
   }
 
-  const listUsers = (): User[] =>
-    readUsers().map(({ password: _password, ...safeUser }) => safeUser)
+  const listUsers = (): User[] => users.map(({ password: _password, ...safeUser }) => safeUser)
+
+  const setUserRole = (email: string, role: UserRole): AuthResult => {
+    if (!users.some((u) => u.email === email)) {
+      return { success: false, message: '존재하지 않는 회원입니다.' }
+    }
+    persistUsers(users.map((u) => (u.email === email ? { ...u, role } : u)))
+    if (user?.email === email) {
+      const nextUser = { ...user, role }
+      setUser(nextUser)
+      safeSetItem(SESSION_KEY, nextUser)
+    }
+    return { success: true }
+  }
+
+  const deleteUser = (email: string): AuthResult => {
+    if (user?.email === email) {
+      return { success: false, message: '본인 계정은 삭제할 수 없습니다.' }
+    }
+    persistUsers(users.filter((u) => u.email !== email))
+    return { success: true }
+  }
 
   return (
-    <AuthContext.Provider value={{ user, signup, login, logout, updateProfile, listUsers }}>
+    <AuthContext.Provider
+      value={{ user, signup, login, logout, updateProfile, listUsers, setUserRole, deleteUser }}
+    >
       {children}
     </AuthContext.Provider>
   )

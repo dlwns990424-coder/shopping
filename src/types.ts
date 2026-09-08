@@ -40,6 +40,7 @@ export interface User {
   email: string
   phone: string
   role: UserRole
+  joinedAt: string
   shippingName?: string
   shippingPhone?: string
   shippingAddress?: string
