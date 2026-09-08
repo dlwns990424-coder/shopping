@@ -46,7 +46,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     supabase
       .from('products')
       .select('*')
-      .order('created_at', { ascending: true })
+      .order('sort_order', { ascending: true })
       .then(({ data, error }) => {
         if (error) setError(error.message)
         else setProducts((data ?? []).map(toProduct))

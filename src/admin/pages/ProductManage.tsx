@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Helmet } from 'react-helmet-async'
+import { ChevronDown, GripVertical } from 'lucide-react'
 import { supabase } from '../../lib/supabaseClient'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
@@ -18,6 +19,7 @@ interface AdminProduct {
   color_label: string
   color_hex: string
   description: string
+  sort_order: number
 }
 
 const CATEGORIES = ['아우터', '상의', '하의']
@@ -55,12 +57,13 @@ function ProductManage() {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
+  const [draggedId, setDraggedId] = useState<string | null>(null)
 
   const loadProducts = async () => {
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('sort_order', { ascending: true })
 
     if (error) setError(error.message)
     else setProducts(data ?? [])
@@ -77,6 +80,41 @@ function ProductManage() {
     if (search && !product.name.includes(search)) return false
     return true
   })
+
+  const handleDrop = async (targetId: string) => {
+    const sourceId = draggedId
+    setDraggedId(null)
+    if (!sourceId || sourceId === targetId) return
+
+    const ids = filteredProducts.map((product) => product.id)
+    const slots = filteredProducts.map((product) => product.sort_order)
+    const fromIndex = ids.indexOf(sourceId)
+    const toIndex = ids.indexOf(targetId)
+    if (fromIndex === -1 || toIndex === -1) return
+
+    const reorderedIds = [...ids]
+    const [movedId] = reorderedIds.splice(fromIndex, 1)
+    reorderedIds.splice(toIndex, 0, movedId)
+
+    const updates = reorderedIds
+      .map((id, index) => ({ id, sort_order: slots[index] }))
+      .filter((update) => update.sort_order !== products.find((product) => product.id === update.id)?.sort_order)
+
+    setProducts((prev) => {
+      const sortOrderById = new Map(updates.map((update) => [update.id, update.sort_order]))
+      return prev
+        .map((product) =>
+          sortOrderById.has(product.id) ? { ...product, sort_order: sortOrderById.get(product.id)! } : product,
+        )
+        .sort((a, b) => a.sort_order - b.sort_order)
+    })
+
+    const results = await Promise.all(
+      updates.map((update) => supabase.from('products').update({ sort_order: update.sort_order }).eq('id', update.id)),
+    )
+    const failed = results.find((result) => result.error)
+    if (failed?.error) setError(failed.error.message)
+  }
 
   const openCreateForm = () => {
     setEditingId(null)
@@ -139,9 +177,13 @@ function ProductManage() {
       description: form.description,
     }
 
+    const nextSortOrder = products.reduce((max, product) => Math.max(max, product.sort_order), 0) + 10
+
     const { error } = editingId
       ? await supabase.from('products').update(payload).eq('id', editingId)
-      : await supabase.from('products').insert({ id: `${form.gender}-admin-${Date.now()}`, ...payload })
+      : await supabase
+          .from('products')
+          .insert({ id: `${form.gender}-admin-${Date.now()}`, sort_order: nextSortOrder, ...payload })
 
     setSaving(false)
 
@@ -182,27 +224,41 @@ function ProductManage() {
       {error && <p className="text-body-sm text-point">{error}</p>}
 
       <div className="flex flex-wrap items-center gap-8">
-        <select
-          value={genderFilter}
-          onChange={(e) => setGenderFilter(e.target.value as 'all' | 'men' | 'women')}
-          className="text-body-sm rounded-sm border border-line px-12 py-8"
-        >
-          <option value="all">전체 성별</option>
-          <option value="men">MEN</option>
-          <option value="women">WOMEN</option>
-        </select>
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="text-body-sm rounded-sm border border-line px-12 py-8"
-        >
-          <option value="all">전체 카테고리</option>
-          {CATEGORIES.map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            value={genderFilter}
+            onChange={(e) => setGenderFilter(e.target.value as 'all' | 'men' | 'women')}
+            className="text-body-sm appearance-none rounded-sm border border-line py-8 pl-12 pr-36"
+          >
+            <option value="all">전체 성별</option>
+            <option value="men">MEN</option>
+            <option value="women">WOMEN</option>
+          </select>
+          <ChevronDown
+            size={16}
+            strokeWidth={1.5}
+            className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 text-secondary"
+          />
+        </div>
+        <div className="relative">
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="text-body-sm appearance-none rounded-sm border border-line py-8 pl-12 pr-36"
+          >
+            <option value="all">전체 카테고리</option>
+            {CATEGORIES.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            size={16}
+            strokeWidth={1.5}
+            className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 text-secondary"
+          />
+        </div>
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -233,59 +289,98 @@ function ProductManage() {
 
             <div className="flex flex-col gap-8">
               <label className="text-caption text-secondary">성별</label>
-              <select
-                value={form.gender}
-                onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value as 'men' | 'women' }))}
-                className="text-sm rounded-sm border border-line px-16 py-12"
-              >
-                <option value="men">MEN</option>
-                <option value="women">WOMEN</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={form.gender}
+                  onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value as 'men' | 'women' }))}
+                  className="text-sm w-full appearance-none rounded-sm border border-line py-12 pl-16 pr-40"
+                >
+                  <option value="men">MEN</option>
+                  <option value="women">WOMEN</option>
+                </select>
+                <ChevronDown
+                  size={16}
+                  strokeWidth={1.5}
+                  className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 text-secondary"
+                />
+              </div>
             </div>
 
             <div className="flex flex-col gap-8">
               <label className="text-caption text-secondary">카테고리</label>
-              <select
-                value={form.category}
-                onChange={(e) => handleCategoryChange(e.target.value)}
-                className="text-sm rounded-sm border border-line px-16 py-12"
-              >
-                {CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={form.category}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
+                  className="text-sm w-full appearance-none rounded-sm border border-line py-12 pl-16 pr-40"
+                >
+                  {CATEGORIES.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={16}
+                  strokeWidth={1.5}
+                  className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 text-secondary"
+                />
+              </div>
             </div>
 
             <div className="flex flex-col gap-8">
               <label className="text-caption text-secondary">서브 카테고리</label>
-              <select
-                value={form.sub_category}
-                onChange={(e) => setForm((prev) => ({ ...prev, sub_category: e.target.value }))}
-                className="text-sm rounded-sm border border-line px-16 py-12"
-              >
-                {(SUB_CATEGORIES[form.category] ?? []).map((sub) => (
-                  <option key={sub} value={sub}>
-                    {sub}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={form.sub_category}
+                  onChange={(e) => setForm((prev) => ({ ...prev, sub_category: e.target.value }))}
+                  className="text-sm w-full appearance-none rounded-sm border border-line py-12 pl-16 pr-40"
+                >
+                  {(SUB_CATEGORIES[form.category] ?? []).map((sub) => (
+                    <option key={sub} value={sub}>
+                      {sub}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={16}
+                  strokeWidth={1.5}
+                  className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 text-secondary"
+                />
+              </div>
             </div>
 
             <div className="flex flex-col gap-8">
               <label className="text-caption text-secondary">상품 이미지</label>
-              <div className="flex items-center gap-12">
-                {form.image && (
+              <div className="flex items-center gap-16">
+                {form.image ? (
                   <img
                     src={form.image}
                     alt="상품 이미지 미리보기"
-                    className="h-64 w-64 rounded-sm border border-line object-cover"
+                    className="h-96 w-96 rounded-sm border border-line object-cover"
                   />
+                ) : (
+                  <div className="flex h-96 w-96 items-center justify-center rounded-sm border border-dashed border-line">
+                    <span className="text-caption text-secondary">이미지 없음</span>
+                  </div>
                 )}
-                <input type="file" accept="image/*" onChange={handleImageSelect} disabled={uploading} />
+                <Button
+                  as="label"
+                  variant="secondary"
+                  size="small"
+                  className="cursor-pointer"
+                  aria-disabled={uploading}
+                >
+                  {uploading ? '업로드 중...' : '이미지 선택'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageSelect}
+                    disabled={uploading}
+                  />
+                </Button>
               </div>
-              {uploading && <p className="text-caption text-secondary">업로드 중...</p>}
             </div>
             <Input
               label="색상명"
@@ -293,13 +388,18 @@ function ProductManage() {
               onChange={(e) => setForm((prev) => ({ ...prev, color_label: e.target.value }))}
               required
             />
-            <Input
-              label="색상 코드"
-              type="color"
-              value={form.color_hex}
-              onChange={(e) => setForm((prev) => ({ ...prev, color_hex: e.target.value }))}
-              className="max-w-120"
-            />
+            <div className="flex flex-col gap-8">
+              <label className="text-caption text-secondary">색상 코드</label>
+              <div className="flex items-center gap-12">
+                <input
+                  type="color"
+                  value={form.color_hex}
+                  onChange={(e) => setForm((prev) => ({ ...prev, color_hex: e.target.value }))}
+                  className="h-48 w-48 cursor-pointer rounded-sm border border-line p-0"
+                />
+                <span className="text-sm text-secondary">{form.color_hex}</span>
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col gap-8">
@@ -330,9 +430,11 @@ function ProductManage() {
         <p className="text-body-sm text-secondary">조건에 맞는 상품이 없습니다.</p>
       ) : (
         <div className="overflow-x-auto">
+          <p className="text-caption mb-8 text-secondary">행을 드래그하면 진열 순서를 바꿀 수 있습니다.</p>
           <table className="w-full min-w-720 border-collapse text-left">
             <thead>
               <tr className="text-body-sm border-b border-line text-secondary">
+                <th className="w-32 py-8 pr-8" />
                 <th className="w-56 py-8 pr-16 font-medium">사진</th>
                 <th className="py-8 pr-16 font-medium">상품명</th>
                 <th className="py-8 pr-16 font-medium">성별</th>
@@ -344,7 +446,22 @@ function ProductManage() {
             </thead>
             <tbody>
               {filteredProducts.map((product) => (
-                <tr key={product.id} className="text-body-sm border-b border-line">
+                <tr
+                  key={product.id}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => handleDrop(product.id)}
+                  className={`text-body-sm border-b border-line ${draggedId === product.id ? 'opacity-40' : ''}`}
+                >
+                  <td className="py-8 pr-8">
+                    <span
+                      draggable
+                      onDragStart={() => setDraggedId(product.id)}
+                      onDragEnd={() => setDraggedId(null)}
+                      className="inline-flex cursor-grab text-secondary active:cursor-grabbing"
+                    >
+                      <GripVertical size={16} strokeWidth={1.5} />
+                    </span>
+                  </td>
                   <td className="py-8 pr-16">
                     <img
                       src={product.image}
