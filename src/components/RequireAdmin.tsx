@@ -1,10 +1,15 @@
+import { useEffect } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 function RequireAdmin() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
 
-  if (!user || user.role !== 'admin') return <Navigate to="/" replace />
+  useEffect(() => {
+    if (user?.suspended) logout()
+  }, [user, logout])
+
+  if (!user || user.role !== 'admin' || user.suspended) return <Navigate to="/" replace />
 
   return <Outlet />
 }

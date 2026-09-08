@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { AuthResult, SignupInput, User, UserRole } from '../types'
 import { safeSetItem } from '../utils/storage'
 
@@ -15,6 +15,8 @@ interface AuthContextValue {
   listUsers: () => User[]
   setUserRole: (email: string, role: UserRole) => AuthResult
   deleteUser: (email: string) => AuthResult
+  updateMemberInfo: (email: string, updates: Partial<Pick<User, 'nickname' | 'phone'>>) => AuthResult
+  setUserSuspended: (email: string, suspended: boolean) => AuthResult
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -81,6 +83,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     safeSetItem(USERS_KEY, nextUsers)
   }
 
+  // 다른 탭(예: 다른 관리자 세션)에서 shop_users를 바꾼 경우를 감지 —
+  // 이 탭 안에서 스스로 바꾼 변경은 storage 이벤트가 안 뜨므로(스펙상 다른 문서에서 변경했을 때만 발생)
+  // "다른 곳에서 나를 정지시켰을 때 이 탭에서도 즉시 로그아웃"되는 시나리오는 이 리스너로만 잡힘
+  useEffect(() => {
+    function handleStorage(e: StorageEvent) {
+      if (e.key === USERS_KEY) {
+        const nextUsers = readUsers()
+        setUsers(nextUsers)
+        setUser((prevUser) => {
+          if (!prevUser) return prevUser
+          const updated = nextUsers.find((u) => u.email === prevUser.email)
+          if (!updated || updated.suspended) {
+            localStorage.removeItem(SESSION_KEY)
+            return null
+          }
+          const { password: _password, ...safeUser } = updated
+          safeSetItem(SESSION_KEY, safeUser)
+          return safeUser
+        })
+      } else if (e.key === SESSION_KEY) {
+        setUser(readSession())
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
+
   const signup = ({ nickname, email, password, phone }: SignupInput): AuthResult => {
     if (users.some((u) => u.email === email)) {
       return { success: false, message: '이미 가입된 이메일입니다.' }
@@ -96,6 +125,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const found = users.find((u) => u.email === email && u.password === password)
     if (!found) {
       return { success: false, message: '이메일 또는 비밀번호가 올바르지 않습니다.' }
+    }
+    if (found.suspended) {
+      return { success: false, message: '정지된 계정입니다. 고객센터에 문의해주세요.' }
     }
     const { password: _password, ...safeUser } = found
     setUser(safeUser)
@@ -141,9 +173,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: true }
   }
 
+  const updateMemberInfo = (
+    email: string,
+    updates: Partial<Pick<User, 'nickname' | 'phone'>>,
+  ): AuthResult => {
+    if (user?.email === email) {
+      return { success: false, message: '본인 정보는 마이페이지에서 수정해주세요.' }
+    }
+    if (!users.some((u) => u.email === email)) {
+      return { success: false, message: '존재하지 않는 회원입니다.' }
+    }
+    persistUsers(users.map((u) => (u.email === email ? { ...u, ...updates } : u)))
+    return { success: true }
+  }
+
+  const setUserSuspended = (email: string, suspended: boolean): AuthResult => {
+    if (user?.email === email) {
+      return { success: false, message: '본인 계정은 정지할 수 없습니다.' }
+    }
+    if (!users.some((u) => u.email === email)) {
+      return { success: false, message: '존재하지 않는 회원입니다.' }
+    }
+    persistUsers(users.map((u) => (u.email === email ? { ...u, suspended } : u)))
+    return { success: true }
+  }
+
   return (
     <AuthContext.Provider
-      value={{ user, signup, login, logout, updateProfile, listUsers, setUserRole, deleteUser }}
+      value={{
+        user,
+        signup,
+        login,
+        logout,
+        updateProfile,
+        listUsers,
+        setUserRole,
+        deleteUser,
+        updateMemberInfo,
+        setUserSuspended,
+      }}
     >
       {children}
     </AuthContext.Provider>

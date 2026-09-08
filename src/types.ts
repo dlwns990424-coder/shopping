@@ -41,6 +41,7 @@ export interface User {
   phone: string
   role: UserRole
   joinedAt: string
+  suspended?: boolean
   shippingName?: string
   shippingPhone?: string
   shippingAddress?: string

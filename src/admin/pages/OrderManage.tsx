@@ -174,16 +174,31 @@ function OrderManage() {
                   {expandedId === order.id && (
                     <tr className="border-b border-line bg-surface-muted">
                       <td colSpan={7} className="px-16 py-16">
-                        <div className="text-body-sm mb-12 flex flex-col gap-2 text-secondary">
-                          <p>
-                            {order.shippingName} · {order.shippingPhone}
-                          </p>
-                          <p>
-                            {order.shippingAddress} {order.shippingAddressDetail}
-                          </p>
-                          {order.deliveryRequest && <p>배송 요청: {order.deliveryRequest}</p>}
+                        <div className="mb-16 grid grid-cols-1 gap-12 rounded-sm border border-line bg-surface p-16 sm:grid-cols-2">
+                          <div>
+                            <p className="text-caption text-secondary">주문자</p>
+                            <p className="text-body-sm text-primary">{order.userEmail}</p>
+                          </div>
+                          <div>
+                            <p className="text-caption text-secondary">받는 사람</p>
+                            <p className="text-body-sm text-primary">
+                              {order.shippingName} · {order.shippingPhone}
+                            </p>
+                          </div>
+                          <div className="sm:col-span-2">
+                            <p className="text-caption text-secondary">배송지</p>
+                            <p className="text-body-sm text-primary">
+                              {order.shippingAddress} {order.shippingAddressDetail}
+                            </p>
+                          </div>
+                          {order.deliveryRequest && (
+                            <div className="sm:col-span-2">
+                              <p className="text-caption text-secondary">배송 요청사항</p>
+                              <p className="text-body-sm text-primary">{order.deliveryRequest}</p>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex flex-col divide-y divide-line">
+                        <div className="flex max-h-400 flex-col divide-y divide-line overflow-y-auto">
                           {order.items.map((item, index) => (
                             <OrderItemRow
                               key={`${order.id}-${index}`}

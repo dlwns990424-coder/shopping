@@ -5,11 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import Input from '../components/Input'
 import Button from '../components/Button'
 import Toast from '../components/Toast'
-
-const NICKNAME_REGEX = /^[a-zA-Z0-9가-힣]{2,10}$/
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/
-const PHONE_REGEX = /^01[0-9]-?\d{3,4}-?\d{4}$/
+import { NICKNAME_REGEX, EMAIL_REGEX, PASSWORD_REGEX, PHONE_REGEX } from '../utils/validators'
 
 interface FormState {
   nickname: string
