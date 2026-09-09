@@ -26,6 +26,10 @@ const SECTION_LABELS: Record<string, string> = {
   men_banner: 'MEN 배너',
   women_banner: 'WOMEN 배너',
   event_banner: '이벤트 배너',
+  category_all: '카테고리 - 모두 보기',
+  category_outer: '카테고리 - 아우터',
+  category_top: '카테고리 - 상의',
+  category_bottom: '카테고리 - 하의',
 }
 
 // key는 "page.section.나머지" 형태(예: home.event_banner.men-outer.label) — 두 번째 조각을 섹션으로 취급
@@ -34,8 +38,9 @@ function sectionOf(key: string) {
 }
 
 // hero/men_banner/women_banner는 화면 크기에 따라 실제로 잘리는 비율이 크게 달라서
-// 모바일용/데스크톱용 이미지를 따로 받는다(_mobile/_desktop 접미사). event_banner는
-// aspect-[2/3]로 화면 크기와 무관하게 고정이라 이미지 1장(2:3)만 받는다.
+// 모바일용/데스크톱용 이미지를 따로 받는다(_mobile/_desktop 접미사). event_banner와
+// 카테고리 카드는 화면 크기와 무관하게 이미지 1장만 받는다(카테고리는 CategoryCard의
+// 모바일 비율인 3:4 기준으로 크롭 — 데스크톱은 더 넓은 3:2라 좌우로 살짝 여유 있게 보임).
 const RESPONSIVE_ASPECT: Record<string, { mobile: number; desktop: number }> = {
   hero: { mobile: 9 / 19.5, desktop: 16 / 9 },
   men_banner: { mobile: 9 / 19.5, desktop: 4 / 5 },
@@ -44,6 +49,9 @@ const RESPONSIVE_ASPECT: Record<string, { mobile: number; desktop: number }> = {
 const FIXED_ASPECT = 2 / 3
 const RESPONSIVE_SECTIONS = new Set(Object.keys(RESPONSIVE_ASPECT))
 
+const CATEGORY_ASPECT = 3 / 4
+const CATEGORY_SECTIONS = new Set(['category_all', 'category_outer', 'category_top', 'category_bottom'])
+
 // null이면 "모바일/데스크톱으로 나뉘어야 하는데 아직 안 나뉜 비정상 상태"라는 뜻.
 // 이 경우 잘못된 비율(예: 2:3)로 조용히 넘기지 않고 화면에서 바로 경고를 띄운다.
 function aspectForKey(key: string): number | null {
@@ -51,6 +59,7 @@ function aspectForKey(key: string): number | null {
   if (key.endsWith('_mobile')) return RESPONSIVE_ASPECT[section]?.mobile ?? null
   if (key.endsWith('_desktop')) return RESPONSIVE_ASPECT[section]?.desktop ?? null
   if (RESPONSIVE_SECTIONS.has(section)) return null
+  if (CATEGORY_SECTIONS.has(section)) return CATEGORY_ASPECT
   return FIXED_ASPECT
 }
 

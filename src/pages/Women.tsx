@@ -40,7 +40,7 @@ function Women() {
         <title>NOVERA | WOMEN</title>
       </Helmet>
 
-      <section className="relative -mt-64 flex h-[60vh] items-end overflow-hidden">
+      <section className="relative -mt-64 flex h-screen items-end overflow-hidden">
         <div
           className="absolute inset-0 hidden bg-cover bg-center lg:block"
           style={{ backgroundImage: `url(${heroDesktop})` }}
@@ -49,6 +49,7 @@ function Women() {
           className="absolute inset-0 bg-cover bg-center lg:hidden"
           style={{ backgroundImage: `url(${heroMobile})` }}
         />
+        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
         <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
           <h1 className="text-h1 text-[40px] font-medium text-surface lg:text-[50px]">
             {content['women.hero.title'] ?? '세련되고 감각적인 무드의 새 시즌 컬렉션'}
@@ -71,8 +72,8 @@ function Women() {
             <CategoryCard
               key={category.id}
               to={category.to}
-              label={category.label}
-              image={category.image}
+              label={content[`women.category_${category.id}.label`] ?? category.label}
+              image={content[`women.category_${category.id}.image`] || category.image}
               imageFit={category.imageFit}
             />
           ))}
