@@ -94,14 +94,101 @@ function ProductDetail() {
     })
   }
 
+  // 상품명/가격/찜/컬러/사이즈 — 모바일 요약 블록과 데스크톱 정보 컬럼에서 공유(중복 작성 방지).
+  // selectedSize 등은 이 컴포넌트 하나의 state라 두 군데 어디서 눌러도 항상 같이 갱신됨.
+  const purchaseEssentials = (
+    <>
+      <div className="flex items-start justify-between gap-16">
+        <div>
+          <h1 className="text-h3 font-bold mb-8">{product.name}</h1>
+          {product.salePrice != null ? (
+            <p className="flex items-center gap-8">
+              <span className="text-body-sm text-disabled line-through">{formatPrice(product.price)}</span>
+              <span className="text-price font-medium text-point">{formatPrice(product.salePrice)}</span>
+            </p>
+          ) : (
+            <p className="text-price font-medium">{formatPrice(product.price)}</p>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => toggle(product.id)}
+          className={`flex h-40 w-40 shrink-0 cursor-pointer items-center justify-center rounded-sm border bg-transparent transition-colors ${
+            isWishlisted(product.id) ? 'border-point text-point' : 'border-line text-primary'
+          }`}
+          aria-label={isWishlisted(product.id) ? '찜 해제' : '위시리스트 추가'}
+          aria-pressed={isWishlisted(product.id)}
+        >
+          <Heart size={20} strokeWidth={1.5} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} />
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-12">
+        <p className="text-body-lg">컬러: {product.color.label}</p>
+        <div
+          className="h-32 w-32 rounded-full border border-line"
+          style={{ backgroundColor: product.color.hex }}
+          aria-label={product.color.label}
+        />
+      </div>
+
+      <div className="flex flex-col gap-12">
+        <p className="text-body-lg">사이즈</p>
+        <div className="flex flex-wrap gap-8">
+          {product.sizes.map((size) => (
+            <SizeSelector
+              key={size}
+              size={size}
+              selected={selectedSize === size}
+              onClick={() => handleSelectSize(size)}
+            />
+          ))}
+        </div>
+        {sizeError && <p className="text-caption text-point">사이즈를 선택해주세요.</p>}
+      </div>
+    </>
+  )
+
+  const descriptionBlock = (
+    <div className="flex flex-col gap-12">
+      <p className="text-h3">제품 정보</p>
+      <p className="text-body-sm whitespace-pre-line leading-[1.6] text-secondary">{product.description}</p>
+    </div>
+  )
+
   return (
     <div className="pb-112 lg:pb-0">
       <Helmet>
         <title>{`NOVERA | ${product.name}`}</title>
       </Helmet>
 
-      <div className="grid grid-cols-1 gap-64 px-24 pt-32 md:px-32 lg:grid-cols-[1fr_456px] lg:px-40 lg:pt-48">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {/* 모바일 전용: 사진 1장만 보고 바로 이름/가격/사이즈에 닿도록 순서를 다시 짬(데스크톱은 아래 별도 블록, 손 안 댐) */}
+      <div className="flex flex-col gap-32 px-24 pt-32 md:px-32 lg:hidden">
+        <div
+          className="aspect-[4/5] bg-surface-muted bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${product.image})` }}
+        />
+
+        {purchaseEssentials}
+
+        {product.detailImages.length > 0 && (
+          <div className="flex flex-col gap-4">
+            {product.detailImages.map((src, index) => (
+              <div
+                key={index}
+                className="aspect-[4/5] bg-surface-muted bg-cover bg-center bg-no-repeat"
+                style={{ backgroundImage: `url(${src})` }}
+              />
+            ))}
+          </div>
+        )}
+
+        {descriptionBlock}
+      </div>
+
+      {/* 데스크톱 전용: 기존 좌(이미지 2열)/우(정보, sticky) 배치 그대로 */}
+      <div className="hidden lg:grid lg:grid-cols-[1fr_456px] lg:gap-64 lg:px-40 lg:pt-48">
+        <div className="grid grid-cols-2 gap-4">
           {[product.image, ...product.detailImages].map((src, index) => (
             <div
               key={index}
@@ -111,64 +198,11 @@ function ProductDetail() {
           ))}
         </div>
 
-        <div className="static flex flex-col gap-32 self-start lg:sticky lg:top-96">
-          <div className="flex items-start justify-between gap-16">
-            <div>
-              <h1 className="text-h3 font-bold mb-8">{product.name}</h1>
-              {product.salePrice != null ? (
-                <p className="flex items-center gap-8">
-                  <span className="text-body-sm text-disabled line-through">{formatPrice(product.price)}</span>
-                  <span className="text-price font-medium text-point">{formatPrice(product.salePrice)}</span>
-                </p>
-              ) : (
-                <p className="text-price font-medium">{formatPrice(product.price)}</p>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => toggle(product.id)}
-              className={`flex h-40 w-40 shrink-0 cursor-pointer items-center justify-center rounded-sm border bg-transparent transition-colors ${
-                isWishlisted(product.id) ? 'border-point text-point' : 'border-line text-primary'
-              }`}
-              aria-label={isWishlisted(product.id) ? '찜 해제' : '위시리스트 추가'}
-              aria-pressed={isWishlisted(product.id)}
-            >
-              <Heart size={20} strokeWidth={1.5} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} />
-            </button>
-          </div>
+        <div className="flex flex-col gap-32 self-start lg:sticky lg:top-96">
+          {purchaseEssentials}
+          {descriptionBlock}
 
           <div className="flex flex-col gap-12">
-            <p className="text-body-lg">컬러: {product.color.label}</p>
-            <div
-              className="h-32 w-32 rounded-full border border-line"
-              style={{ backgroundColor: product.color.hex }}
-              aria-label={product.color.label}
-            />
-          </div>
-
-          <div className="flex flex-col gap-12">
-            <p className="text-body-lg">사이즈</p>
-            <div className="flex flex-wrap gap-8">
-              {product.sizes.map((size) => (
-                <SizeSelector
-                  key={size}
-                  size={size}
-                  selected={selectedSize === size}
-                  onClick={() => handleSelectSize(size)}
-                />
-              ))}
-            </div>
-            {sizeError && <p className="text-caption text-point">사이즈를 선택해주세요.</p>}
-          </div>
-
-          <div className="flex flex-col gap-12">
-            <p className="text-h3">제품 정보</p>
-            <p className="text-body-sm whitespace-pre-line leading-[1.6] text-secondary">
-              {product.description}
-            </p>
-          </div>
-
-          <div className="hidden flex-col gap-12 lg:flex">
             <Button variant="secondary" size="large" className="w-full" onClick={handleAddToCart}>
               장바구니 담기
             </Button>
