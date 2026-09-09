@@ -5,6 +5,7 @@ import { ChevronDown } from 'lucide-react'
 import { useOrderHistory } from '../../context/OrderHistoryContext'
 import OrderItemRow from '../../components/OrderItemRow'
 import Button from '../../components/Button'
+import ConfirmModal from '../../components/ConfirmModal'
 import type { OrderStatus } from '../../types'
 import { formatPrice } from '../../utils/formatPrice'
 import { orderTotal } from '../../utils/orderStats'
@@ -20,6 +21,7 @@ function OrderManage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [bulkStatus, setBulkStatus] = useState<OrderStatus>(ORDER_STATUSES[0])
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [cancelTargetIds, setCancelTargetIds] = useState<string[] | null>(null)
 
   const filteredOrders = orders.filter((order) => {
     if (statusFilter !== 'all' && order.status !== statusFilter) return false
@@ -44,8 +46,27 @@ function OrderManage() {
 
   const handleBulkApply = () => {
     if (selectedIds.size === 0) return
+    if (bulkStatus === '취소') {
+      setCancelTargetIds(Array.from(selectedIds))
+      return
+    }
     updateOrderStatuses(Array.from(selectedIds), bulkStatus)
     setSelectedIds(new Set())
+  }
+
+  const handleStatusChange = (orderId: string, status: OrderStatus) => {
+    if (status === '취소') {
+      setCancelTargetIds([orderId])
+      return
+    }
+    updateOrderStatuses([orderId], status)
+  }
+
+  const confirmCancel = () => {
+    if (!cancelTargetIds) return
+    updateOrderStatuses(cancelTargetIds, '취소')
+    setSelectedIds(new Set())
+    setCancelTargetIds(null)
   }
 
   return (
@@ -151,7 +172,7 @@ function OrderManage() {
                       <div className="relative inline-block">
                         <select
                           value={order.status}
-                          onChange={(e) => updateOrderStatuses([order.id], e.target.value as OrderStatus)}
+                          onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
                           className="text-body-sm appearance-none rounded-sm border border-line py-4 pl-8 pr-28"
                         >
                           {ORDER_STATUSES.map((status) => (
@@ -211,6 +232,16 @@ function OrderManage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {cancelTargetIds && (
+        <ConfirmModal
+          message={`주문 ${cancelTargetIds.length}건을 취소 처리할까요?`}
+          confirmLabel="취소 처리"
+          cancelLabel="닫기"
+          onConfirm={confirmCancel}
+          onCancel={() => setCancelTargetIds(null)}
+        />
       )}
     </div>
   )

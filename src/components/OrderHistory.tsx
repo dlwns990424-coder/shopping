@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import type { OrderStatus } from '../types'
+import Button from './Button'
+import ConfirmModal from './ConfirmModal'
 import OrderItemRow from './OrderItemRow'
 import { useAuth } from '../context/AuthContext'
 import { useOrderHistory } from '../context/OrderHistoryContext'
@@ -17,11 +20,18 @@ const STATUS_PRIORITY: Record<OrderStatus, number> = {
 
 function OrderHistory() {
   const { user } = useAuth()
-  const { orders } = useOrderHistory()
+  const { orders, updateOrderStatuses } = useOrderHistory()
+  const [cancelTargetId, setCancelTargetId] = useState<string | null>(null)
   const myOrders = orders
     .filter((order) => order.userEmail === user?.email)
     .slice()
     .sort((a, b) => STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status])
+
+  const confirmCancel = () => {
+    if (!cancelTargetId) return
+    updateOrderStatuses([cancelTargetId], '취소')
+    setCancelTargetId(null)
+  }
 
   if (myOrders.length === 0) {
     return <p className="text-body-sm">주문 내역이 없습니다.</p>
@@ -63,8 +73,28 @@ function OrderHistory() {
               <span className="text-price">{formatPrice(orderTotal(order))}</span>
             </div>
           </div>
+          {order.status === '결제완료' && (
+            <Button
+              size="small"
+              variant="secondary"
+              className="mt-16"
+              onClick={() => setCancelTargetId(order.id)}
+            >
+              주문취소
+            </Button>
+          )}
         </div>
       ))}
+
+      {cancelTargetId && (
+        <ConfirmModal
+          message="이 주문을 취소하시겠어요?"
+          confirmLabel="주문취소"
+          cancelLabel="닫기"
+          onConfirm={confirmCancel}
+          onCancel={() => setCancelTargetId(null)}
+        />
+      )}
     </div>
   )
 }
