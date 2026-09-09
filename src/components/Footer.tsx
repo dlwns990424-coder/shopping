@@ -8,35 +8,35 @@ function Footer() {
 
         <div className="flex min-w-160 flex-col gap-8">
           <p className="text-caption mb-4 text-disabled">SHOP</p>
-          <Link to="/men" className="text-body-sm text-surface no-underline opacity-85">
+          <Link to="/men" className="text-body-sm text-disabled no-underline transition-colors hover:text-surface">
             MEN
           </Link>
-          <Link to="/women" className="text-body-sm text-surface no-underline opacity-85">
+          <Link to="/women" className="text-body-sm text-disabled no-underline transition-colors hover:text-surface">
             WOMEN
           </Link>
         </div>
 
         <div className="flex min-w-160 flex-col gap-8">
           <p className="text-caption mb-4 text-disabled">CUSTOMER SERVICE</p>
-          <span className="text-body-sm text-surface opacity-85">공지사항</span>
-          <span className="text-body-sm text-surface opacity-85">자주묻는질문</span>
-          <span className="text-body-sm text-surface opacity-85">1:1 문의</span>
+          <span className="text-body-sm text-disabled">공지사항</span>
+          <span className="text-body-sm text-disabled">자주묻는질문</span>
+          <span className="text-body-sm text-disabled">1:1 문의</span>
         </div>
 
         <div className="flex min-w-160 flex-col gap-8">
           <p className="text-caption mb-4 text-disabled">COMPANY</p>
-          <span className="text-body-sm text-surface opacity-85">(주)노베라 · 대표 이준</span>
-          <span className="text-body-sm text-surface opacity-85">사업자등록번호 000-00-00000</span>
-          <span className="text-body-sm text-surface opacity-85">서울특별시 강남구 테헤란로 000</span>
-          <span className="text-body-sm text-surface opacity-85">고객센터 1544-0000 (평일 10:00-18:00)</span>
+          <span className="text-body-sm text-disabled">(주)노베라 · 대표 이준</span>
+          <span className="text-body-sm text-disabled">사업자등록번호 000-00-00000</span>
+          <span className="text-body-sm text-disabled">서울특별시 강남구 테헤란로 000</span>
+          <span className="text-body-sm text-disabled">고객센터 1544-0000 (평일 10:00-18:00)</span>
         </div>
 
         <div className="flex min-w-160 flex-col gap-8">
           <p className="text-caption mb-4 text-disabled">SOCIAL</p>
-          <a href="#" className="text-body-sm text-surface no-underline opacity-85">
+          <a href="#" className="text-body-sm text-disabled no-underline transition-colors hover:text-surface">
             Instagram
           </a>
-          <a href="#" className="text-body-sm text-surface no-underline opacity-85">
+          <a href="#" className="text-body-sm text-disabled no-underline transition-colors hover:text-surface">
             YouTube
           </a>
         </div>
