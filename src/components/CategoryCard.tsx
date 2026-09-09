@@ -15,7 +15,7 @@ function CategoryCard({ to, label, image, imageFit = 'contain' }: CategoryCardPr
         style={image ? { backgroundImage: `url(${image})` } : undefined}
       />
       <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
-      <p className="absolute bottom-16 left-16 text-base font-semibold text-surface underline group-hover:text-point">
+      <p className="absolute bottom-16 left-16 text-xl font-semibold text-surface underline [text-underline-offset:6px] transition-[text-underline-offset] duration-300 lg:group-hover:[text-underline-offset:2px]">
         {label}
       </p>
     </Link>

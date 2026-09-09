@@ -165,7 +165,7 @@ function ProductDetail() {
       {/* 모바일 전용: 사진 1장만 보고 바로 이름/가격/사이즈에 닿도록 순서를 다시 짬(데스크톱은 아래 별도 블록, 손 안 댐) */}
       <div className="flex flex-col gap-32 px-24 pt-32 md:px-32 lg:hidden">
         <div
-          className="aspect-[4/5] bg-surface-muted bg-cover bg-center bg-no-repeat"
+          className="aspect-[4/5] bg-surface-muted bg-cover bg-center bg-no-repeat md:aspect-auto md:h-[420px]"
           style={{ backgroundImage: `url(${product.image})` }}
         />
 
@@ -224,7 +224,7 @@ function ProductDetail() {
 
       <section className="page-section">
         <div className="page-section__header">
-          <h2 className="text-h3 font-bold">함께 보면 좋은 상품</h2>
+          <h2 className="text-base font-bold">RECOMMENDED</h2>
         </div>
         <div className="product-grid">
           {relatedProducts.map((item) => (

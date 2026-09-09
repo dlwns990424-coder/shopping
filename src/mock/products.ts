@@ -6,9 +6,9 @@ function img(gender: Gender, folder: string, file: string, index: number, ext: s
   return `/images/products/${gender}/${folder}/${gender}-${file}-${num}.${ext}`
 }
 
-function modelImg(gender: Gender, folder: string, file: string, index: number, suffix: string = 'model-01') {
+function modelImg(gender: Gender, folder: string, file: string, index: number, suffix: string = 'model-01', ext: string = 'png') {
   const num = String(index).padStart(2, '0')
-  return `/images/products/${gender}/${folder}/${gender}-${file}-${num}-${suffix}.png`
+  return `/images/products/${gender}/${folder}/${gender}-${file}-${num}-${suffix}.${ext}`
 }
 
 const rawProducts: (Omit<
@@ -18,166 +18,166 @@ const rawProducts: (Omit<
   // ── MEN · 아우터 · 코트 ──
   {
     id: 'men-coat-1', name: '오버핏 울 코트', price: 198000, gender: 'men', category: '아우터', subCategory: '코트',
-    image: img('men', 'coats', 'coat', 1), color: { label: '카멜', hex: '#b08968' },
+    image: modelImg('men', 'coats', 'coat', 1), hoverImage: img('men', 'coats', 'coat', 1), color: { label: '카멜', hex: '#b08968' },
     description: '여유로운 오버핏 실루엣의 싱글 브레스티드 울 코트. 노치 카라와 웰트 포켓으로 클래식한 무드를 살렸습니다.\n울 70% · 폴리에스터 30%\n드라이클리닝 권장',
   },
   {
     id: 'men-coat-2', name: '더블브레스티드 코트', price: 228000, gender: 'men', category: '아우터', subCategory: '코트',
-    image: img('men', 'coats', 'coat', 2), color: { label: '차콜', hex: '#3a3a3a' },
+    image: modelImg('men', 'coats', 'coat', 2), hoverImage: img('men', 'coats', 'coat', 2), color: { label: '차콜', hex: '#3a3a3a' },
     description: '차콜 톤의 더블 브레스티드 코트. 피크드 라펠과 여섯 개 버튼으로 정갈한 인상을 더합니다.\n울 80% · 나일론 20%\n드라이클리닝 권장',
   },
   {
     id: 'men-coat-3', name: '벨티드 트렌치코트', price: 189000, gender: 'men', category: '아우터', subCategory: '코트',
-    image: img('men', 'coats', 'coat', 3), color: { label: '네이비', hex: '#1f2a44' },
+    image: modelImg('men', 'coats', 'coat', 3), hoverImage: img('men', 'coats', 'coat', 3), color: { label: '네이비', hex: '#1f2a44' },
     description: '네이비 컬러의 벨티드 맥코트. 카라와 커프스 탭 디테일로 캐주얼하게 연출하기 좋습니다.\n폴리에스터 65% · 코튼 35%\n드라이클리닝 권장',
   },
   {
     id: 'men-coat-4', name: '싱글 브레스티드 코트', price: 179000, gender: 'men', category: '아우터', subCategory: '코트',
-    image: img('men', 'coats', 'coat', 4), color: { label: '베이지', hex: '#a9927a' },
+    image: modelImg('men', 'coats', 'coat', 4), hoverImage: img('men', 'coats', 'coat', 4), color: { label: '베이지', hex: '#a9927a' },
     description: '벨트로 허리 라인을 조절할 수 있는 싱글 브레스티드 트렌치코트. 뉴트럴한 베이지 톤이라 활용도가 높습니다.\n코튼 60% · 폴리에스터 40%\n드라이클리닝 권장',
   },
 
   // ── MEN · 상의 · 셔츠 ──
   {
     id: 'men-shirt-1', name: '옥스포드 셔츠', price: 59000, gender: 'men', category: '상의', subCategory: '셔츠',
-    image: img('men', 'shirts', 'shirt', 1), color: { label: '화이트', hex: '#ffffff' },
+    image: modelImg('men', 'shirts', 'shirt', 1), hoverImage: img('men', 'shirts', 'shirt', 1), color: { label: '화이트', hex: '#ffffff' },
     description: '화이트 옥스포드 원단의 버튼다운 셔츠. 톡톡한 조직감으로 사계절 활용하기 좋습니다.\n코튼 100%\n드라이클리닝 또는 손세탁 권장',
   },
   {
     id: 'men-shirt-2', name: '스트라이프 셔츠', price: 65000, gender: 'men', category: '상의', subCategory: '셔츠',
-    image: img('men', 'shirts', 'shirt', 2), color: { label: '차콜', hex: '#3a3a3a' },
+    image: modelImg('men', 'shirts', 'shirt', 2), hoverImage: img('men', 'shirts', 'shirt', 2), color: { label: '차콜', hex: '#3a3a3a' },
     description: '차콜 톤의 잔잔한 패턴 오버셔츠. 여유로운 박스 핏으로 레이어드하기 좋습니다.\n코튼 80% · 폴리에스터 20%\n드라이클리닝 권장',
   },
   {
     id: 'men-shirt-3', name: '리넨 블렌드 셔츠', price: 69000, gender: 'men', category: '상의', subCategory: '셔츠',
-    image: img('men', 'shirts', 'shirt', 3), color: { label: '라이트블루', hex: '#a9c6dd' },
+    image: modelImg('men', 'shirts', 'shirt', 3), hoverImage: img('men', 'shirts', 'shirt', 3), color: { label: '라이트블루', hex: '#a9c6dd' },
     description: '리넨이 섞여 시원한 착용감의 라이트 블루 셔츠. 자연스러운 구김이 캐주얼한 무드를 냅니다.\n리넨 55% · 코튼 45%\n손세탁 권장',
   },
   {
     id: 'men-shirt-4', name: '오버셔츠', price: 72000, gender: 'men', category: '상의', subCategory: '셔츠',
-    image: img('men', 'shirts', 'shirt', 4), color: { label: '네이비', hex: '#1f2d4d' },
+    image: modelImg('men', 'shirts', 'shirt', 4), hoverImage: img('men', 'shirts', 'shirt', 4), color: { label: '네이비', hex: '#1f2d4d' },
     description: '네이비 스트라이프 패턴의 오버셔츠. 체스트 포켓 디테일로 캐주얼한 무드를 더했습니다.\n코튼 100%\n드라이클리닝 권장',
   },
 
   // ── MEN · 상의 · 티셔츠 ──
   {
     id: 'men-tshirt-1', name: '오버사이즈 티셔츠', price: 39000, gender: 'men', category: '상의', subCategory: '티셔츠',
-    image: img('men', 'tshirts', 'tshirt', 1), color: { label: '화이트', hex: '#ffffff' },
+    image: modelImg('men', 'tshirts', 'tshirt', 1), hoverImage: img('men', 'tshirts', 'tshirt', 1), color: { label: '화이트', hex: '#ffffff' },
     description: '화이트 컬러의 오버사이즈 크루넥 티셔츠. 두툼한 저지 원단으로 핏이 안정적입니다.\n코튼 100%\n드라이클리닝 권장',
   },
   {
     id: 'men-tshirt-2', name: '헤비웨이트 반팔 티셔츠', price: 42000, gender: 'men', category: '상의', subCategory: '티셔츠',
-    image: img('men', 'tshirts', 'tshirt', 2), color: { label: '블랙', hex: '#2b2b2b' },
+    image: modelImg('men', 'tshirts', 'tshirt', 2), hoverImage: img('men', 'tshirts', 'tshirt', 2), color: { label: '블랙', hex: '#2b2b2b' },
     description: '가먼트 다잉 워싱으로 빈티지한 무드를 낸 헤비웨이트 반팔 티셔츠.\n코튼 100%\n드라이클리닝 권장',
   },
   {
     id: 'men-tshirt-3', name: '크루넥 티셔츠', price: 35000, gender: 'men', category: '상의', subCategory: '티셔츠',
-    image: img('men', 'tshirts', 'tshirt', 3), color: { label: '네이비', hex: '#232837' },
+    image: modelImg('men', 'tshirts', 'tshirt', 3), hoverImage: img('men', 'tshirts', 'tshirt', 3), color: { label: '네이비', hex: '#232837' },
     description: '네이비 컬러의 베이직 크루넥 반팔 티셔츠. 적당한 여유핏으로 데일리하게 입기 좋습니다.\n코튼 100%\n드라이클리닝 권장',
   },
   {
     id: 'men-tshirt-4', name: '포켓 티셔츠', price: 38000, gender: 'men', category: '상의', subCategory: '티셔츠',
-    image: img('men', 'tshirts', 'tshirt', 4), color: { label: '베이지', hex: '#d8c6a8' },
+    image: modelImg('men', 'tshirts', 'tshirt', 4), hoverImage: img('men', 'tshirts', 'tshirt', 4), color: { label: '베이지', hex: '#d8c6a8' },
     description: '베이지 톤의 립 조직 반팔 티셔츠. 가슴 포켓 디테일로 포인트를 줬습니다.\n코튼 95% · 폴리우레탄 5%\n드라이클리닝 권장',
   },
 
   // ── MEN · 상의 · 니트·스웨트 ──
   {
     id: 'men-knit-1', name: '크루넥 니트', price: 69000, gender: 'men', category: '상의', subCategory: '니트·스웨트',
-    image: img('men', 'tops', 'top', 1), color: { label: '차콜', hex: '#3a3a3a' },
+    image: modelImg('men', 'tops', 'top', 1), hoverImage: img('men', 'tops', 'top', 1), color: { label: '차콜', hex: '#3a3a3a' },
     description: '차콜 컬러의 베이직 크루넥 니트. 촘촘한 게이지로 보온성이 좋습니다.\n울 50% · 아크릴 50%\n드라이클리닝 권장',
   },
   {
     id: 'men-knit-2', name: '오버핏 스웨트셔츠', price: 65000, gender: 'men', category: '상의', subCategory: '니트·스웨트',
-    image: img('men', 'tops', 'top', 2), color: { label: '베이지', hex: '#d9cdb8' },
+    image: modelImg('men', 'tops', 'top', 2), hoverImage: img('men', 'tops', 'top', 2), color: { label: '베이지', hex: '#d9cdb8' },
     description: '오트밀 베이지 톤의 오버핏 스웨트셔츠. 안감 기모로 부드러운 촉감입니다.\n코튼 80% · 폴리에스터 20%\n드라이클리닝 권장',
   },
   {
     id: 'men-knit-3', name: '하프집업 니트', price: 79000, gender: 'men', category: '상의', subCategory: '니트·스웨트',
-    image: img('men', 'tops', 'top', 3), color: { label: '네이비', hex: '#1c2740' },
+    image: modelImg('men', 'tops', 'top', 3), hoverImage: img('men', 'tops', 'top', 3), color: { label: '네이비', hex: '#1c2740' },
     description: '네이비 컬러의 하프집업 스웨트셔츠. 스탠드 카라로 목선을 깔끔하게 정리합니다.\n코튼 75% · 폴리에스터 25%\n드라이클리닝 권장',
   },
   {
     id: 'men-knit-4', name: '케이블 니트', price: 85000, gender: 'men', category: '상의', subCategory: '니트·스웨트',
-    image: img('men', 'tops', 'top', 4), color: { label: '그레이', hex: '#c7c7c7' },
+    image: modelImg('men', 'tops', 'top', 4), hoverImage: img('men', 'tops', 'top', 4), color: { label: '그레이', hex: '#c7c7c7' },
     description: '그레이 톤의 케이블 패턴 니트. 클래식한 무늬로 자켓 이너로도 활용하기 좋습니다.\n울 40% · 아크릴 60%\n드라이클리닝 권장',
   },
 
   // ── MEN · 상의 · 후드 ──
   {
     id: 'men-hoodie-1', name: '오버사이즈 후드 티셔츠', price: 65000, gender: 'men', category: '상의', subCategory: '후드',
-    image: img('men', 'hoodies', 'hoodie', 1, 'jpg'), color: { label: '블랙', hex: '#1c1c1c' },
+    image: modelImg('men', 'hoodies', 'hoodie', 1, 'model-01', 'jpg'), hoverImage: img('men', 'hoodies', 'hoodie', 1, 'jpg'), color: { label: '블랙', hex: '#1c1c1c' },
     description: '블랙 컬러의 오버사이즈 후드 티셔츠. 넉넉한 기장과 두툼한 기모 안감으로 편안하게 착용할 수 있습니다.\n코튼 80% · 폴리에스터 20%\n드라이클리닝 권장',
   },
   {
     id: 'men-hoodie-2', name: '오버사이즈 후드 티셔츠', price: 65000, gender: 'men', category: '상의', subCategory: '후드',
-    image: img('men', 'hoodies', 'hoodie', 2, 'jpg'), color: { label: '그레이', hex: '#c7c7c7' },
+    image: modelImg('men', 'hoodies', 'hoodie', 2, 'model-01', 'jpg'), hoverImage: img('men', 'hoodies', 'hoodie', 2, 'jpg'), color: { label: '그레이', hex: '#c7c7c7' },
     description: '멜란지 그레이 톤의 오버사이즈 후드 티셔츠. 두툼한 기모 안감과 넉넉한 기장으로 데일리하게 입기 좋습니다.\n코튼 80% · 폴리에스터 20%\n드라이클리닝 권장',
   },
 
   // ── MEN · 하의 · 데님 ──
   {
     id: 'men-denim-1', name: '스트레이트 데님', price: 79000, gender: 'men', category: '하의', subCategory: '데님',
-    image: img('men', 'jeans', 'jeans', 1), color: { label: '블랙워시', hex: '#2e2e2e' },
+    image: modelImg('men', 'jeans', 'jeans', 1), hoverImage: img('men', 'jeans', 'jeans', 1), color: { label: '블랙워시', hex: '#2e2e2e' },
     description: '블랙 워싱의 스트레이트 핏 데님. 은은한 워시감으로 활용도가 높습니다.\n코튼 99% · 폴리우레탄 1%\n찬물 손세탁 권장',
   },
   {
     id: 'men-denim-2', name: '와이드 데님', price: 85000, gender: 'men', category: '하의', subCategory: '데님',
-    image: img('men', 'jeans', 'jeans', 2), color: { label: '미드블루', hex: '#4a6b8a' },
+    image: modelImg('men', 'jeans', 'jeans', 2), hoverImage: img('men', 'jeans', 'jeans', 2), color: { label: '미드블루', hex: '#4a6b8a' },
     description: '미드 블루 톤의 와이드 핏 데님. 여유로운 실루엣으로 캐주얼하게 매치하기 좋습니다.\n코튼 100%\n찬물 손세탁 권장',
   },
   {
     id: 'men-denim-3', name: '슬림 테이퍼드 데님', price: 75000, gender: 'men', category: '하의', subCategory: '데님',
-    image: img('men', 'jeans', 'jeans', 3), color: { label: '다크인디고', hex: '#1c2436' },
+    image: modelImg('men', 'jeans', 'jeans', 3), hoverImage: img('men', 'jeans', 'jeans', 3), color: { label: '다크인디고', hex: '#1c2436' },
     description: '다크 인디고 컬러의 슬림 테이퍼드 데님. 발목으로 갈수록 좁아지는 라인입니다.\n코튼 98% · 폴리우레탄 2%\n찬물 손세탁 권장',
   },
   {
     id: 'men-denim-4', name: '워시드 블랙 데님', price: 82000, gender: 'men', category: '하의', subCategory: '데님',
-    image: img('men', 'jeans', 'jeans', 4), color: { label: '라이트워시', hex: '#a8c4d9' },
+    image: modelImg('men', 'jeans', 'jeans', 4), hoverImage: img('men', 'jeans', 'jeans', 4), color: { label: '라이트워시', hex: '#a8c4d9' },
     description: '라이트 워싱의 스트레이트 데님. 색 빠짐이 자연스러운 빈티지 무드입니다.\n코튼 100%\n찬물 손세탁 권장',
   },
 
   // ── MEN · 하의 · 슬랙스 ──
   {
     id: 'men-slacks-1', name: '와이드 슬랙스', price: 79000, gender: 'men', category: '하의', subCategory: '슬랙스',
-    image: img('men', 'trousers', 'trousers', 1), color: { label: '블랙', hex: '#2a2a2a' },
+    image: modelImg('men', 'trousers', 'trousers', 1), hoverImage: img('men', 'trousers', 'trousers', 1), color: { label: '블랙', hex: '#2a2a2a' },
     description: '블랙 컬러의 와이드 슬랙스. 프론트 턱 디테일로 여유로운 실루엣을 살렸습니다.\n폴리에스터 70% · 레이온 30%\n드라이클리닝 권장',
   },
   {
     id: 'men-slacks-2', name: '스트레이트 슬랙스', price: 75000, gender: 'men', category: '하의', subCategory: '슬랙스',
-    image: img('men', 'trousers', 'trousers', 2), color: { label: '다크브라운', hex: '#3f342c' },
+    image: modelImg('men', 'trousers', 'trousers', 2), hoverImage: img('men', 'trousers', 'trousers', 2), color: { label: '다크브라운', hex: '#3f342c' },
     description: '다크 브라운 컬러의 와이드 슬랙스. 부드러운 소재로 떨어지는 라인이 편안합니다.\n폴리에스터 65% · 레이온 35%\n드라이클리닝 권장',
   },
   {
     id: 'men-slacks-3', name: '테이퍼드 슬랙스', price: 78000, gender: 'men', category: '하의', subCategory: '슬랙스',
-    image: img('men', 'trousers', 'trousers', 3), color: { label: '카키베이지', hex: '#c8ad7f' },
+    image: modelImg('men', 'trousers', 'trousers', 3), hoverImage: img('men', 'trousers', 'trousers', 3), color: { label: '카키베이지', hex: '#c8ad7f' },
     description: '카키 베이지 톤의 테이퍼드 슬랙스. 캐주얼한 치노 소재로 데일리하게 입기 좋습니다.\n코튼 97% · 폴리우레탄 3%\n드라이클리닝 권장',
   },
   {
     id: 'men-slacks-4', name: '플리츠 슬랙스', price: 82000, gender: 'men', category: '하의', subCategory: '슬랙스',
-    image: img('men', 'trousers', 'trousers', 4), color: { label: '블랙', hex: '#2a2a2a' },
+    image: modelImg('men', 'trousers', 'trousers', 4), hoverImage: img('men', 'trousers', 'trousers', 4), color: { label: '블랙', hex: '#2a2a2a' },
     description: '블랙 컬러의 슬림 테이퍼드 슬랙스. 깔끔한 핀턱으로 단정한 라인을 냅니다.\n폴리에스터 68% · 레이온 32%\n드라이클리닝 권장',
   },
 
   // ── MEN · 하의 · 반바지 ──
   {
     id: 'men-shorts-1', name: '버뮤다 반바지', price: 55000, gender: 'men', category: '하의', subCategory: '반바지',
-    image: img('men', 'shorts', 'shorts', 1), color: { label: '블랙', hex: '#2a2a2a' },
+    image: modelImg('men', 'shorts', 'shorts', 1), hoverImage: img('men', 'shorts', 'shorts', 1), color: { label: '블랙', hex: '#2a2a2a' },
     description: '블랙 컬러의 테일러드 버뮤다 반바지. 무릎 위 길이로 단정하게 연출됩니다.\n폴리에스터 70% · 레이온 30%\n드라이클리닝 권장',
   },
   {
     id: 'men-shorts-2', name: '치노 반바지', price: 49000, gender: 'men', category: '하의', subCategory: '반바지',
-    image: img('men', 'shorts', 'shorts', 2), color: { label: '카키', hex: '#cbb188' },
+    image: modelImg('men', 'shorts', 'shorts', 2), hoverImage: img('men', 'shorts', 'shorts', 2), color: { label: '카키', hex: '#cbb188' },
     description: '카키 톤의 치노 반바지. 튼튼한 면 트윌 원단으로 활동성이 좋습니다.\n코튼 100%\n드라이클리닝 권장',
   },
   {
     id: 'men-shorts-3', name: '와이드 반바지', price: 52000, gender: 'men', category: '하의', subCategory: '반바지',
-    image: img('men', 'shorts', 'shorts', 3), color: { label: '블루데님', hex: '#3d5875' },
+    image: modelImg('men', 'shorts', 'shorts', 3), hoverImage: img('men', 'shorts', 'shorts', 3), color: { label: '블루데님', hex: '#3d5875' },
     description: '미드 블루 데님 소재의 와이드 반바지. 여유로운 핏으로 편안하게 착용할 수 있습니다.\n코튼 100%\n찬물 손세탁 권장',
   },
   {
     id: 'men-shorts-4', name: '스웨트 반바지', price: 45000, gender: 'men', category: '하의', subCategory: '반바지',
-    image: img('men', 'shorts', 'shorts', 4), color: { label: '블랙', hex: '#2b2b2b' },
+    image: modelImg('men', 'shorts', 'shorts', 4), hoverImage: img('men', 'shorts', 'shorts', 4), color: { label: '블랙', hex: '#2b2b2b' },
     description: '블랙 컬러의 경량 우븐 반바지. 사이드 포켓과 스트링 디테일로 활동성이 좋습니다.\n나일론 100%\n드라이클리닝 권장',
   },
 
