@@ -184,166 +184,166 @@ const rawProducts: (Omit<
   // ── WOMEN · 아우터 · 코트 ──
   {
     id: 'women-coat-1', name: '벨티드 트렌치코트', price: 228000, gender: 'women', category: '아우터', subCategory: '코트',
-    image: img('women', 'coats', 'coat', 1), hoverImage: modelImg('women', 'coats', 'coat', 1), color: { label: '카멜', hex: '#b89468' },
+    image: modelImg('women', 'coats', 'coat', 1), hoverImage: img('women', 'coats', 'coat', 1), color: { label: '카멜', hex: '#b89468' },
     description: '카멜 컬러의 벨티드 롱 트렌치코트. 허리 벨트로 실루엣을 조절할 수 있습니다.\n폴리에스터 65% · 코튼 35%\n드라이클리닝 권장',
   },
   {
     id: 'women-coat-2', name: '오버핏 울 코트', price: 198000, gender: 'women', category: '아우터', subCategory: '코트',
-    image: img('women', 'coats', 'coat', 2), hoverImage: modelImg('women', 'coats', 'coat', 2), color: { label: '차콜', hex: '#35363a' },
+    image: modelImg('women', 'coats', 'coat', 2), hoverImage: img('women', 'coats', 'coat', 2), color: { label: '차콜', hex: '#35363a' },
     description: '차콜 톤의 오버핏 랩 코트. 벨트로 허리 라인을 살릴 수 있는 디자인입니다.\n울 75% · 폴리에스터 25%\n드라이클리닝 권장',
   },
   {
     id: 'women-coat-3', name: '더블브레스티드 코트', price: 218000, gender: 'women', category: '아우터', subCategory: '코트',
-    image: img('women', 'coats', 'coat', 3), hoverImage: modelImg('women', 'coats', 'coat', 3), color: { label: '네이비', hex: '#1c2436' },
+    image: modelImg('women', 'coats', 'coat', 3), hoverImage: img('women', 'coats', 'coat', 3), color: { label: '네이비', hex: '#1c2436' },
     description: '네이비 컬러의 미니멀한 카라 코트. 여유로운 실루엣으로 이너 레이어드가 편합니다.\n울 60% · 폴리에스터 40%\n드라이클리닝 권장',
   },
   {
     id: 'women-coat-4', name: '롱 울 코트', price: 208000, gender: 'women', category: '아우터', subCategory: '코트',
-    image: img('women', 'coats', 'coat', 4), hoverImage: modelImg('women', 'coats', 'coat', 4), color: { label: '베이지', hex: '#a99879' },
+    image: modelImg('women', 'coats', 'coat', 4), hoverImage: img('women', 'coats', 'coat', 4), color: { label: '베이지', hex: '#a99879' },
     description: '뉴트럴한 베이지 톤의 롱 벨티드 코트. 여유로운 실루엣이 특징입니다.\n폴리에스터 70% · 코튼 30%\n드라이클리닝 권장',
   },
 
   // ── WOMEN · 상의 · 셔츠 ──
   {
     id: 'women-shirt-1', name: '셔츠 블라우스', price: 65000, gender: 'women', category: '상의', subCategory: '셔츠',
-    image: img('women', 'shirts', 'shirt', 1), hoverImage: modelImg('women', 'shirts', 'shirt', 1), color: { label: '화이트', hex: '#ffffff' },
+    image: modelImg('women', 'shirts', 'shirt', 1), hoverImage: img('women', 'shirts', 'shirt', 1), color: { label: '화이트', hex: '#ffffff' },
     description: '화이트 컬러의 오버사이즈 셔츠 블라우스. 여유로운 소매 볼륨이 포인트입니다.\n코튼 100%\n드라이클리닝 또는 손세탁 권장',
   },
   {
     id: 'women-shirt-2', name: '옥스포드 셔츠', price: 59000, gender: 'women', category: '상의', subCategory: '셔츠',
-    image: img('women', 'shirts', 'shirt', 2), hoverImage: modelImg('women', 'shirts', 'shirt', 2), color: { label: '블랙', hex: '#1f1f1f' },
+    image: modelImg('women', 'shirts', 'shirt', 2), hoverImage: img('women', 'shirts', 'shirt', 2), color: { label: '블랙', hex: '#1f1f1f' },
     description: '화이트 카라 포인트가 돋보이는 블랙 블라우스. 잔잔한 패턴 원단으로 디테일을 더했습니다.\n폴리에스터 100%\n드라이클리닝 권장',
   },
   {
     id: 'women-shirt-3', name: '스트라이프 셔츠', price: 62000, gender: 'women', category: '상의', subCategory: '셔츠',
-    image: img('women', 'shirts', 'shirt', 3), hoverImage: modelImg('women', 'shirts', 'shirt', 3), color: { label: '라이트블루', hex: '#b7d3e8' },
+    image: modelImg('women', 'shirts', 'shirt', 3), hoverImage: img('women', 'shirts', 'shirt', 3), color: { label: '라이트블루', hex: '#b7d3e8' },
     description: '라이트 블루 톤의 리넨 혼방 셔츠. 가슴 포켓 디테일로 캐주얼한 무드를 더했습니다.\n리넨 50% · 코튼 50%\n손세탁 권장',
   },
   {
     id: 'women-shirt-4', name: '리넨 블라우스', price: 68000, gender: 'women', category: '상의', subCategory: '셔츠',
-    image: img('women', 'shirts', 'shirt', 4), hoverImage: modelImg('women', 'shirts', 'shirt', 4), color: { label: '아이보리', hex: '#f0e6d2' },
+    image: modelImg('women', 'shirts', 'shirt', 4), hoverImage: img('women', 'shirts', 'shirt', 4), color: { label: '아이보리', hex: '#f0e6d2' },
     description: '아이보리 톤의 새틴 블라우스. 은은한 광택으로 포멀한 자리에도 어울립니다.\n폴리에스터 100%\n드라이클리닝 권장',
   },
 
   // ── WOMEN · 상의 · 티셔츠 ──
   {
     id: 'women-tshirt-1', name: '크루넥 티셔츠', price: 35000, gender: 'women', category: '상의', subCategory: '티셔츠',
-    image: img('women', 'tshirts', 'tshirt', 1), hoverImage: modelImg('women', 'tshirts', 'tshirt', 1), color: { label: '화이트', hex: '#ffffff' },
+    image: modelImg('women', 'tshirts', 'tshirt', 1), hoverImage: img('women', 'tshirts', 'tshirt', 1), color: { label: '화이트', hex: '#ffffff' },
     description: '화이트 컬러의 크롭 박시 티셔츠. 짧은 기장으로 하의와 매치하기 좋습니다.\n코튼 100%\n드라이클리닝 권장',
   },
   {
     id: 'women-tshirt-2', name: '오버사이즈 티셔츠', price: 39000, gender: 'women', category: '상의', subCategory: '티셔츠',
-    image: img('women', 'tshirts', 'tshirt', 2), hoverImage: modelImg('women', 'tshirts', 'tshirt', 2), color: { label: '블랙', hex: '#262626' },
+    image: modelImg('women', 'tshirts', 'tshirt', 2), hoverImage: img('women', 'tshirts', 'tshirt', 2), color: { label: '블랙', hex: '#262626' },
     description: '가먼트 다잉 워싱의 블랙 크롭 티셔츠. 빈티지한 워싱감이 특징입니다.\n코튼 100%\n드라이클리닝 권장',
   },
   {
     id: 'women-tshirt-3', name: '리브 반팔 티셔츠', price: 33000, gender: 'women', category: '상의', subCategory: '티셔츠',
-    image: img('women', 'tshirts', 'tshirt', 3), hoverImage: modelImg('women', 'tshirts', 'tshirt', 3), color: { label: '네이비 스트라이프', hex: '#1d2436' },
+    image: modelImg('women', 'tshirts', 'tshirt', 3), hoverImage: img('women', 'tshirts', 'tshirt', 3), color: { label: '네이비 스트라이프', hex: '#1d2436' },
     description: '네이비 스트라이프 패턴의 보트넥 티셔츠. 클래식한 마린룩 무드를 연출합니다.\n코튼 100%\n드라이클리닝 권장',
   },
   {
     id: 'women-tshirt-4', name: '포켓 티셔츠', price: 36000, gender: 'women', category: '상의', subCategory: '티셔츠',
-    image: img('women', 'tshirts', 'tshirt', 4), hoverImage: modelImg('women', 'tshirts', 'tshirt', 4), color: { label: '베이지', hex: '#cbb89a' },
+    image: modelImg('women', 'tshirts', 'tshirt', 4), hoverImage: img('women', 'tshirts', 'tshirt', 4), color: { label: '베이지', hex: '#cbb89a' },
     description: '베이지 톤의 립 조직 슬림 티셔츠. 몸에 자연스럽게 붙는 핏감입니다.\n코튼 95% · 폴리우레탄 5%\n드라이클리닝 권장',
   },
 
   // ── WOMEN · 상의 · 니트·스웨트 ──
   {
     id: 'women-knit-1', name: '리브 니트 탑', price: 59000, gender: 'women', category: '상의', subCategory: '니트·스웨트',
-    image: img('women', 'tops', 'top', 1), hoverImage: modelImg('women', 'tops', 'top', 1), color: { label: '아이보리', hex: '#f0e9d8' },
+    image: modelImg('women', 'tops', 'top', 1), hoverImage: img('women', 'tops', 'top', 1), color: { label: '아이보리', hex: '#f0e9d8' },
     description: '아이보리 톤의 크롭 카디건. 버튼 여밈으로 이너로 레이어드하기 좋습니다.\n울 30% · 아크릴 70%\n드라이클리닝 권장',
   },
   {
     id: 'women-knit-2', name: '크루넥 니트', price: 65000, gender: 'women', category: '상의', subCategory: '니트·스웨트',
-    image: img('women', 'tops', 'top', 2), hoverImage: modelImg('women', 'tops', 'top', 2, 'model-01-v2'), color: { label: '차콜', hex: '#3d3d3f' },
+    image: modelImg('women', 'tops', 'top', 2, 'model-01-v2'), hoverImage: img('women', 'tops', 'top', 2), color: { label: '차콜', hex: '#3d3d3f' },
     description: '차콜 톤의 모크넥 니트. 목선을 감싸는 디자인으로 단정하게 연출됩니다.\n울 40% · 아크릴 60%\n드라이클리닝 권장',
   },
   {
     id: 'women-knit-3', name: '오버핏 스웨트셔츠', price: 62000, gender: 'women', category: '상의', subCategory: '니트·스웨트',
-    image: img('women', 'tops', 'top', 3), hoverImage: modelImg('women', 'tops', 'top', 3), color: { label: '블랙', hex: '#1c1c1c' },
+    image: modelImg('women', 'tops', 'top', 3), hoverImage: img('women', 'tops', 'top', 3), color: { label: '블랙', hex: '#1c1c1c' },
     description: '블랙 컬러의 하프집업 스웨트셔츠. 스탠드 카라 디자인으로 캐주얼하게 매치하기 좋습니다.\n코튼 80% · 폴리에스터 20%\n드라이클리닝 권장',
   },
   {
     id: 'women-knit-4', name: '케이블 니트', price: 72000, gender: 'women', category: '상의', subCategory: '니트·스웨트',
-    image: img('women', 'tops', 'top', 4), hoverImage: modelImg('women', 'tops', 'top', 4), color: { label: '오트밀베이지', hex: '#d9cfc0' },
+    image: modelImg('women', 'tops', 'top', 4), hoverImage: img('women', 'tops', 'top', 4), color: { label: '오트밀베이지', hex: '#d9cfc0' },
     description: '오트밀 베이지 톤의 케이블 니트. 클래식한 무늬가 포인트인 크루넥 디자인입니다.\n울 35% · 아크릴 65%\n드라이클리닝 권장',
   },
 
   // ── WOMEN · 상의 · 후드 ──
   {
     id: 'women-hoodie-1', name: '오버사이즈 후드 티셔츠', price: 62000, gender: 'women', category: '상의', subCategory: '후드',
-    image: img('women', 'hoodies', 'hoodie', 1, 'jpg'), hoverImage: modelImg('women', 'hoodies', 'hoodie', 1), color: { label: '차콜그레이', hex: '#4a4a4c' },
+    image: modelImg('women', 'hoodies', 'hoodie', 1), hoverImage: img('women', 'hoodies', 'hoodie', 1, 'jpg'), color: { label: '차콜그레이', hex: '#4a4a4c' },
     description: '차콜 그레이 톤의 오버사이즈 후드 티셔츠. 여유로운 기장과 두툼한 기모 안감으로 편안하게 착용할 수 있습니다.\n코튼 80% · 폴리에스터 20%\n드라이클리닝 권장',
   },
   {
     id: 'women-hoodie-2', name: '크롭 후드 티셔츠', price: 58000, gender: 'women', category: '상의', subCategory: '후드',
-    image: img('women', 'hoodies', 'hoodie', 2, 'jpg'), hoverImage: modelImg('women', 'hoodies', 'hoodie', 2), color: { label: '버건디', hex: '#5c1a29' },
+    image: modelImg('women', 'hoodies', 'hoodie', 2), hoverImage: img('women', 'hoodies', 'hoodie', 2, 'jpg'), color: { label: '버건디', hex: '#5c1a29' },
     description: '버건디 컬러의 크롭 후드 티셔츠. 박시한 기장으로 하의와 매치하기 좋습니다.\n코튼 80% · 폴리에스터 20%\n드라이클리닝 권장',
   },
 
   // ── WOMEN · 하의 · 데님 ──
   {
     id: 'women-denim-1', name: '스트레이트 데님팬츠', price: 75000, gender: 'women', category: '하의', subCategory: '데님',
-    image: img('women', 'jeans', 'jeans', 1), hoverImage: modelImg('women', 'jeans', 'jeans', 1), color: { label: '블랙워시', hex: '#262626' },
+    image: modelImg('women', 'jeans', 'jeans', 1), hoverImage: img('women', 'jeans', 'jeans', 1), color: { label: '블랙워시', hex: '#262626' },
     description: '블랙 워싱의 스트레이트 데님 팬츠. 부담 없이 매치하기 좋은 기본 핏입니다.\n코튼 98% · 폴리우레탄 2%\n찬물 손세탁 권장',
   },
   {
     id: 'women-denim-2', name: '하이웨이스트 와이드 데님', price: 85000, gender: 'women', category: '하의', subCategory: '데님',
-    image: img('women', 'jeans', 'jeans', 2), hoverImage: modelImg('women', 'jeans', 'jeans', 2), color: { label: '미드블루', hex: '#6889a8' },
+    image: modelImg('women', 'jeans', 'jeans', 2), hoverImage: img('women', 'jeans', 'jeans', 2), color: { label: '미드블루', hex: '#6889a8' },
     description: '미드 블루 톤의 하이웨이스트 와이드 데님. 허리선을 높여 다리가 길어 보이는 라인입니다.\n코튼 100%\n찬물 손세탁 권장',
   },
   {
     id: 'women-denim-3', name: '슬림 데님', price: 72000, gender: 'women', category: '하의', subCategory: '데님',
-    image: img('women', 'jeans', 'jeans', 3), hoverImage: modelImg('women', 'jeans', 'jeans', 3), color: { label: '다크인디고', hex: '#1f2a42' },
+    image: modelImg('women', 'jeans', 'jeans', 3), hoverImage: img('women', 'jeans', 'jeans', 3), color: { label: '다크인디고', hex: '#1f2a42' },
     description: '다크 인디고 톤의 플레어 데님. 허벅지는 슬림하고 밑단으로 갈수록 퍼지는 라인입니다.\n코튼 98% · 폴리우레탄 2%\n찬물 손세탁 권장',
   },
   {
     id: 'women-denim-4', name: '부츠컷 데님', price: 79000, gender: 'women', category: '하의', subCategory: '데님',
-    image: img('women', 'jeans', 'jeans', 4), hoverImage: modelImg('women', 'jeans', 'jeans', 4), color: { label: '라이트워시', hex: '#9dbcd4' },
+    image: modelImg('women', 'jeans', 'jeans', 4), hoverImage: img('women', 'jeans', 'jeans', 4), color: { label: '라이트워시', hex: '#9dbcd4' },
     description: '라이트 워싱의 스트레이트 데님. 은은한 워시감으로 캐주얼하게 활용하기 좋습니다.\n코튼 100%\n찬물 손세탁 권장',
   },
 
   // ── WOMEN · 하의 · 슬랙스 ──
   {
     id: 'women-slacks-1', name: '와이드 슬랙스', price: 79000, gender: 'women', category: '하의', subCategory: '슬랙스',
-    image: img('women', 'trousers', 'trousers', 1), hoverImage: modelImg('women', 'trousers', 'trousers', 1), color: { label: '차콜', hex: '#2f2f30' },
+    image: modelImg('women', 'trousers', 'trousers', 1), hoverImage: img('women', 'trousers', 'trousers', 1), color: { label: '차콜', hex: '#2f2f30' },
     description: '차콜 컬러의 와이드 슬랙스. 프론트 턱으로 여유로운 실루엣을 완성합니다.\n폴리에스터 70% · 레이온 30%\n드라이클리닝 권장',
   },
   {
     id: 'women-slacks-2', name: '스트레이트 슬랙스', price: 75000, gender: 'women', category: '하의', subCategory: '슬랙스',
-    image: img('women', 'trousers', 'trousers', 2), hoverImage: modelImg('women', 'trousers', 'trousers', 2), color: { label: '다크브라운', hex: '#3a3129' },
+    image: modelImg('women', 'trousers', 'trousers', 2), hoverImage: img('women', 'trousers', 'trousers', 2), color: { label: '다크브라운', hex: '#3a3129' },
     description: '다크 브라운 톤의 와이드 슬랙스. 부드러운 소재로 떨어지는 라인이 우아합니다.\n폴리에스터 65% · 레이온 35%\n드라이클리닝 권장',
   },
   {
     id: 'women-slacks-3', name: '테이퍼드 슬랙스', price: 76000, gender: 'women', category: '하의', subCategory: '슬랙스',
-    image: img('women', 'trousers', 'trousers', 3), hoverImage: modelImg('women', 'trousers', 'trousers', 3), color: { label: '베이지', hex: '#cbb896' },
+    image: modelImg('women', 'trousers', 'trousers', 3), hoverImage: img('women', 'trousers', 'trousers', 3), color: { label: '베이지', hex: '#cbb896' },
     description: '베이지 톤의 와이드 슬랙스. 뉴트럴한 컬러로 활용도가 높습니다.\n폴리에스터 68% · 레이온 32%\n드라이클리닝 권장',
   },
   {
     id: 'women-slacks-4', name: '벨티드 슬랙스', price: 82000, gender: 'women', category: '하의', subCategory: '슬랙스',
-    image: img('women', 'trousers', 'trousers', 4), hoverImage: modelImg('women', 'trousers', 'trousers', 4), color: { label: '블랙', hex: '#232323' },
+    image: modelImg('women', 'trousers', 'trousers', 4), hoverImage: img('women', 'trousers', 'trousers', 4), color: { label: '블랙', hex: '#232323' },
     description: '블랙 컬러의 테이퍼드 슬랙스. 슬림한 밑단으로 깔끔한 라인을 연출합니다.\n폴리에스터 70% · 레이온 30%\n드라이클리닝 권장',
   },
 
   // ── WOMEN · 하의 · 반바지 ──
   {
     id: 'women-shorts-1', name: '버뮤다 반바지', price: 55000, gender: 'women', category: '하의', subCategory: '반바지',
-    image: img('women', 'shorts', 'shorts', 1), hoverImage: modelImg('women', 'shorts', 'shorts', 1), color: { label: '블랙', hex: '#1e1e1e' },
+    image: modelImg('women', 'shorts', 'shorts', 1), hoverImage: img('women', 'shorts', 'shorts', 1), color: { label: '블랙', hex: '#1e1e1e' },
     description: '블랙 컬러의 하이웨이스트 와이드 반바지. 여유로운 핏으로 편안하게 연출됩니다.\n폴리에스터 70% · 레이온 30%\n드라이클리닝 권장',
   },
   {
     id: 'women-shorts-2', name: '와이드 반바지', price: 52000, gender: 'women', category: '하의', subCategory: '반바지',
-    image: img('women', 'shorts', 'shorts', 2), hoverImage: modelImg('women', 'shorts', 'shorts', 2), color: { label: '카키', hex: '#cdb891' },
+    image: modelImg('women', 'shorts', 'shorts', 2), hoverImage: img('women', 'shorts', 'shorts', 2), color: { label: '카키', hex: '#cdb891' },
     description: '카키 톤의 코튼 트윌 와이드 반바지. 튼튼한 소재로 활동적으로 착용하기 좋습니다.\n코튼 100%\n드라이클리닝 권장',
   },
   {
     id: 'women-shorts-3', name: '데님 반바지', price: 49000, gender: 'women', category: '하의', subCategory: '반바지',
-    image: img('women', 'shorts', 'shorts', 3), hoverImage: modelImg('women', 'shorts', 'shorts', 3), color: { label: '블루데님', hex: '#6a92b3' },
+    image: modelImg('women', 'shorts', 'shorts', 3), hoverImage: img('women', 'shorts', 'shorts', 3), color: { label: '블루데님', hex: '#6a92b3' },
     description: '미드 블루 데님 소재의 와이드 반바지. 캐주얼하게 매치하기 좋은 기본 아이템입니다.\n코튼 100%\n찬물 손세탁 권장',
   },
   {
     id: 'women-shorts-4', name: '스웨트 반바지', price: 45000, gender: 'women', category: '하의', subCategory: '반바지',
-    image: img('women', 'shorts', 'shorts', 4), hoverImage: modelImg('women', 'shorts', 'shorts', 4), color: { label: '차콜그레이', hex: '#4a4a4c' },
+    image: modelImg('women', 'shorts', 'shorts', 4), hoverImage: img('women', 'shorts', 'shorts', 4), color: { label: '차콜그레이', hex: '#4a4a4c' },
     description: '차콜 그레이 톤의 테일러드 반바지. 핀턱 디테일로 단정한 인상을 줍니다.\n폴리에스터 65% · 레이온 35%\n드라이클리닝 권장',
   },
 ]
