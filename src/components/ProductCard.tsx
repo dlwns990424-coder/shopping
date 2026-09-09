@@ -40,9 +40,11 @@ function ProductCard({ id, name, price, salePrice, image, hoverImage }: ProductC
           onClick={handleToggleWishlist}
           aria-label={wishlisted ? '찜 해제' : '찜하기'}
           aria-pressed={wishlisted}
-          className="absolute right-12 top-12 flex h-40 w-40 items-center justify-center rounded-full bg-surface/92 text-primary opacity-100 transition-opacity active:scale-90 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-visible:opacity-100"
+          className="absolute right-8 top-8 flex h-32 w-32 items-center justify-center border-none bg-transparent p-0 text-primary opacity-100 transition-opacity active:scale-90 lg:right-12 lg:top-12 lg:h-40 lg:w-40 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-visible:opacity-100"
         >
-          <Heart size={16} strokeWidth={1.5} fill={wishlisted ? 'currentColor' : 'none'} />
+          <span className="flex h-24 w-24 items-center justify-center rounded-full bg-surface/92 lg:h-40 lg:w-40">
+            <Heart size={16} strokeWidth={1.5} fill={wishlisted ? 'currentColor' : 'none'} />
+          </span>
         </button>
       </div>
       <div className="mt-12 flex flex-col gap-4">
