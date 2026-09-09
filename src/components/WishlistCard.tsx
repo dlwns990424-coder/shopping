@@ -34,48 +34,44 @@ function WishlistCard({ product, selected, onToggleSelect, size, onSizeChange, o
   }
 
   return (
-    <div className="flex flex-col gap-12">
-      <div className="relative">
-        <div className="absolute left-8 top-8 z-10 rounded-sm bg-surface/92 p-4">
-          <Checkbox checked={selected} onChange={onToggleSelect} aria-label={`${product.name} 선택`} />
-        </div>
+    <div className="flex flex-col gap-8">
+      <Checkbox checked={selected} onChange={onToggleSelect} label="선택" />
 
-        <Link to={`/products/${product.id}`} className="group block text-inherit no-underline">
-          <div
-            className="relative aspect-[3/4] w-full overflow-hidden rounded-none bg-surface-muted bg-cover bg-center bg-no-repeat"
-            style={product.image ? { backgroundImage: `url(${product.image})` } : undefined}
+      <Link to={`/products/${product.id}`} className="group block text-inherit no-underline">
+        <div
+          className="relative aspect-[3/4] w-full overflow-hidden rounded-none bg-surface-muted bg-cover bg-center bg-no-repeat"
+          style={product.image ? { backgroundImage: `url(${product.image})` } : undefined}
+        >
+          <button
+            type="button"
+            onClick={handleRemove}
+            aria-label="찜 해제"
+            className="absolute right-8 top-8 flex h-32 w-32 items-center justify-center border-none bg-transparent p-0 text-primary lg:right-12 lg:top-12 lg:h-40 lg:w-40"
           >
-            <button
-              type="button"
-              onClick={handleRemove}
-              aria-label="찜 해제"
-              className="absolute right-8 top-8 flex h-32 w-32 items-center justify-center border-none bg-transparent p-0 text-primary lg:right-12 lg:top-12 lg:h-40 lg:w-40"
-            >
-              <span className="flex h-24 w-24 items-center justify-center rounded-full bg-surface/92 lg:h-40 lg:w-40">
-                <Heart size={16} strokeWidth={1.5} fill="currentColor" />
-              </span>
-            </button>
-          </div>
-          <div className="mt-12 flex flex-col gap-4">
-            <p className="text-body text-primary">{product.name}</p>
-            {product.salePrice != null ? (
-              <p className="flex items-center gap-8">
-                <span className="text-caption text-disabled line-through">{formatPrice(product.price)}</span>
-                <span className="text-sm font-semibold text-point">{formatPrice(product.salePrice)}</span>
-              </p>
-            ) : (
-              <p className="text-sm font-semibold text-primary">{formatPrice(product.price)}</p>
-            )}
-          </div>
-        </Link>
-      </div>
+            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-surface/92 lg:h-40 lg:w-40">
+              <Heart size={16} strokeWidth={1.5} fill="currentColor" />
+            </span>
+          </button>
+        </div>
+        <div className="mt-12 flex flex-col gap-4">
+          <p className="text-body text-primary">{product.name}</p>
+          {product.salePrice != null ? (
+            <p className="flex items-center gap-8">
+              <span className="text-caption text-disabled line-through">{formatPrice(product.price)}</span>
+              <span className="text-sm font-semibold text-point">{formatPrice(product.salePrice)}</span>
+            </p>
+          ) : (
+            <p className="text-sm font-semibold text-primary">{formatPrice(product.price)}</p>
+          )}
+        </div>
+      </Link>
 
-      <div className="flex gap-8">
-        <div className="relative flex-1">
+      <div className="flex flex-col gap-8 lg:flex-row">
+        <div className="relative w-full lg:w-72 lg:shrink-0">
           <select
             value={size}
             onChange={(e) => onSizeChange(e.target.value)}
-            className="text-body-sm h-36 w-full appearance-none rounded-sm border border-line pl-12 pr-28"
+            className="text-body-sm h-36 w-full appearance-none rounded-sm border border-line pl-12 pr-24"
           >
             <option value="">사이즈</option>
             {product.sizes.map((s) => (
@@ -87,11 +83,11 @@ function WishlistCard({ product, selected, onToggleSelect, size, onSizeChange, o
           <ChevronDown
             size={14}
             strokeWidth={1.5}
-            className="pointer-events-none absolute right-8 top-1/2 -translate-y-1/2 text-secondary"
+            className="pointer-events-none absolute right-6 top-1/2 -translate-y-1/2 text-secondary"
           />
         </div>
-        <Button size="small" variant="secondary" className="shrink-0" onClick={handleAdd} disabled={!size}>
-          담기
+        <Button size="small" variant="secondary" className="w-full lg:flex-1" onClick={handleAdd} disabled={!size}>
+          장바구니 담기
         </Button>
       </div>
     </div>
