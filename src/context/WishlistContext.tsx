@@ -5,6 +5,7 @@ interface WishlistContextValue {
   ids: string[]
   isWishlisted: (id: string) => boolean
   toggle: (id: string) => void
+  removeMany: (ids: string[]) => void
 }
 
 const WishlistContext = createContext<WishlistContextValue | null>(null)
@@ -32,8 +33,17 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
   const isWishlisted = (id: string) => ids.includes(id)
 
+  const removeMany = (removeIds: string[]) => {
+    setIds((prev) => {
+      const removeSet = new Set(removeIds)
+      const next = prev.filter((id) => !removeSet.has(id))
+      safeSetItem(WISHLIST_KEY, next)
+      return next
+    })
+  }
+
   return (
-    <WishlistContext.Provider value={{ ids, isWishlisted, toggle }}>
+    <WishlistContext.Provider value={{ ids, isWishlisted, toggle, removeMany }}>
       {children}
     </WishlistContext.Provider>
   )
