@@ -9,7 +9,7 @@ type OrderShippingInfo = Pick<
 
 interface OrderHistoryContextValue {
   orders: Order[]
-  addOrder: (userEmail: string, items: CartItem[], shipping: OrderShippingInfo) => void
+  addOrder: (userEmail: string, items: CartItem[], shippingFee: number, shipping: OrderShippingInfo) => void
   updateOrderStatuses: (orderIds: string[], status: OrderStatus) => void
 }
 
@@ -28,13 +28,14 @@ function readOrders(): Order[] {
 export function OrderHistoryProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>(readOrders)
 
-  const addOrder = (userEmail: string, items: CartItem[], shipping: OrderShippingInfo) => {
+  const addOrder = (userEmail: string, items: CartItem[], shippingFee: number, shipping: OrderShippingInfo) => {
     const newOrder: Order = {
       id: `ORD-${Date.now()}`,
       date: new Date().toISOString().slice(0, 10),
       status: '결제완료',
       userEmail,
       items,
+      shippingFee,
       ...shipping,
     }
     setOrders((prev) => {

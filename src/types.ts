@@ -75,6 +75,7 @@ export interface Order {
   status: OrderStatus
   userEmail: string
   items: CartItem[]
+  shippingFee: number
   shippingName: string
   shippingPhone: string
   shippingAddress: string

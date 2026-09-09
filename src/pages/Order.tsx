@@ -85,7 +85,7 @@ function Order() {
     if (saveAsDefault) {
       updateProfile(shippingForm)
     }
-    addOrder(user!.email, items, {
+    addOrder(user!.email, items, SHIPPING_FEE, {
       shippingName: shippingForm.shippingName,
       shippingPhone: shippingForm.shippingPhone,
       shippingAddress: shippingForm.shippingAddress,
