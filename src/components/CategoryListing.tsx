@@ -2,22 +2,13 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { ChevronDown, Search, X } from 'lucide-react'
+import Button from './Button'
 import ProductCard from './ProductCard'
 import { sizeOptions } from '../mock/productDetail'
+import { CATEGORY_TABS as TABS, SUB_CATEGORIES } from '../constants/categoryFilters'
 import type { Gender, Product } from '../types'
 
-const TABS = [
-  { id: 'all', label: '모두 보기' },
-  { id: '아우터', label: '아우터' },
-  { id: '상의', label: '상의' },
-  { id: '하의', label: '하의' },
-]
-
-const SUB_CATEGORIES: Record<string, string[]> = {
-  아우터: ['코트', '자켓·블레이저', '패딩', '가디건'],
-  상의: ['셔츠', '티셔츠', '니트·스웨트', '후드'],
-  하의: ['데님', '슬랙스', '반바지'],
-}
+const PRODUCTS_PER_PAGE = 12
 
 const SORT_OPTIONS = [
   { id: 'default', label: '기본순' },
@@ -48,6 +39,7 @@ function CategoryListing({ basePath, products, defaultGender, categoryParam }: C
   const genderOverride = searchParams.get('gender')
 
   const [queryInput, setQueryInput] = useState(qParam)
+  const [visibleCount, setVisibleCount] = useState(PRODUCTS_PER_PAGE)
 
   useEffect(() => {
     setQueryInput(qParam)
@@ -56,6 +48,10 @@ function CategoryListing({ basePath, products, defaultGender, categoryParam }: C
   const isSearching = qParam.trim().length > 0
   const effectiveGender: 'all' | Gender = isSearching ? (genderOverride as 'all' | Gender) || 'all' : defaultGender
   const genderLabel = effectiveGender === 'all' ? '전체' : effectiveGender.toUpperCase()
+
+  useEffect(() => {
+    setVisibleCount(PRODUCTS_PER_PAGE)
+  }, [categoryParam, subParam, sizeParam, sortParam, qParam, effectiveGender])
 
   const buildUrl = (overrides: Record<string, string | undefined>) => {
     const params = new URLSearchParams(searchParams)
@@ -224,11 +220,23 @@ function CategoryListing({ basePath, products, defaultGender, categoryParam }: C
       </div>
 
       {displayedProducts.length > 0 ? (
-        <div className="product-grid gap-y-32">
-          {displayedProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
-        </div>
+        <>
+          <div className="product-grid gap-y-32">
+            {displayedProducts.slice(0, visibleCount).map((product) => (
+              <ProductCard key={product.id} {...product} />
+            ))}
+          </div>
+          {displayedProducts.length > visibleCount && (
+            <div className="mt-32 flex justify-center">
+              <Button
+                variant="secondary"
+                onClick={() => setVisibleCount((count) => count + PRODUCTS_PER_PAGE)}
+              >
+                더보기
+              </Button>
+            </div>
+          )}
+        </>
       ) : (
         <p className="text-body-sm">해당 조건에 맞는 상품이 없습니다.</p>
       )}

@@ -32,6 +32,23 @@ const rows = [
   { key: 'home.event_banner.men-denim.label', page: 'home', label: '홈 이벤트배너 3 라벨', value: '데님 컬렉션' },
   { key: 'home.event_banner.women-shirt.label', page: 'home', label: '홈 이벤트배너 4 라벨', value: '셔츠 & 블라우스' },
 
+  { key: 'home.event_banner.men-outer.gender', page: 'home', label: '홈 이벤트배너 1 성별', value: 'men' },
+  { key: 'home.event_banner.men-outer.category', page: 'home', label: '홈 이벤트배너 1 카테고리', value: '아우터' },
+  { key: 'home.event_banner.men-outer.sub', page: 'home', label: '홈 이벤트배너 1 서브카테고리', value: '' },
+  { key: 'home.event_banner.men-outer.order', page: 'home', label: '홈 이벤트배너 1 순서', value: '10' },
+  { key: 'home.event_banner.women-knit.gender', page: 'home', label: '홈 이벤트배너 2 성별', value: 'women' },
+  { key: 'home.event_banner.women-knit.category', page: 'home', label: '홈 이벤트배너 2 카테고리', value: '상의' },
+  { key: 'home.event_banner.women-knit.sub', page: 'home', label: '홈 이벤트배너 2 서브카테고리', value: '니트·스웨트' },
+  { key: 'home.event_banner.women-knit.order', page: 'home', label: '홈 이벤트배너 2 순서', value: '20' },
+  { key: 'home.event_banner.men-denim.gender', page: 'home', label: '홈 이벤트배너 3 성별', value: 'men' },
+  { key: 'home.event_banner.men-denim.category', page: 'home', label: '홈 이벤트배너 3 카테고리', value: '하의' },
+  { key: 'home.event_banner.men-denim.sub', page: 'home', label: '홈 이벤트배너 3 서브카테고리', value: '데님' },
+  { key: 'home.event_banner.men-denim.order', page: 'home', label: '홈 이벤트배너 3 순서', value: '30' },
+  { key: 'home.event_banner.women-shirt.gender', page: 'home', label: '홈 이벤트배너 4 성별', value: 'women' },
+  { key: 'home.event_banner.women-shirt.category', page: 'home', label: '홈 이벤트배너 4 카테고리', value: '상의' },
+  { key: 'home.event_banner.women-shirt.sub', page: 'home', label: '홈 이벤트배너 4 서브카테고리', value: '셔츠' },
+  { key: 'home.event_banner.women-shirt.order', page: 'home', label: '홈 이벤트배너 4 순서', value: '40' },
+
   { key: 'men.hero.image_mobile', page: 'men', label: '남성 히어로 이미지 (모바일)', value: '' },
   { key: 'men.hero.image_desktop', page: 'men', label: '남성 히어로 이미지 (데스크톱)', value: '' },
 

@@ -22,7 +22,15 @@
 5. **테스트 계정 — 2026-09-09부터 Supabase Auth 실계정으로 전환됨** (더 이상 localStorage 자동생성 아님, 실제 DB에 존재하는 계정): 일반 `test@test.com`(비밀번호는 사용자 본인 계정이라 기록 안 함), 관리자 `admin@test.com` / `admin1234`. 같은 Supabase 프로젝트를 쓰는 한 새 컴퓨터에서도 그대로 로그인 가능(계정이 서버에 있어서 로컬 설정 불필요) — `.env.local`만 있으면 됨
 
 ## 마지막 갱신
-- 날짜: 2026-09-09 (같은 날 두 번째 세션)
+- 날짜: 2026-09-09 (같은 날 네 번째 세션)
+- **이번 세션 요약 — 홈 이벤트배너를 관리자 페이지에서 순서/링크 대상까지 편집 가능하게 개선**: 기존엔 라벨/이미지만 Supabase로 관리되고 순서·클릭 시 이동 경로(`to`)는 `Home.tsx` 코드에 하드코딩돼 있어 시즌마다 이벤트가 바뀔 때 코드 수정이 필요했던 문제 해결. "링크 URL 직접 입력"이 아니라 `CategoryListing.tsx`가 쓰는 성별/카테고리/서브카테고리 체계를 그대로 드롭다운으로 골라 URL이 자동 조립되는 방식으로 설계.
+  1. `CategoryListing.tsx`의 `TABS`/`SUB_CATEGORIES` 상수를 `src/constants/categoryFilters.ts`로 추출(양쪽에서 재사용, 값 변경 없음)
+  2. `scripts/sql/011_event_banner_link_target.sql` — 배너 4개 각각에 `.gender`/`.category`/`.sub`/`.order` row 신규 추가(기존 하드코딩 값과 동일하게 시딩). `scripts/seed-content.ts`에도 동일 반영. **사용자가 Supabase SQL Editor에서 실행 완료**
+  3. `src/admin/components/EventBannerManager.tsx` 신규 — `FeaturedCarouselManager.tsx`의 드래그 재정렬 패턴(로컬 order id배열 + 드래그 종료 시 실제 순서값 일괄 반영, 예전에 "화면만 바뀌고 순서값 저장이 스킵되던" 버그를 겪었던 방식과 동일하게 재발 방지) 그대로 재사용. 배너 카드마다 드래그핸들+썸네일(클릭 시 기존 `ImageCropModal` 2:3 크롭 재사용)+라벨 인라인수정+성별/카테고리/서브카테고리 select(변경 즉시 저장) 구성
+  4. `ContentManage.tsx` — `event_banner` 섹션의 범용 row 렌더링(라벨/이미지 개별 카드) 제외하고 `<EventBannerManager />`로 대체, "메인 캐러셀 상품" 옆에 배치
+  5. `Home.tsx` — `EVENT_BANNERS` 배열의 `label`/`to` 하드코딩 제거, id 4개만 남기고 `content`에서 순서/필터값을 읽어 정렬 + `eventBannerUrl()`로 URL 조립
+  6. **검증**: 브라우저로 (a) 관리자 페이지에 SQL 시딩값 그대로 4개 카드 정상 렌더링 (b) 서브카테고리 select 변경→새로고침해도 저장 유지 (c) 홈에서 해당 배너 클릭 시 실제로 `/men?category=아우터&sub=코트`로 이동해 정확히 필터링된 상품만 노출 (d) HTML5 DragEvent를 JS로 직접 dispatch해서 드래그 재정렬 재현(이 자동화 도구의 알려진 한계로 실제 마우스 드래그 대신 사용, PROGRESS.md 기존 기록과 동일한 방식)→새로고침 후에도 순서 유지→홈 화면에도 반영 확인. 테스트로 바꾼 값은 전부 원래대로 복구. `npx tsc -b`/`npm run lint` 신규 에러·경고 0건(기존과 동일한 `set-state-in-effect` 패턴 1건 추가뿐)
+- **이번 세션(짧은 세션) 요약**: 다른 컴퓨터에서 이어받아 `git pull`+`npm install`+`.env` 재설정(URL/anon key 채움, 이전엔 빈 값이라 앱이 아예 안 떴음)으로 개발 서버 정상화. 이후 `CategoryListing.tsx`에 **"더보기" 버튼형 페이지네이션** 신규 추가(자동 무한스크롤 대신 클릭형으로 결정 — 구현 단순, 로딩 타이밍 사용자 통제 목적) — `PRODUCTS_PER_PAGE=12`, `visibleCount` state로 누적 표시, 카테고리/서브카테고리/사이즈/정렬/검색어/성별 중 하나라도 바뀌면 12개로 리셋되는 `useEffect` 추가. `MemberManage.tsx`의 페이지 크기 상수 패턴을 참고해 통일감 유지. 브라우저로 (a) 12개 단위로 버튼 눌러야 추가 노출 (b) 전체 다 보이면 버튼 사라짐 (c) 필터 변경 시 12개로 리셋 확인까지 완료. `npx tsc -b` 에러 0건, `npm run lint` 신규 경고 0건(기존과 동일한 `set-state-in-effect` 패턴 1건 추가뿐). **아래 "앞으로 해야 할 것" 8번(카테고리 리스팅 페이지네이션/무한스크롤) 항목 완료 처리.**
 - **git 상태: Supabase Auth 전환(커밋 `980a560`)까지 커밋 완료. 이번 세션(반응형 UX + 이미지 크롭 기능) 작업분은 이 갱신 직후 커밋+push 예정** — 다음 세션 시작 지점 참고
 - **이번 세션(반응형 UX 점검 + 반응형 이미지 크롭 기능) 요약**:
   1. **사용자 페이지 반응형 점검** — Home/Header/CategoryListing은 이미 정상이었고, `ProductCarousel.tsx`(Men/Women 상단 캐러셀)가 모바일에서도 4개 고정폭이라 카드가 지나치게 작아지는 문제 발견 → 모바일 2.2개(45%)/태블릿 3개(33%)/PC 4개(25%)로 반응형 처리, embla 옵션에 `containScroll:'trimSnaps'`(끝 여백 정리) 추가
@@ -488,7 +496,7 @@ Header, Footer, Button, HeroPillButton, Input, Checkbox, ProductCard, CategoryCa
 5. 상품 이미지 최적화(리사이즈/webp) — men hover 이미지 다 채운 뒤 진행하기로 보류
 6. 위시리스트 하트→X 아이콘 변경 여부 결정 (위 참고)
 7. 반품 부분취소(상품 단위) — 보류 중, 별도 설계 필요
-8. 카테고리 리스팅 페이지네이션/무한스크롤 — 상품 수가 더 늘어나면 필요(지금은 성별당 30개 안팎이라 아직 급하지 않음)
+8. ~~카테고리 리스팅 페이지네이션/무한스크롤~~ — **완료(2026-09-09 세 번째 세션)**, `CategoryListing.tsx`에 "더보기" 버튼형으로 구현됨
 9. Figma 와이어프레임을 최신 코드에 맞게 재정합 — 격차 계속 벌어지는 중, 재개 요청 있을 때까지 대기
 10. 반응형 실기기 정밀 검증(이 환경 브라우저 자동화가 실제 창 리사이즈를 지원하지 않아 iframe 트릭으로만 확인해옴)
 9. `allowJs` 꺼둔 상태 유지(전체 `.ts`/`.tsx`), 실수로 `.js`/`.jsx` 재유입 주의

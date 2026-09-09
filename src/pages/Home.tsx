@@ -2,18 +2,15 @@ import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useContent } from '../context/ContentContext'
 
-interface EventBanner {
-  id: string
-  label: string
-  to: string
-}
+// 라벨/이미지/성별/카테고리/서브카테고리/노출순서는 전부 관리자 페이지
+// (EventBannerManager)에서 site_content로 관리됨 — 여기엔 4개 슬롯의 id만 고정.
+const EVENT_BANNER_IDS = ['men-outer', 'women-knit', 'men-denim', 'women-shirt']
 
-const EVENT_BANNERS: EventBanner[] = [
-  { id: 'men-outer', label: '가을 아우터', to: '/men?category=아우터' },
-  { id: 'women-knit', label: '니트 · 스웨트', to: '/women?category=상의&sub=니트·스웨트' },
-  { id: 'men-denim', label: '데님 컬렉션', to: '/men?category=하의&sub=데님' },
-  { id: 'women-shirt', label: '셔츠 & 블라우스', to: '/women?category=상의&sub=셔츠' },
-]
+function eventBannerUrl(gender: string, category: string, sub: string) {
+  const params = new URLSearchParams({ category: category || 'all' })
+  if (sub) params.set('sub', sub)
+  return `/${gender}?${params.toString()}`
+}
 
 function Home() {
   const { content } = useContent()
@@ -24,6 +21,16 @@ function Home() {
   const menBannerMobile = content['home.men_banner.image_mobile'] || menBannerDesktop
   const womenBannerDesktop = content['home.women_banner.image_desktop']
   const womenBannerMobile = content['home.women_banner.image_mobile'] || womenBannerDesktop
+
+  const eventBanners = EVENT_BANNER_IDS.map((id) => ({
+    id,
+    label: content[`home.event_banner.${id}.label`] ?? '',
+    image: content[`home.event_banner.${id}.image`] ?? '',
+    gender: content[`home.event_banner.${id}.gender`] || 'men',
+    category: content[`home.event_banner.${id}.category`] || 'all',
+    sub: content[`home.event_banner.${id}.sub`] ?? '',
+    order: Number(content[`home.event_banner.${id}.order`]) || 0,
+  })).sort((a, b) => a.order - b.order)
 
   return (
     <div>
@@ -109,21 +116,15 @@ function Home() {
 
       <section className="mt-20 pb-20">
         <div className="grid grid-cols-2 gap-0 lg:grid-cols-4">
-          {EVENT_BANNERS.map((banner) => (
+          {eventBanners.map((banner) => (
             <Link
               key={banner.id}
-              to={banner.to}
+              to={eventBannerUrl(banner.gender, banner.category, banner.sub)}
               className="group relative flex aspect-[2/3] items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
-              style={
-                content[`home.event_banner.${banner.id}.image`]
-                  ? { backgroundImage: `url(${content[`home.event_banner.${banner.id}.image`]})` }
-                  : undefined
-              }
+              style={banner.image ? { backgroundImage: `url(${banner.image})` } : undefined}
             >
               <div className="relative z-10 flex flex-col gap-8 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
-                <p className="text-h3 text-surface">
-                  {content[`home.event_banner.${banner.id}.label`] ?? banner.label}
-                </p>
+                <p className="text-h3 text-surface">{banner.label}</p>
                 <span className="text-button w-fit border-b border-surface pb-2 text-surface group-hover:text-point">
                   Shop Now
                 </span>

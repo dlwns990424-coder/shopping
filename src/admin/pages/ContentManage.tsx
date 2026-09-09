@@ -6,6 +6,7 @@ import ConfirmModal from '../../components/ConfirmModal'
 import ImageCropModal from '../../components/ImageCropModal'
 import { uploadImage } from '../../utils/uploadImage'
 import FeaturedCarouselManager from '../components/FeaturedCarouselManager'
+import EventBannerManager from '../components/EventBannerManager'
 
 interface ContentRow {
   key: string
@@ -25,7 +26,6 @@ const SECTION_LABELS: Record<string, string> = {
   hero: '히어로',
   men_banner: 'MEN 배너',
   women_banner: 'WOMEN 배너',
-  event_banner: '이벤트 배너',
   category_all: '카테고리 - 모두 보기',
   category_outer: '카테고리 - 아우터',
   category_top: '카테고리 - 상의',
@@ -177,12 +177,15 @@ function ContentManage() {
     loadRows()
   }
 
-  const groupedByPage = rows.reduce<Record<string, Record<string, ContentRow[]>>>((pages, row) => {
-    const section = sectionOf(row.key)
-    const page = (pages[row.page] ??= {})
-    ;(page[section] ??= []).push(row)
-    return pages
-  }, {})
+  // event_banner는 EventBannerManager가 전담(순서/이미지/라벨/필터를 카드 하나로 관리)하므로 범용 렌더링에서 제외
+  const groupedByPage = rows
+    .filter((row) => sectionOf(row.key) !== 'event_banner')
+    .reduce<Record<string, Record<string, ContentRow[]>>>((pages, row) => {
+      const section = sectionOf(row.key)
+      const page = (pages[row.page] ??= {})
+      ;(page[section] ??= []).push(row)
+      return pages
+    }, {})
 
   return (
     <div className="flex flex-col gap-32">
@@ -198,6 +201,11 @@ function ContentManage() {
           <FeaturedCarouselManager gender="men" label="MEN" />
           <FeaturedCarouselManager gender="women" label="WOMEN" />
         </div>
+      </div>
+
+      <div className="flex flex-col gap-16">
+        <h2 className="text-h3 border-b border-line pb-8 font-bold">홈 이벤트 배너</h2>
+        <EventBannerManager />
       </div>
 
       {error && <p className="text-body-sm text-point">{error}</p>}
