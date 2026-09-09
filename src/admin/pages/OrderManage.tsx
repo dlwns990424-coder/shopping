@@ -10,7 +10,7 @@ import type { OrderStatus } from '../../types'
 import { formatPrice } from '../../utils/formatPrice'
 import { orderTotal } from '../../utils/orderStats'
 
-const ORDER_STATUSES: OrderStatus[] = ['결제완료', '배송준비', '배송중', '배송완료', '취소']
+const ORDER_STATUSES: OrderStatus[] = ['결제완료', '배송준비', '배송중', '배송완료', '반품접수', '반품완료', '취소']
 
 // 배송이 시작되면(배송중/배송완료) "취소"가 아니라 반품 절차로 넘어가야 하므로
 // 바로 취소 버튼은 아직 출고되지 않은 상태에서만 노출한다.
@@ -229,6 +229,22 @@ function OrderManage() {
                             <div className="sm:col-span-2">
                               <p className="text-caption text-secondary">배송 요청사항</p>
                               <p className="text-body-sm text-primary">{order.deliveryRequest}</p>
+                            </div>
+                          )}
+                          {order.returnReason && (
+                            <div className="sm:col-span-2">
+                              <p className="text-caption text-secondary">반품 사유</p>
+                              <p className="text-body-sm text-primary">
+                                {order.returnReason}
+                                {order.returnDetail && ` · ${order.returnDetail}`}
+                              </p>
+                              {order.returnPhotos && order.returnPhotos.length > 0 && (
+                                <div className="mt-8 flex flex-wrap gap-8">
+                                  {order.returnPhotos.map((url) => (
+                                    <img key={url} src={url} alt="반품 사진" className="h-56 w-56 rounded-sm object-cover" />
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

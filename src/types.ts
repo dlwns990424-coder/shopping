@@ -67,7 +67,7 @@ export interface CartItem {
   image: string | null
 }
 
-export type OrderStatus = '결제완료' | '배송준비' | '배송중' | '배송완료' | '취소'
+export type OrderStatus = '결제완료' | '배송준비' | '배송중' | '배송완료' | '반품접수' | '반품완료' | '취소'
 
 export interface Order {
   id: string
@@ -81,4 +81,7 @@ export interface Order {
   shippingAddress: string
   shippingAddressDetail?: string
   deliveryRequest?: string
+  returnReason?: string
+  returnDetail?: string
+  returnPhotos?: string[]
 }

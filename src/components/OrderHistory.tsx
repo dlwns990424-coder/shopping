@@ -3,6 +3,7 @@ import type { OrderStatus } from '../types'
 import Button from './Button'
 import ConfirmModal from './ConfirmModal'
 import OrderItemRow from './OrderItemRow'
+import ReturnRequestModal from './ReturnRequestModal'
 import { useAuth } from '../context/AuthContext'
 import { useOrderHistory } from '../context/OrderHistoryContext'
 import { formatPrice } from '../utils/formatPrice'
@@ -10,18 +11,22 @@ import { orderItemsTotal, orderTotal } from '../utils/orderStats'
 
 // 배송 완료된 지난 주문보다 "지금 내가 결제한 게 어떻게 되고 있는지"가 더 궁금하다는
 // 피드백으로, 날짜순 대신 진행 상태 우선순위로 정렬한다(같은 상태 안에서는 최신순 유지).
+// 반품접수는 아직 처리 중인 관심사라 배송완료보다 앞에 둔다.
 const STATUS_PRIORITY: Record<OrderStatus, number> = {
   결제완료: 0,
   배송준비: 1,
   배송중: 2,
-  배송완료: 3,
-  취소: 4,
+  반품접수: 3,
+  배송완료: 4,
+  반품완료: 5,
+  취소: 6,
 }
 
 function OrderHistory() {
   const { user } = useAuth()
-  const { orders, updateOrderStatuses } = useOrderHistory()
+  const { orders, updateOrderStatuses, requestReturn } = useOrderHistory()
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null)
+  const [returnTargetId, setReturnTargetId] = useState<string | null>(null)
   const myOrders = orders
     .filter((order) => order.userEmail === user?.email)
     .slice()
@@ -31,6 +36,12 @@ function OrderHistory() {
     if (!cancelTargetId) return
     updateOrderStatuses([cancelTargetId], '취소')
     setCancelTargetId(null)
+  }
+
+  const submitReturn = (reason: string, detail: string, photos: string[]) => {
+    if (!returnTargetId) return
+    requestReturn(returnTargetId, reason, detail, photos)
+    setReturnTargetId(null)
   }
 
   if (myOrders.length === 0) {
@@ -73,6 +84,21 @@ function OrderHistory() {
               <span className="text-price">{formatPrice(orderTotal(order))}</span>
             </div>
           </div>
+          {(order.status === '반품접수' || order.status === '반품완료') && (
+            <div className="text-body-sm mt-16 flex flex-col gap-8 rounded-sm bg-surface-muted p-12 text-secondary">
+              <p>
+                반품 사유: <span className="text-primary">{order.returnReason}</span>
+              </p>
+              {order.returnDetail && <p>{order.returnDetail}</p>}
+              {order.returnPhotos && order.returnPhotos.length > 0 && (
+                <div className="flex flex-wrap gap-8">
+                  {order.returnPhotos.map((url) => (
+                    <img key={url} src={url} alt="반품 사진" className="h-56 w-56 rounded-sm object-cover" />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           {order.status === '결제완료' && (
             <Button
               size="small"
@@ -81,6 +107,16 @@ function OrderHistory() {
               onClick={() => setCancelTargetId(order.id)}
             >
               주문취소
+            </Button>
+          )}
+          {order.status === '배송완료' && (
+            <Button
+              size="small"
+              variant="secondary"
+              className="mt-16"
+              onClick={() => setReturnTargetId(order.id)}
+            >
+              반품 신청
             </Button>
           )}
         </div>
@@ -95,6 +131,8 @@ function OrderHistory() {
           onCancel={() => setCancelTargetId(null)}
         />
       )}
+
+      {returnTargetId && <ReturnRequestModal onCancel={() => setReturnTargetId(null)} onSubmit={submitReturn} />}
     </div>
   )
 }

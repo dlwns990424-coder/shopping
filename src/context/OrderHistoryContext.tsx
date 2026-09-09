@@ -11,6 +11,7 @@ interface OrderHistoryContextValue {
   orders: Order[]
   addOrder: (userEmail: string, items: CartItem[], shippingFee: number, shipping: OrderShippingInfo) => void
   updateOrderStatuses: (orderIds: string[], status: OrderStatus) => void
+  requestReturn: (orderId: string, reason: string, detail: string, photos: string[]) => void
 }
 
 const OrderHistoryContext = createContext<OrderHistoryContextValue | null>(null)
@@ -54,8 +55,20 @@ export function OrderHistoryProvider({ children }: { children: ReactNode }) {
     })
   }
 
+  const requestReturn = (orderId: string, reason: string, detail: string, photos: string[]) => {
+    setOrders((prev) => {
+      const next = prev.map((order) =>
+        order.id === orderId
+          ? { ...order, status: '반품접수' as const, returnReason: reason, returnDetail: detail, returnPhotos: photos }
+          : order,
+      )
+      safeSetItem(ORDERS_KEY, next)
+      return next
+    })
+  }
+
   return (
-    <OrderHistoryContext.Provider value={{ orders, addOrder, updateOrderStatuses }}>
+    <OrderHistoryContext.Provider value={{ orders, addOrder, updateOrderStatuses, requestReturn }}>
       {children}
     </OrderHistoryContext.Provider>
   )
