@@ -121,7 +121,7 @@ function OrderHistory() {
                 반품 신청
               </Button>
             ) : (
-              <div className="mt-16 flex flex-col gap-4">
+              <div className="mt-16 flex flex-col items-start gap-4">
                 <Button size="small" variant="secondary" disabled>
                   반품 신청
                 </Button>

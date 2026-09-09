@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
 
 const TABS = [
-  { id: 'settings', label: '계정 설정' },
   { id: 'orders', label: '주문 내역' },
   { id: 'recent', label: '최근 본 상품' },
+  { id: 'settings', label: '계정 설정' },
 ] as const
 
 interface MyPageNavProps {
