@@ -1,4 +1,4 @@
-import type { MouseEvent } from 'react'
+import { useState, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronDown, Heart } from 'lucide-react'
 import type { Product } from '../types'
@@ -10,16 +10,16 @@ import Checkbox from './Checkbox'
 
 interface WishlistCardProps {
   product: Product
+  selectionMode: boolean
   selected: boolean
   onToggleSelect: () => void
-  size: string
-  onSizeChange: (size: string) => void
   onAdded: () => void
 }
 
-function WishlistCard({ product, selected, onToggleSelect, size, onSizeChange, onAdded }: WishlistCardProps) {
+function WishlistCard({ product, selectionMode, selected, onToggleSelect, onAdded }: WishlistCardProps) {
   const { toggle } = useWishlist()
   const { addItem } = useCart()
+  const [size, setSize] = useState('')
 
   const handleRemove = (e: MouseEvent) => {
     e.preventDefault()
@@ -35,7 +35,7 @@ function WishlistCard({ product, selected, onToggleSelect, size, onSizeChange, o
 
   return (
     <div className="flex flex-col gap-8">
-      <Checkbox checked={selected} onChange={onToggleSelect} label="선택" />
+      {selectionMode && <Checkbox checked={selected} onChange={onToggleSelect} label="선택" />}
 
       <Link to={`/products/${product.id}`} className="group block text-inherit no-underline">
         <div
@@ -70,7 +70,7 @@ function WishlistCard({ product, selected, onToggleSelect, size, onSizeChange, o
         <div className="relative w-full lg:w-72 lg:shrink-0">
           <select
             value={size}
-            onChange={(e) => onSizeChange(e.target.value)}
+            onChange={(e) => setSize(e.target.value)}
             className="text-body-sm h-36 w-full appearance-none rounded-sm border border-line pl-12 pr-24"
           >
             <option value="">사이즈</option>
