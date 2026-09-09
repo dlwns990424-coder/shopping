@@ -1,10 +1,12 @@
 import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { Search, Heart, ShoppingBag, User, Menu, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 import { useProducts } from '../context/ProductsContext'
 import SearchOverlay from './SearchOverlay'
+
+const TRANSPARENT_SCROLL_THRESHOLD = 100
 
 type Gender = 'men' | 'women'
 
@@ -26,17 +28,19 @@ interface IconButtonProps {
   to?: string
   onClick?: () => void
   children: ReactNode
+  light?: boolean
 }
 
-function IconButton({ label, to, onClick, children }: IconButtonProps) {
+function IconButton({ label, to, onClick, children, light }: IconButtonProps) {
   const content = (
     <>
       <span className="sr-only">{label}</span>
       {children}
     </>
   )
-  const className =
-    'inline-flex h-44 w-44 cursor-pointer items-center justify-center border-none bg-transparent p-0 text-primary transition-colors hover:text-disabled active:scale-90'
+  const className = `inline-flex h-44 w-44 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-colors active:scale-90 ${
+    light ? 'text-white hover:text-white/70' : 'text-primary hover:text-disabled'
+  }`
 
   if (to) {
     return (
@@ -57,14 +61,33 @@ function Header() {
   const { openLoginModal } = useAuthModal()
   const { products } = useProducts()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
   const activeGender = getActiveGender(location.pathname, products)
   const [searchOpen, setSearchOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [hovered, setHovered] = useState(false)
+
+  const isHeroPage =
+    (location.pathname === '/' || location.pathname === '/men' || location.pathname === '/women') &&
+    !searchParams.get('category')
+  const isTransparent = isHeroPage && !scrolled && !searchOpen && !menuOpen && !hovered
 
   useEffect(() => {
     setSearchOpen(false)
     setMenuOpen(false)
   }, [location.pathname])
+
+  useEffect(() => {
+    if (!isHeroPage) {
+      setScrolled(false)
+      return
+    }
+    const handleScroll = () => setScrolled(window.scrollY > TRANSPARENT_SCROLL_THRESHOLD)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [isHeroPage])
 
   const handleMobileProtectedClick = (e: MouseEvent) => {
     setMenuOpen(false)
@@ -75,14 +98,39 @@ function Header() {
   }
 
   const navLinkClass = (active: boolean) =>
-    `border-b py-4 text-sm font-medium no-underline transition-colors hover:border-primary hover:text-primary ${
-      active ? 'border-primary text-primary' : 'border-transparent text-disabled'
+    `border-b py-4 text-sm font-medium no-underline transition-colors ${
+      isTransparent
+        ? active
+          ? 'border-white text-white'
+          : 'border-transparent text-white/70 hover:border-white hover:text-white'
+        : active
+          ? 'border-primary text-primary hover:border-primary hover:text-primary'
+          : 'border-transparent text-disabled hover:border-primary hover:text-primary'
     }`
 
   return (
-    <header className="fixed inset-x-0 top-0 z-header flex h-64 items-center gap-16 border-b border-line bg-surface px-24 md:gap-32 md:px-32 lg:px-40">
+    <header
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className={`fixed inset-x-0 top-0 z-header flex h-64 items-center gap-16 border-b px-24 transition-colors duration-300 md:gap-32 md:px-32 lg:px-40 ${
+        isTransparent ? 'border-transparent bg-transparent' : 'border-line bg-surface'
+      }`}
+    >
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-x-0 top-0 -z-10 h-[160px] bg-gradient-to-b from-black/20 to-transparent transition-opacity duration-300 ${
+          isTransparent ? 'opacity-100' : 'opacity-0'
+        }`}
+      />
+
       <Link to="/" className="inline-flex shrink-0 items-center">
-        <img src="/images/brand/novera-logo-header.png" alt="NOVERA" className="block h-22 w-auto md:h-26" />
+        <img
+          src="/images/brand/novera-logo-header.png"
+          alt="NOVERA"
+          className={`block h-22 w-auto transition-[filter] duration-300 md:h-26 ${
+            isTransparent ? 'brightness-0 invert' : ''
+          }`}
+        />
       </Link>
 
       <nav className="flex flex-1 gap-16 md:gap-24">
@@ -95,16 +143,17 @@ function Header() {
       </nav>
 
       <div className="hidden items-center gap-8 md:flex md:gap-16">
-        <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)}>
+        <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)} light={isTransparent}>
           <Search size={20} strokeWidth={1.5} />
         </IconButton>
-        <IconButton label="위시리스트" to="/wishlist">
+        <IconButton label="위시리스트" to="/wishlist" light={isTransparent}>
           <Heart size={20} strokeWidth={1.5} />
         </IconButton>
         <IconButton
           label="장바구니"
           to={user ? '/cart' : undefined}
           onClick={user ? undefined : openLoginModal}
+          light={isTransparent}
         >
           <ShoppingBag size={20} strokeWidth={1.5} />
         </IconButton>
@@ -112,13 +161,18 @@ function Header() {
           label="마이페이지"
           to={user ? '/mypage' : undefined}
           onClick={user ? undefined : openLoginModal}
+          light={isTransparent}
         >
           <User size={20} strokeWidth={1.5} />
         </IconButton>
       </div>
 
       <div className="md:hidden">
-        <IconButton label={menuOpen ? '메뉴 닫기' : '메뉴 열기'} onClick={() => setMenuOpen((prev) => !prev)}>
+        <IconButton
+          label={menuOpen ? '메뉴 닫기' : '메뉴 열기'}
+          onClick={() => setMenuOpen((prev) => !prev)}
+          light={isTransparent}
+        >
           {menuOpen ? <X size={22} strokeWidth={1.5} /> : <Menu size={22} strokeWidth={1.5} />}
         </IconButton>
       </div>
