@@ -52,6 +52,10 @@ const RESPONSIVE_SECTIONS = new Set(Object.keys(RESPONSIVE_ASPECT))
 const CATEGORY_ASPECT = 3 / 4
 const CATEGORY_SECTIONS = new Set(['category_all', 'category_outer', 'category_top', 'category_bottom'])
 
+// 히어로 섹션은 고정 헤더(h-64, 그 아래 그라디언트는 160px까지)가 이미지 위에 겹쳐진다.
+// 크롭 높이 대비 대략적인 비율(여유를 좀 둔 값) — 이 안에는 얼굴 등 중요한 요소를 두면 안 됨.
+const HERO_HEADER_ZONE_RATIO = 0.12
+
 // null이면 "모바일/데스크톱으로 나뉘어야 하는데 아직 안 나뉜 비정상 상태"라는 뜻.
 // 이 경우 잘못된 비율(예: 2:3)로 조용히 넘기지 않고 화면에서 바로 경고를 띄운다.
 function aspectForKey(key: string): number | null {
@@ -73,7 +77,12 @@ function ContentManage() {
   const [uploadingKey, setUploadingKey] = useState<string | null>(null)
   const [resetTargetKey, setResetTargetKey] = useState<string | null>(null)
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
-  const [cropTarget, setCropTarget] = useState<{ key: string; file: File; aspect: number } | null>(null)
+  const [cropTarget, setCropTarget] = useState<{
+    key: string
+    file: File
+    aspect: number
+    topDangerZoneRatio?: number
+  } | null>(null)
 
   const loadRows = async () => {
     const { data, error } = await supabase
@@ -128,7 +137,8 @@ function ContentManage() {
       return
     }
 
-    setCropTarget({ key, file, aspect })
+    const topDangerZoneRatio = sectionOf(key) === 'hero' ? HERO_HEADER_ZONE_RATIO : undefined
+    setCropTarget({ key, file, aspect, topDangerZoneRatio })
   }
 
   const handleCropCancel = () => setCropTarget(null)
@@ -317,6 +327,7 @@ function ContentManage() {
         <ImageCropModal
           file={cropTarget.file}
           aspect={cropTarget.aspect}
+          topDangerZoneRatio={cropTarget.topDangerZoneRatio}
           onCancel={handleCropCancel}
           onConfirm={handleCropConfirm}
         />
