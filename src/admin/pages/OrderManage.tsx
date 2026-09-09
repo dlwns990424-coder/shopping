@@ -178,7 +178,7 @@ function OrderManage() {
                           <select
                             value={order.status}
                             onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
-                            className="text-body-sm appearance-none rounded-sm border border-line py-4 pl-8 pr-28"
+                            className="text-body-sm h-28 appearance-none rounded-sm border border-line py-4 pl-8 pr-28"
                           >
                             {ORDER_STATUSES.map((status) => (
                               <option key={status} value={status}>
@@ -193,7 +193,12 @@ function OrderManage() {
                           />
                         </div>
                         {CANCELABLE_STATUSES.has(order.status) && (
-                          <Button size="small" variant="secondary" onClick={() => setCancelTargetIds([order.id])}>
+                          <Button
+                            size="small"
+                            variant="secondary"
+                            className="h-28 !py-0"
+                            onClick={() => setCancelTargetIds([order.id])}
+                          >
                             취소
                           </Button>
                         )}
