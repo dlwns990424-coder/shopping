@@ -12,6 +12,10 @@ import { orderTotal } from '../../utils/orderStats'
 
 const ORDER_STATUSES: OrderStatus[] = ['결제완료', '배송준비', '배송중', '배송완료', '취소']
 
+// 배송이 시작되면(배송중/배송완료) "취소"가 아니라 반품 절차로 넘어가야 하므로
+// 바로 취소 버튼은 아직 출고되지 않은 상태에서만 노출한다.
+const CANCELABLE_STATUSES = new Set<OrderStatus>(['결제완료', '배송준비'])
+
 function OrderManage() {
   const { orders, updateOrderStatuses } = useOrderHistory()
   const [searchParams] = useSearchParams()
@@ -169,23 +173,30 @@ function OrderManage() {
                     <td className="py-8 pr-16">{order.items.length}개</td>
                     <td className="py-8 pr-16 text-right">{formatPrice(orderTotal(order))}</td>
                     <td className="py-8 pl-16" onClick={(e) => e.stopPropagation()}>
-                      <div className="relative inline-block">
-                        <select
-                          value={order.status}
-                          onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
-                          className="text-body-sm appearance-none rounded-sm border border-line py-4 pl-8 pr-28"
-                        >
-                          {ORDER_STATUSES.map((status) => (
-                            <option key={status} value={status}>
-                              {status}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown
-                          size={14}
-                          strokeWidth={1.5}
-                          className="pointer-events-none absolute right-8 top-1/2 -translate-y-1/2 text-secondary"
-                        />
+                      <div className="flex items-center gap-8">
+                        <div className="relative inline-block">
+                          <select
+                            value={order.status}
+                            onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
+                            className="text-body-sm appearance-none rounded-sm border border-line py-4 pl-8 pr-28"
+                          >
+                            {ORDER_STATUSES.map((status) => (
+                              <option key={status} value={status}>
+                                {status}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            strokeWidth={1.5}
+                            className="pointer-events-none absolute right-8 top-1/2 -translate-y-1/2 text-secondary"
+                          />
+                        </div>
+                        {CANCELABLE_STATUSES.has(order.status) && (
+                          <Button size="small" variant="secondary" onClick={() => setCancelTargetIds([order.id])}>
+                            취소
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
