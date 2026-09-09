@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { supabase } from '../lib/supabaseClient'
+import { useAuth } from './AuthContext'
 import type { CartItem, Order, ReturnStatus, ShippingStatus } from '../types'
-import { safeSetItem } from '../utils/storage'
 
 type OrderShippingInfo = Pick<
   Order,
@@ -9,84 +10,164 @@ type OrderShippingInfo = Pick<
 
 interface OrderHistoryContextValue {
   orders: Order[]
-  addOrder: (userEmail: string, items: CartItem[], shippingFee: number, shipping: OrderShippingInfo) => void
-  updateShippingStatuses: (orderIds: string[], status: ShippingStatus) => void
-  updateReturnStatus: (orderId: string, status: ReturnStatus) => void
-  requestReturn: (orderId: string, reason: string, detail: string, photos: string[]) => void
+  loading: boolean
+  error: string | null
+  addOrder: (
+    userEmail: string,
+    items: CartItem[],
+    shippingFee: number,
+    shipping: OrderShippingInfo,
+  ) => Promise<boolean>
+  updateShippingStatuses: (orderIds: string[], status: ShippingStatus) => Promise<boolean>
+  updateReturnStatus: (orderId: string, status: ReturnStatus) => Promise<boolean>
+  requestReturn: (orderId: string, reason: string, detail: string, photos: string[]) => Promise<boolean>
 }
 
 const OrderHistoryContext = createContext<OrderHistoryContextValue | null>(null)
 
-const ORDERS_KEY = 'shop_orders'
+interface OrderRow {
+  id: string
+  user_email: string
+  date: string
+  shipping_status: ShippingStatus
+  return_status: ReturnStatus | null
+  items: CartItem[]
+  shipping_fee: number
+  shipping_name: string
+  shipping_phone: string
+  shipping_address: string
+  shipping_address_detail: string | null
+  delivery_request: string | null
+  delivered_at: string | null
+  return_reason: string | null
+  return_detail: string | null
+  return_photos: string[] | null
+}
 
-function readOrders(): Order[] {
-  try {
-    return JSON.parse(localStorage.getItem(ORDERS_KEY) ?? '[]') || []
-  } catch {
-    return []
+function toOrder(row: OrderRow): Order {
+  return {
+    id: row.id,
+    date: row.date,
+    shippingStatus: row.shipping_status,
+    returnStatus: row.return_status ?? undefined,
+    userEmail: row.user_email,
+    items: row.items,
+    shippingFee: row.shipping_fee,
+    shippingName: row.shipping_name,
+    shippingPhone: row.shipping_phone,
+    shippingAddress: row.shipping_address,
+    shippingAddressDetail: row.shipping_address_detail ?? undefined,
+    deliveryRequest: row.delivery_request ?? undefined,
+    deliveredAt: row.delivered_at ?? undefined,
+    returnReason: row.return_reason ?? undefined,
+    returnDetail: row.return_detail ?? undefined,
+    returnPhotos: row.return_photos ?? undefined,
   }
 }
 
 export function OrderHistoryProvider({ children }: { children: ReactNode }) {
-  const [orders, setOrders] = useState<Order[]>(readOrders)
+  const { user, loading: authLoading } = useAuth()
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const addOrder = (userEmail: string, items: CartItem[], shippingFee: number, shipping: OrderShippingInfo) => {
-    const newOrder: Order = {
-      id: `ORD-${Date.now()}`,
-      date: new Date().toISOString().slice(0, 10),
-      shippingStatus: '결제완료',
-      userEmail,
-      items,
-      shippingFee,
-      ...shipping,
+  // RLS가 일반 사용자는 본인 것만, 관리자는 전체를 돌려주므로 쿼리는 이 한 줄로 공용
+  const load = useCallback(async () => {
+    if (!user) {
+      setOrders([])
+      setLoading(false)
+      return
     }
-    setOrders((prev) => {
-      const next = [newOrder, ...prev]
-      safeSetItem(ORDERS_KEY, next)
-      return next
+    setLoading(true)
+    const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false })
+    if (error) setError(error.message)
+    else setOrders((data ?? []).map(toOrder))
+    setLoading(false)
+  }, [user])
+
+  useEffect(() => {
+    if (authLoading) return
+    load()
+  }, [authLoading, load])
+
+  const addOrder = async (
+    userEmail: string,
+    items: CartItem[],
+    shippingFee: number,
+    shipping: OrderShippingInfo,
+  ): Promise<boolean> => {
+    if (!user) {
+      setError('로그인이 필요합니다.')
+      return false
+    }
+    setError(null)
+    const { error } = await supabase.from('orders').insert({
+      id: `ORD-${Date.now()}`,
+      user_id: user.id,
+      user_email: userEmail,
+      shipping_status: '결제완료',
+      items,
+      shipping_fee: shippingFee,
+      shipping_name: shipping.shippingName,
+      shipping_phone: shipping.shippingPhone,
+      shipping_address: shipping.shippingAddress,
+      shipping_address_detail: shipping.shippingAddressDetail ?? null,
+      delivery_request: shipping.deliveryRequest ?? null,
     })
+    if (error) {
+      setError(error.message)
+      return false
+    }
+    await load()
+    return true
   }
 
-  const updateShippingStatuses = (orderIds: string[], status: ShippingStatus) => {
-    setOrders((prev) => {
-      const idSet = new Set(orderIds)
-      const next = prev.map((order) =>
-        idSet.has(order.id)
-          ? {
-              ...order,
-              shippingStatus: status,
-              ...(status === '배송완료' ? { deliveredAt: new Date().toISOString() } : {}),
-            }
-          : order,
-      )
-      safeSetItem(ORDERS_KEY, next)
-      return next
-    })
+  const updateShippingStatuses = async (orderIds: string[], status: ShippingStatus): Promise<boolean> => {
+    setError(null)
+    const payload: Record<string, unknown> = { shipping_status: status }
+    if (status === '배송완료') payload.delivered_at = new Date().toISOString()
+    const { error } = await supabase.from('orders').update(payload).in('id', orderIds)
+    if (error) {
+      setError(error.message)
+      return false
+    }
+    await load()
+    return true
   }
 
-  const updateReturnStatus = (orderId: string, status: ReturnStatus) => {
-    setOrders((prev) => {
-      const next = prev.map((order) => (order.id === orderId ? { ...order, returnStatus: status } : order))
-      safeSetItem(ORDERS_KEY, next)
-      return next
-    })
+  const updateReturnStatus = async (orderId: string, status: ReturnStatus): Promise<boolean> => {
+    setError(null)
+    const { error } = await supabase.from('orders').update({ return_status: status }).eq('id', orderId)
+    if (error) {
+      setError(error.message)
+      return false
+    }
+    await load()
+    return true
   }
 
-  const requestReturn = (orderId: string, reason: string, detail: string, photos: string[]) => {
-    setOrders((prev) => {
-      const next = prev.map((order) =>
-        order.id === orderId
-          ? { ...order, returnStatus: '반품요청' as const, returnReason: reason, returnDetail: detail, returnPhotos: photos }
-          : order,
-      )
-      safeSetItem(ORDERS_KEY, next)
-      return next
-    })
+  const requestReturn = async (
+    orderId: string,
+    reason: string,
+    detail: string,
+    photos: string[],
+  ): Promise<boolean> => {
+    setError(null)
+    const { error } = await supabase
+      .from('orders')
+      .update({ return_status: '반품요청', return_reason: reason, return_detail: detail, return_photos: photos })
+      .eq('id', orderId)
+    if (error) {
+      setError(error.message)
+      return false
+    }
+    await load()
+    return true
   }
 
   return (
     <OrderHistoryContext.Provider
-      value={{ orders, addOrder, updateShippingStatuses, updateReturnStatus, requestReturn }}
+      value={{ orders, loading, error, addOrder, updateShippingStatuses, updateReturnStatus, requestReturn }}
     >
       {children}
     </OrderHistoryContext.Provider>

@@ -49,6 +49,8 @@ function Order() {
     shippingAddressDetail: user?.shippingAddressDetail ?? '',
   })
   const [saveAsDefault, setSaveAsDefault] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [deliveryRequestPreset, setDeliveryRequestPreset] = useState('')
   const [deliveryRequestCustom, setDeliveryRequestCustom] = useState('')
   const handleSearchAddress = useDaumPostcodeSearch((roadAddress) => {
@@ -81,17 +83,28 @@ function Order() {
       setShippingForm((prev) => ({ ...prev, [field]: e.target.value }))
     }
 
-  const handleCheckout = () => {
-    if (saveAsDefault) {
-      updateProfile(shippingForm)
-    }
-    addOrder(user!.email, items, SHIPPING_FEE, {
+  const handleCheckout = async () => {
+    setCheckoutError(null)
+    setSubmitting(true)
+
+    const success = await addOrder(user!.email, items, SHIPPING_FEE, {
       shippingName: shippingForm.shippingName,
       shippingPhone: shippingForm.shippingPhone,
       shippingAddress: shippingForm.shippingAddress,
       shippingAddressDetail: shippingForm.shippingAddressDetail || undefined,
       deliveryRequest: finalDeliveryRequest || undefined,
     })
+
+    setSubmitting(false)
+
+    if (!success) {
+      setCheckoutError('주문 처리에 실패했습니다. 잠시 후 다시 시도해주세요.')
+      return
+    }
+
+    if (saveAsDefault) {
+      updateProfile(shippingForm)
+    }
     removeItems(items.map((item) => item.id))
     navigate('/order/complete', {
       replace: true,
@@ -246,14 +259,15 @@ function Order() {
             onChange={(e) => setAgreed(e.target.checked)}
             label="주문내용 확인 및 결제진행에 동의"
           />
+          {checkoutError && <p className="text-body-sm text-point">{checkoutError}</p>}
           <Button
             variant="primary"
             size="large"
             className="w-full"
-            disabled={!agreed || !isShippingValid}
+            disabled={!agreed || !isShippingValid || submitting}
             onClick={handleCheckout}
           >
-            결제하기
+            {submitting ? '처리 중...' : '결제하기'}
           </Button>
         </div>
       </div>

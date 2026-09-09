@@ -22,7 +22,26 @@
 5. **테스트 계정 — 2026-09-09부터 Supabase Auth 실계정으로 전환됨** (더 이상 localStorage 자동생성 아님, 실제 DB에 존재하는 계정): 일반 `test@test.com`(비밀번호는 사용자 본인 계정이라 기록 안 함), 관리자 `admin@test.com` / `admin1234`. 같은 Supabase 프로젝트를 쓰는 한 새 컴퓨터에서도 그대로 로그인 가능(계정이 서버에 있어서 로컬 설정 불필요) — `.env.local`만 있으면 됨
 
 ## 마지막 갱신
-- 날짜: 2026-09-09 (같은 날 다섯 번째 세션)
+- 날짜: 2026-09-09 (같은 날 여덟 번째 세션)
+- **이번 세션 요약 — 상품관리 수정 폼 위치를 해당 행 바로 아래로 변경**: 기존엔 "수정" 클릭 시 폼이 항상 테이블 맨 위에 떠서, 목록 아래쪽 상품을 수정할 때 화면을 위로 스크롤해야 하는 불편이 있었음. `OrderManage.tsx`의 "행 클릭 시 바로 아래에 펼치기" 패턴(`Fragment`+조건부 `<tr>`)을 재사용:
+  - 거대한 폼 JSX를 `editFormElement` 변수로 추출(내용 변경 없음)
+  - **상품 추가**(신규): `editingId === null`일 때만 기존처럼 테이블 위쪽에 표시(특정 행과 무관한 동작이라 위치 유지)
+  - **상품 수정**: 테이블 행 렌더링을 `Fragment`로 감싸고, `editingId === product.id`인 행 바로 다음에 `colSpan={8}` 행으로 폼을 삽입(`OrderManage.tsx` 확장 행과 동일한 `bg-surface-muted`+안쪽 `bg-surface` 카드 스타일)
+  - 드래그 정렬 기능과 충돌 없음(폼 행에는 드래그 핸들러가 없어 그냥 지나쳐지는 행)
+  - **검증**: 목록 맨 아래 상품 수정 → 그 행 바로 아래에 폼 생성 확인, 다른 행 수정 클릭 → 폼이 새 행으로 이동 확인, 취소 시 정상 닫힘, "상품 추가"는 여전히 상단에 뜨는 것 확인. `npx tsc -b`/`npm run lint` 신규 에러 0건
+- **이번 세션 요약 — 여성 상품 상세페이지에 "옷만 나온 사진" 추가**: 상세페이지(`ProductDetail.tsx`)는 `image`(기본)+`detail_images`만 렌더링하고 `hover_image`는 안 씀 — 그런데 여성 상품 30개 전부 `image`엔 모델 착용컷만 있고 `detail_images`는 빈 배열이라, 상세페이지엔 라이프스타일 사진 1장만 뜨고 옷 자체를 깔끔하게 보여주는 사진이 전혀 없었음(사용자가 "hover 이미지 느낌의 사진 하나뿐"이라고 지적). 다행히 그 사진은 이미 `hover_image`(목록 카드 호버용)에 존재해서 새로 만들 필요 없이 재사용:
+  - Supabase `products` 30개 행(관리자가 테스트로 추가한 1개 제외) `detail_images = [hover_image]`로 일괄 UPDATE(관리자 세션 브라우저 콘솔에서 직접 실행, 스키마 변경 아니라 SQL 파일 안 만듦)
+  - `src/mock/products.ts`의 변환 로직(`detailImages: []` 고정 → `product.hoverImage ? [product.hoverImage] : []`)도 동일하게 수정해서 재시딩해도 안 어긋나게 함(men은 hoverImage 자체가 없어서 영향 없음)
+  - 결과: 상세페이지에 **착용컷+옷 사진 2장**이 뜨고, 지난 세션에 만든 "PC 2열 배치"와 자연스럽게 맞물려 나란히 보임
+  - **검증**: 코트/니트/후드(jpg 확장자 포함) 등 카테고리별로 상세페이지 실제 확인, 목록 페이지 카드 hover 동작은 기존과 동일(영향 없음) 확인. `npx tsc -b`/`npm run lint` 신규 에러 0건
+- **이번 세션 요약 — 사이트 전체 코드 점검(직전 세션) 결과 중 1·2·4·5번 수정**:
+  1. **주문(orders)을 Supabase로 이전** — `scripts/sql/012_orders_table.sql` 신규(테이블+`profiles`와 동일한 `is_admin()` 기반 RLS: 본인 또는 관리자만 select/insert/update, delete 정책 없음 — UI에 삭제 기능 자체가 없어서). `OrderHistoryContext.tsx` 전면 재작성(외부 인터페이스는 그대로 유지, 내부만 Supabase 호출로 교체 + `loading`/`error` 추가) — 덕분에 `OrderManage.tsx`/`SalesManage.tsx`/`MemberManage.tsx`/`Dashboard.tsx`(전부 읽기 전용 소비자)는 코드 변경 없이 그대로 작동. `Order.tsx` 결제를 async로 바꿔서 `addOrder` 실패 시 "결제됐다고 나왔는데 주문이 안 남는" 상황 방지. `OrderHistory.tsx`(마이페이지)/`OrderManage.tsx`에 로딩·에러 표시 추가
+  2. **장바구니·위시리스트를 로그인 계정별로 분리** — 기존엔 `shop_cart`/`shop_wishlist`라는 전역 키라 같은 브라우저를 여러 계정이 쓰면 서로의 데이터가 그대로 보였음(로그아웃해도 안 지워짐). `CartContext.tsx`는 `shop_cart:{userId}`로(장바구니는 로그인해야만 담을 수 있어 게스트 버킷 불필요), `WishlistContext.tsx`는 `shop_wishlist:{userId}`+게스트 버킷(`shop_wishlist:guest`) 분리, 로그인 시점에 게스트 버킷 내용을 계정 버킷에 병합 후 게스트 버킷 비움(비로그인 때 찜한 게 로그인하면 사라지는 회귀 방지)
+  3. **할인가 검증** — `ProductManage.tsx`에서 할인가가 정가 이상이면 저장 자체를 막고 에러 문구 표시(기존엔 검증 없이 그대로 저장/노출됐음)
+  4. **카테고리 목록 중복 제거** — `ProductManage.tsx`가 갖고 있던 자체 카테고리/서브카테고리 상수를 지우고 `src/constants/categoryFilters.ts`(지난 세션에 만든 공유 파일)에서 import(`PRODUCT_CATEGORIES` 신규 export 추가)
+  5. **검증**: 신규 테스트 계정(`checkcustomer1@test.com`)으로 실제 결제까지 진행 → **관리자 계정(별도 로그인)에서 그 주문이 정확히 보임**(핵심 — 기기/계정 간 주문 공유 확인) → 배송상태 변경이 새로고침 후에도 유지 → admin의 장바구니/위시리스트엔 customer 데이터가 전혀 안 보임(계정 격리) → 비로그인 상태에서 찜한 상품이 로그인 후 계정 위시리스트에 정확히 병합됨(게스트 버킷은 병합 후 비워짐) → 할인가를 정가보다 높게 입력하면 에러로 저장 차단 확인. 테스트 계정/주문 정리 완료(계정 완전삭제, 주문은 삭제 UI/RLS delete 정책이 없어 "취소" 상태로 정리해 매출 집계에서 제외). `npx tsc -b`/`npm run lint` 신규 에러 0건
+  6. **디버깅 중 알아둘 것(앱 버그 아님)**: 검증 도중 로그인 세션이 새로고침 후 사라지는 것처럼 보인 적이 있었는데, 원인은 이 브라우저 자동화 세션에서 콘솔로 `signInWithPassword`/`signOut`을 반복적으로 직접 호출하며 생긴 일시적 꼬임이었음(새 탭에서 깨끗하게 로그인하니 정상적으로 세션이 저장·복원됨) — 실제 앱 코드 문제 아님, 재확인 완료. 또한 `computer` 클릭 도구가 텍스트 전용 버튼(모달의 확인/취소, 로그인 버튼 등)에서 간헐적으로 이벤트를 놓치는 현상도 재확인(기존에 이미 알려진 이 자동화 도구 한계, `.z-modal` 등 정확한 selector로 JS에서 직접 `.click()` 호출하면 항상 정상 동작) — 실사용자 클릭엔 영향 없음
+- **남은 것**: 3번(products/site_content/images 버킷 RLS 강화)은 이번엔 범위에서 제외, 다음 우선순위. `주문 완전 삭제 UI`는 필요성 낮다고 판단해 만들지 않음(테스트 데이터는 "취소" 처리로 충분)
 - **상품 상세페이지 이미지 갤러리 2열 배치**: `ProductDetail.tsx`의 이미지 목록(`product.image` + `detailImages`)이 PC에서 1열로 세로 나열되던 걸 2열 그리드로 변경(`flex flex-col` → `grid grid-cols-1 lg:grid-cols-2`, 모바일은 기존 1열 유지, 이미지 홀수 개면 마지막 1장은 왼쪽 칸만 채움 — 사용자 확인 후 결정). 브라우저로 실제 상품(오버핏 울 코트, 이미지 3장)에서 2열 배치+홀수 처리 확인. `tsc`/`lint` 신규 에러 0건
 - **이번 세션 요약 — 홈 이벤트배너를 관리자 페이지에서 순서/링크 대상까지 편집 가능하게 개선**: 기존엔 라벨/이미지만 Supabase로 관리되고 순서·클릭 시 이동 경로(`to`)는 `Home.tsx` 코드에 하드코딩돼 있어 시즌마다 이벤트가 바뀔 때 코드 수정이 필요했던 문제 해결. "링크 URL 직접 입력"이 아니라 `CategoryListing.tsx`가 쓰는 성별/카테고리/서브카테고리 체계를 그대로 드롭다운으로 골라 URL이 자동 조립되는 방식으로 설계.
   1. `CategoryListing.tsx`의 `TABS`/`SUB_CATEGORIES` 상수를 `src/constants/categoryFilters.ts`로 추출(양쪽에서 재사용, 값 변경 없음)

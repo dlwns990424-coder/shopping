@@ -351,7 +351,7 @@ const rawProducts: (Omit<
 export const products: Product[] = rawProducts.map((product) => ({
   ...product,
   salePrice: null,
-  detailImages: [],
+  detailImages: product.hoverImage ? [product.hoverImage] : [],
   hoverImage: product.hoverImage ?? null,
   sizes: [...sizeOptions],
   featured: false,

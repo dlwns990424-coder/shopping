@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { Fragment, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { ChevronDown, GripVertical } from 'lucide-react'
 import { supabase } from '../../lib/supabaseClient'
@@ -9,6 +9,7 @@ import { formatPrice } from '../../utils/formatPrice'
 import { uploadImage } from '../../utils/uploadImage'
 import { sizeOptions } from '../../mock/productDetail'
 import { MAX_DETAIL_IMAGES } from '../../types'
+import { PRODUCT_CATEGORIES, SUB_CATEGORIES } from '../../constants/categoryFilters'
 
 interface AdminProduct {
   id: string
@@ -28,21 +29,13 @@ interface AdminProduct {
   sort_order: number
 }
 
-const CATEGORIES = ['아우터', '상의', '하의']
-
-const SUB_CATEGORIES: Record<string, string[]> = {
-  아우터: ['코트', '자켓·블레이저', '패딩', '가디건'],
-  상의: ['셔츠', '티셔츠', '니트·스웨트', '후드'],
-  하의: ['데님', '슬랙스', '반바지'],
-}
-
 const EMPTY_FORM = {
   name: '',
   price: '',
   sale_price: '',
   gender: 'men' as 'men' | 'women',
-  category: CATEGORIES[0],
-  sub_category: SUB_CATEGORIES[CATEGORIES[0]][0],
+  category: PRODUCT_CATEGORIES[0],
+  sub_category: SUB_CATEGORIES[PRODUCT_CATEGORIES[0]][0],
   image: '',
   detail_images: [] as string[],
   hover_image: '',
@@ -249,13 +242,21 @@ function ProductManage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    setSaving(true)
     setError(null)
+
+    const price = Number(form.price)
+    const salePrice = form.sale_price ? Number(form.sale_price) : null
+    if (salePrice != null && salePrice >= price) {
+      setError('할인가는 정가보다 낮아야 합니다.')
+      return
+    }
+
+    setSaving(true)
 
     const payload = {
       name: form.name,
-      price: Number(form.price),
-      sale_price: form.sale_price ? Number(form.sale_price) : null,
+      price,
+      sale_price: salePrice,
       gender: form.gender,
       category: form.category,
       sub_category: form.sub_category,
@@ -300,6 +301,292 @@ function ProductManage() {
     loadProducts()
   }
 
+  const editFormElement = showForm && (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-16 rounded-sm border border-line bg-surface p-20">
+      <h2 className="text-h3 font-bold">{editingId ? '상품 수정' : '상품 추가'}</h2>
+
+      <div className="grid grid-cols-2 gap-16">
+        <Input
+          label="상품명"
+          value={form.name}
+          onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+          required
+        />
+        <Input
+          label="가격"
+          type="number"
+          min={0}
+          value={form.price}
+          onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
+          required
+        />
+        <Input
+          label="할인가 (선택, 비워두면 할인 없음)"
+          type="number"
+          min={0}
+          value={form.sale_price}
+          onChange={(e) => setForm((prev) => ({ ...prev, sale_price: e.target.value }))}
+        />
+
+        <div className="flex flex-col gap-8">
+          <label className="text-caption text-secondary">성별</label>
+          <div className="relative">
+            <select
+              value={form.gender}
+              onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value as 'men' | 'women' }))}
+              className="text-sm w-full appearance-none rounded-sm border border-line py-12 pl-16 pr-40"
+            >
+              <option value="men">MEN</option>
+              <option value="women">WOMEN</option>
+            </select>
+            <ChevronDown
+              size={16}
+              strokeWidth={1.5}
+              className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 text-secondary"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-8">
+          <label className="text-caption text-secondary">카테고리</label>
+          <div className="relative">
+            <select
+              value={form.category}
+              onChange={(e) => handleCategoryChange(e.target.value)}
+              className="text-sm w-full appearance-none rounded-sm border border-line py-12 pl-16 pr-40"
+            >
+              {PRODUCT_CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={16}
+              strokeWidth={1.5}
+              className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 text-secondary"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-8">
+          <label className="text-caption text-secondary">서브 카테고리</label>
+          <div className="relative">
+            <select
+              value={form.sub_category}
+              onChange={(e) => setForm((prev) => ({ ...prev, sub_category: e.target.value }))}
+              className="text-sm w-full appearance-none rounded-sm border border-line py-12 pl-16 pr-40"
+            >
+              {(SUB_CATEGORIES[form.category] ?? []).map((sub) => (
+                <option key={sub} value={sub}>
+                  {sub}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={16}
+              strokeWidth={1.5}
+              className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 text-secondary"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-8">
+          <label className="text-caption text-secondary">상품 이미지</label>
+          <div className="flex items-center gap-16">
+            {form.image ? (
+              <img
+                src={form.image}
+                alt="상품 이미지 미리보기"
+                className="h-96 w-96 rounded-sm border border-line object-cover"
+              />
+            ) : (
+              <div className="flex h-96 w-96 items-center justify-center rounded-sm border border-dashed border-line">
+                <span className="text-caption text-secondary">이미지 없음</span>
+              </div>
+            )}
+            <Button
+              as="label"
+              variant="secondary"
+              size="small"
+              className="cursor-pointer"
+              aria-disabled={uploading}
+            >
+              {uploading ? '업로드 중...' : '이미지 선택'}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageSelect}
+                disabled={uploading}
+              />
+            </Button>
+          </div>
+        </div>
+
+        <div className="col-span-2 flex flex-col gap-8">
+          <label className="text-caption text-secondary">
+            상세 이미지 (PDP에 노출, 최대 {MAX_DETAIL_IMAGES}장)
+          </label>
+          <div className="flex flex-wrap items-center gap-16">
+            {form.detail_images.map((src, index) => (
+              <div key={src} className="relative">
+                <img
+                  src={src}
+                  alt={`상세 이미지 ${index + 1}`}
+                  className="h-96 w-96 rounded-sm border border-line object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleDetailImageRemove(index)}
+                  className="absolute -right-8 -top-8 flex h-24 w-24 items-center justify-center rounded-full border border-line bg-surface text-secondary hover:text-point"
+                  aria-label="상세 이미지 제거"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            {form.detail_images.length < MAX_DETAIL_IMAGES && (
+              <Button
+                as="label"
+                variant="secondary"
+                size="small"
+                className="cursor-pointer"
+                aria-disabled={uploadingDetailImage}
+              >
+                {uploadingDetailImage ? '업로드 중...' : '이미지 추가'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleDetailImageAdd}
+                  disabled={uploadingDetailImage}
+                />
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="col-span-2 flex flex-col gap-8">
+          <label className="text-caption text-secondary">호버 이미지 (선택, 상품카드에 마우스 올리면 노출)</label>
+          <div className="flex items-center gap-16">
+            {form.hover_image ? (
+              <img
+                src={form.hover_image}
+                alt="호버 이미지 미리보기"
+                className="h-96 w-96 rounded-sm border border-line object-cover"
+              />
+            ) : (
+              <div className="flex h-96 w-96 items-center justify-center rounded-sm border border-dashed border-line">
+                <span className="text-caption text-secondary">이미지 없음</span>
+              </div>
+            )}
+            <div className="flex flex-col gap-8">
+              <Button
+                as="label"
+                variant="secondary"
+                size="small"
+                className="cursor-pointer"
+                aria-disabled={uploadingHoverImage}
+              >
+                {uploadingHoverImage ? '업로드 중...' : '이미지 선택'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleHoverImageSelect}
+                  disabled={uploadingHoverImage}
+                />
+              </Button>
+              {form.hover_image && (
+                <button
+                  type="button"
+                  onClick={handleHoverImageRemove}
+                  className="text-body-sm text-secondary hover:text-point"
+                >
+                  제거
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <Input
+          label="색상명"
+          value={form.color_label}
+          onChange={(e) => setForm((prev) => ({ ...prev, color_label: e.target.value }))}
+          required
+        />
+        <div className="flex flex-col gap-8">
+          <label className="text-caption text-secondary">색상 코드</label>
+          <div className="flex items-center gap-12">
+            <input
+              type="color"
+              value={form.color_hex}
+              onChange={(e) => setForm((prev) => ({ ...prev, color_hex: e.target.value }))}
+              className="h-48 w-48 cursor-pointer rounded-sm border border-line p-0"
+            />
+            <span className="text-sm text-secondary">{form.color_hex}</span>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-8">
+          <label className="text-caption text-secondary">사이즈 (1개 이상 선택)</label>
+          <div className="flex flex-wrap gap-8">
+            {sizeOptions.map((size) => {
+              const selected = form.sizes.includes(size)
+              return (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => handleSizeToggle(size)}
+                  className={`h-36 min-w-44 rounded-sm border px-12 text-sm transition-colors ${
+                    selected
+                      ? 'border-primary bg-primary text-surface'
+                      : 'border-line bg-surface text-primary hover:border-primary'
+                  }`}
+                >
+                  {size}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-8">
+        <label className="text-caption text-secondary">상품 설명</label>
+        <textarea
+          value={form.description}
+          onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+          rows={4}
+          className="text-sm rounded-sm border border-line px-16 py-12"
+          required
+        />
+      </div>
+
+      <div className="flex gap-8">
+        <Button
+          type="submit"
+          size="small"
+          disabled={
+            saving ||
+            uploading ||
+            uploadingDetailImage ||
+            uploadingHoverImage ||
+            !form.image ||
+            form.sizes.length === 0
+          }
+        >
+          {saving ? '저장 중...' : '저장'}
+        </Button>
+        <Button type="button" variant="secondary" size="small" onClick={() => setShowForm(false)}>
+          취소
+        </Button>
+      </div>
+    </form>
+  )
+
   return (
     <div className="flex flex-col gap-24">
       <Helmet>
@@ -338,7 +625,7 @@ function ProductManage() {
             className="text-body-sm appearance-none rounded-sm border border-line py-8 pl-12 pr-36"
           >
             <option value="all">전체 카테고리</option>
-            {CATEGORIES.map((category) => (
+            {PRODUCT_CATEGORIES.map((category) => (
               <option key={category} value={category}>
                 {category}
               </option>
@@ -358,291 +645,7 @@ function ProductManage() {
         />
       </div>
 
-      {showForm && (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-16 rounded-sm border border-line p-20">
-          <h2 className="text-h3 font-bold">{editingId ? '상품 수정' : '상품 추가'}</h2>
-
-          <div className="grid grid-cols-2 gap-16">
-            <Input
-              label="상품명"
-              value={form.name}
-              onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-              required
-            />
-            <Input
-              label="가격"
-              type="number"
-              min={0}
-              value={form.price}
-              onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
-              required
-            />
-            <Input
-              label="할인가 (선택, 비워두면 할인 없음)"
-              type="number"
-              min={0}
-              value={form.sale_price}
-              onChange={(e) => setForm((prev) => ({ ...prev, sale_price: e.target.value }))}
-            />
-
-            <div className="flex flex-col gap-8">
-              <label className="text-caption text-secondary">성별</label>
-              <div className="relative">
-                <select
-                  value={form.gender}
-                  onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value as 'men' | 'women' }))}
-                  className="text-sm w-full appearance-none rounded-sm border border-line py-12 pl-16 pr-40"
-                >
-                  <option value="men">MEN</option>
-                  <option value="women">WOMEN</option>
-                </select>
-                <ChevronDown
-                  size={16}
-                  strokeWidth={1.5}
-                  className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 text-secondary"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-8">
-              <label className="text-caption text-secondary">카테고리</label>
-              <div className="relative">
-                <select
-                  value={form.category}
-                  onChange={(e) => handleCategoryChange(e.target.value)}
-                  className="text-sm w-full appearance-none rounded-sm border border-line py-12 pl-16 pr-40"
-                >
-                  {CATEGORIES.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={16}
-                  strokeWidth={1.5}
-                  className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 text-secondary"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-8">
-              <label className="text-caption text-secondary">서브 카테고리</label>
-              <div className="relative">
-                <select
-                  value={form.sub_category}
-                  onChange={(e) => setForm((prev) => ({ ...prev, sub_category: e.target.value }))}
-                  className="text-sm w-full appearance-none rounded-sm border border-line py-12 pl-16 pr-40"
-                >
-                  {(SUB_CATEGORIES[form.category] ?? []).map((sub) => (
-                    <option key={sub} value={sub}>
-                      {sub}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={16}
-                  strokeWidth={1.5}
-                  className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 text-secondary"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-8">
-              <label className="text-caption text-secondary">상품 이미지</label>
-              <div className="flex items-center gap-16">
-                {form.image ? (
-                  <img
-                    src={form.image}
-                    alt="상품 이미지 미리보기"
-                    className="h-96 w-96 rounded-sm border border-line object-cover"
-                  />
-                ) : (
-                  <div className="flex h-96 w-96 items-center justify-center rounded-sm border border-dashed border-line">
-                    <span className="text-caption text-secondary">이미지 없음</span>
-                  </div>
-                )}
-                <Button
-                  as="label"
-                  variant="secondary"
-                  size="small"
-                  className="cursor-pointer"
-                  aria-disabled={uploading}
-                >
-                  {uploading ? '업로드 중...' : '이미지 선택'}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageSelect}
-                    disabled={uploading}
-                  />
-                </Button>
-              </div>
-            </div>
-
-            <div className="col-span-2 flex flex-col gap-8">
-              <label className="text-caption text-secondary">
-                상세 이미지 (PDP에 노출, 최대 {MAX_DETAIL_IMAGES}장)
-              </label>
-              <div className="flex flex-wrap items-center gap-16">
-                {form.detail_images.map((src, index) => (
-                  <div key={src} className="relative">
-                    <img
-                      src={src}
-                      alt={`상세 이미지 ${index + 1}`}
-                      className="h-96 w-96 rounded-sm border border-line object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleDetailImageRemove(index)}
-                      className="absolute -right-8 -top-8 flex h-24 w-24 items-center justify-center rounded-full border border-line bg-surface text-secondary hover:text-point"
-                      aria-label="상세 이미지 제거"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-                {form.detail_images.length < MAX_DETAIL_IMAGES && (
-                  <Button
-                    as="label"
-                    variant="secondary"
-                    size="small"
-                    className="cursor-pointer"
-                    aria-disabled={uploadingDetailImage}
-                  >
-                    {uploadingDetailImage ? '업로드 중...' : '이미지 추가'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleDetailImageAdd}
-                      disabled={uploadingDetailImage}
-                    />
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            <div className="col-span-2 flex flex-col gap-8">
-              <label className="text-caption text-secondary">호버 이미지 (선택, 상품카드에 마우스 올리면 노출)</label>
-              <div className="flex items-center gap-16">
-                {form.hover_image ? (
-                  <img
-                    src={form.hover_image}
-                    alt="호버 이미지 미리보기"
-                    className="h-96 w-96 rounded-sm border border-line object-cover"
-                  />
-                ) : (
-                  <div className="flex h-96 w-96 items-center justify-center rounded-sm border border-dashed border-line">
-                    <span className="text-caption text-secondary">이미지 없음</span>
-                  </div>
-                )}
-                <div className="flex flex-col gap-8">
-                  <Button
-                    as="label"
-                    variant="secondary"
-                    size="small"
-                    className="cursor-pointer"
-                    aria-disabled={uploadingHoverImage}
-                  >
-                    {uploadingHoverImage ? '업로드 중...' : '이미지 선택'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleHoverImageSelect}
-                      disabled={uploadingHoverImage}
-                    />
-                  </Button>
-                  {form.hover_image && (
-                    <button
-                      type="button"
-                      onClick={handleHoverImageRemove}
-                      className="text-body-sm text-secondary hover:text-point"
-                    >
-                      제거
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <Input
-              label="색상명"
-              value={form.color_label}
-              onChange={(e) => setForm((prev) => ({ ...prev, color_label: e.target.value }))}
-              required
-            />
-            <div className="flex flex-col gap-8">
-              <label className="text-caption text-secondary">색상 코드</label>
-              <div className="flex items-center gap-12">
-                <input
-                  type="color"
-                  value={form.color_hex}
-                  onChange={(e) => setForm((prev) => ({ ...prev, color_hex: e.target.value }))}
-                  className="h-48 w-48 cursor-pointer rounded-sm border border-line p-0"
-                />
-                <span className="text-sm text-secondary">{form.color_hex}</span>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-8">
-              <label className="text-caption text-secondary">사이즈 (1개 이상 선택)</label>
-              <div className="flex flex-wrap gap-8">
-                {sizeOptions.map((size) => {
-                  const selected = form.sizes.includes(size)
-                  return (
-                    <button
-                      key={size}
-                      type="button"
-                      onClick={() => handleSizeToggle(size)}
-                      className={`h-36 min-w-44 rounded-sm border px-12 text-sm transition-colors ${
-                        selected
-                          ? 'border-primary bg-primary text-surface'
-                          : 'border-line bg-surface text-primary hover:border-primary'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-8">
-            <label className="text-caption text-secondary">상품 설명</label>
-            <textarea
-              value={form.description}
-              onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-              rows={4}
-              className="text-sm rounded-sm border border-line px-16 py-12"
-              required
-            />
-          </div>
-
-          <div className="flex gap-8">
-            <Button
-              type="submit"
-              size="small"
-              disabled={
-                saving ||
-                uploading ||
-                uploadingDetailImage ||
-                uploadingHoverImage ||
-                !form.image ||
-                form.sizes.length === 0
-              }
-            >
-              {saving ? '저장 중...' : '저장'}
-            </Button>
-            <Button type="button" variant="secondary" size="small" onClick={() => setShowForm(false)}>
-              취소
-            </Button>
-          </div>
-        </form>
-      )}
+      {editingId === null && editFormElement}
 
       {loading ? (
         <p className="text-body-sm text-secondary">불러오는 중...</p>
@@ -666,8 +669,8 @@ function ProductManage() {
             </thead>
             <tbody>
               {filteredProducts.map((product) => (
+                <Fragment key={product.id}>
                 <tr
-                  key={product.id}
                   onDragOver={(e) => e.preventDefault()}
                   onDragEnter={() => handleDragEnter(product.id)}
                   className={`text-body-sm border-b border-line transition-opacity duration-150 ${
@@ -734,6 +737,14 @@ function ProductManage() {
                     </div>
                   </td>
                 </tr>
+                {editingId === product.id && (
+                  <tr className="border-b border-line bg-surface-muted">
+                    <td colSpan={8} className="p-16">
+                      {editFormElement}
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               ))}
             </tbody>
           </table>

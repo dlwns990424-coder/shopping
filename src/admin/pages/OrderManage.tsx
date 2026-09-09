@@ -15,7 +15,7 @@ const SHIPPING_STATUSES: ShippingStatus[] = ['결제완료', '배송준비', '�
 type ReturnFilter = 'all' | 'none' | ReturnStatus
 
 function OrderManage() {
-  const { orders, updateShippingStatuses, updateReturnStatus } = useOrderHistory()
+  const { orders, loading, error, updateShippingStatuses, updateReturnStatus } = useOrderHistory()
   const [searchParams] = useSearchParams()
 
   const [statusFilter, setStatusFilter] = useState<'all' | ShippingStatus>('all')
@@ -80,6 +80,8 @@ function OrderManage() {
         <title>NOVERA Admin | 주문관리</title>
       </Helmet>
       <h1 className="text-h1">주문관리</h1>
+
+      {error && <p className="text-body-sm text-point">{error}</p>}
 
       <div className="flex flex-wrap items-center gap-8">
         <div className="relative">
@@ -154,7 +156,9 @@ function OrderManage() {
         </div>
       )}
 
-      {filteredOrders.length === 0 ? (
+      {loading ? (
+        <p className="text-body-sm text-secondary">불러오는 중...</p>
+      ) : filteredOrders.length === 0 ? (
         <p className="text-body-sm text-secondary">조건에 맞는 주문이 없습니다.</p>
       ) : (
         <div className="overflow-x-auto">

@@ -31,7 +31,7 @@ function priorityOf(order: Order): number {
 
 function OrderHistory() {
   const { user } = useAuth()
-  const { orders, updateShippingStatuses, requestReturn } = useOrderHistory()
+  const { orders, loading, error, updateShippingStatuses, requestReturn } = useOrderHistory()
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null)
   const [returnTargetId, setReturnTargetId] = useState<string | null>(null)
   const myOrders = orders
@@ -39,16 +39,24 @@ function OrderHistory() {
     .slice()
     .sort((a, b) => priorityOf(a) - priorityOf(b))
 
-  const confirmCancel = () => {
+  const confirmCancel = async () => {
     if (!cancelTargetId) return
-    updateShippingStatuses([cancelTargetId], '취소')
+    await updateShippingStatuses([cancelTargetId], '취소')
     setCancelTargetId(null)
   }
 
-  const submitReturn = (reason: string, detail: string, photos: string[]) => {
+  const submitReturn = async (reason: string, detail: string, photos: string[]) => {
     if (!returnTargetId) return
-    requestReturn(returnTargetId, reason, detail, photos)
+    await requestReturn(returnTargetId, reason, detail, photos)
     setReturnTargetId(null)
+  }
+
+  if (loading) {
+    return <p className="text-body-sm text-secondary">불러오는 중...</p>
+  }
+
+  if (error) {
+    return <p className="text-body-sm text-point">{error}</p>
   }
 
   if (myOrders.length === 0) {
