@@ -6,38 +6,34 @@ import { useOrderHistory } from '../../context/OrderHistoryContext'
 import OrderItemRow from '../../components/OrderItemRow'
 import Button from '../../components/Button'
 import ConfirmModal from '../../components/ConfirmModal'
-import type { OrderStatus } from '../../types'
+import type { ReturnStatus, ShippingStatus } from '../../types'
 import { formatPrice } from '../../utils/formatPrice'
 import { orderTotal } from '../../utils/orderStats'
 
-const ORDER_STATUSES: OrderStatus[] = [
-  '결제완료',
-  '배송준비',
-  '배송중',
-  '배송완료',
-  '반품요청',
-  '반품접수',
-  '반품완료',
-  '취소',
-]
+const SHIPPING_STATUSES: ShippingStatus[] = ['결제완료', '배송준비', '배송중', '배송완료', '취소']
 
 // 배송이 시작되면(배송중/배송완료) "취소"가 아니라 반품 절차로 넘어가야 하므로
 // 바로 취소 버튼은 아직 출고되지 않은 상태에서만 노출한다.
-const CANCELABLE_STATUSES = new Set<OrderStatus>(['결제완료', '배송준비'])
+const CANCELABLE_STATUSES = new Set<ShippingStatus>(['결제완료', '배송준비'])
+
+type ReturnFilter = 'all' | 'none' | ReturnStatus
 
 function OrderManage() {
-  const { orders, updateOrderStatuses } = useOrderHistory()
+  const { orders, updateShippingStatuses, updateReturnStatus } = useOrderHistory()
   const [searchParams] = useSearchParams()
 
-  const [statusFilter, setStatusFilter] = useState<'all' | OrderStatus>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | ShippingStatus>('all')
+  const [returnFilter, setReturnFilter] = useState<ReturnFilter>('all')
   const [search, setSearch] = useState(searchParams.get('search') ?? '')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [bulkStatus, setBulkStatus] = useState<OrderStatus>(ORDER_STATUSES[0])
+  const [bulkStatus, setBulkStatus] = useState<ShippingStatus>(SHIPPING_STATUSES[0])
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [cancelTargetIds, setCancelTargetIds] = useState<string[] | null>(null)
 
   const filteredOrders = orders.filter((order) => {
-    if (statusFilter !== 'all' && order.status !== statusFilter) return false
+    if (statusFilter !== 'all' && order.shippingStatus !== statusFilter) return false
+    if (returnFilter === 'none' && order.returnStatus) return false
+    if (returnFilter !== 'all' && returnFilter !== 'none' && order.returnStatus !== returnFilter) return false
     if (search && !order.id.includes(search) && !order.userEmail.includes(search)) return false
     return true
   })
@@ -63,21 +59,21 @@ function OrderManage() {
       setCancelTargetIds(Array.from(selectedIds))
       return
     }
-    updateOrderStatuses(Array.from(selectedIds), bulkStatus)
+    updateShippingStatuses(Array.from(selectedIds), bulkStatus)
     setSelectedIds(new Set())
   }
 
-  const handleStatusChange = (orderId: string, status: OrderStatus) => {
+  const handleShippingStatusChange = (orderId: string, status: ShippingStatus) => {
     if (status === '취소') {
       setCancelTargetIds([orderId])
       return
     }
-    updateOrderStatuses([orderId], status)
+    updateShippingStatuses([orderId], status)
   }
 
   const confirmCancel = () => {
     if (!cancelTargetIds) return
-    updateOrderStatuses(cancelTargetIds, '취소')
+    updateShippingStatuses(cancelTargetIds, '취소')
     setSelectedIds(new Set())
     setCancelTargetIds(null)
   }
@@ -93,15 +89,33 @@ function OrderManage() {
         <div className="relative">
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as 'all' | OrderStatus)}
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | ShippingStatus)}
             className="text-body-sm appearance-none rounded-sm border border-line py-8 pl-12 pr-36"
           >
-            <option value="all">전체 상태</option>
-            {ORDER_STATUSES.map((status) => (
+            <option value="all">전체 배송상태</option>
+            {SHIPPING_STATUSES.map((status) => (
               <option key={status} value={status}>
                 {status}
               </option>
             ))}
+          </select>
+          <ChevronDown
+            size={16}
+            strokeWidth={1.5}
+            className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 text-secondary"
+          />
+        </div>
+        <div className="relative">
+          <select
+            value={returnFilter}
+            onChange={(e) => setReturnFilter(e.target.value as ReturnFilter)}
+            className="text-body-sm appearance-none rounded-sm border border-line py-8 pl-12 pr-36"
+          >
+            <option value="all">전체 반품상태</option>
+            <option value="none">반품 없음</option>
+            <option value="반품요청">반품요청</option>
+            <option value="반품접수">반품접수</option>
+            <option value="반품완료">반품완료</option>
           </select>
           <ChevronDown
             size={16}
@@ -123,10 +137,10 @@ function OrderManage() {
           <div className="relative">
             <select
               value={bulkStatus}
-              onChange={(e) => setBulkStatus(e.target.value as OrderStatus)}
+              onChange={(e) => setBulkStatus(e.target.value as ShippingStatus)}
               className="text-body-sm appearance-none rounded-sm border border-line py-8 pl-12 pr-36"
             >
-              {ORDER_STATUSES.map((status) => (
+              {SHIPPING_STATUSES.map((status) => (
                 <option key={status} value={status}>
                   {status}
                 </option>
@@ -139,7 +153,7 @@ function OrderManage() {
             />
           </div>
           <Button size="small" onClick={handleBulkApply}>
-            일괄 변경
+            배송상태 일괄 변경
           </Button>
         </div>
       )}
@@ -159,7 +173,8 @@ function OrderManage() {
                 <th className="py-8 pr-16 font-medium">주문자</th>
                 <th className="py-8 pr-16 font-medium">상품 수</th>
                 <th className="py-8 pr-16 text-right font-medium">금액</th>
-                <th className="py-8 pl-16 font-medium">상태</th>
+                <th className="py-8 pl-16 font-medium">배송상태</th>
+                <th className="py-8 pl-16 font-medium">반품상태</th>
               </tr>
             </thead>
             <tbody>
@@ -185,11 +200,11 @@ function OrderManage() {
                       <div className="flex items-center gap-8">
                         <div className="relative inline-block">
                           <select
-                            value={order.status}
-                            onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
+                            value={order.shippingStatus}
+                            onChange={(e) => handleShippingStatusChange(order.id, e.target.value as ShippingStatus)}
                             className="text-body-sm h-28 appearance-none rounded-sm border border-line py-4 pl-8 pr-28"
                           >
-                            {ORDER_STATUSES.map((status) => (
+                            {SHIPPING_STATUSES.map((status) => (
                               <option key={status} value={status}>
                                 {status}
                               </option>
@@ -201,7 +216,7 @@ function OrderManage() {
                             className="pointer-events-none absolute right-8 top-1/2 -translate-y-1/2 text-secondary"
                           />
                         </div>
-                        {CANCELABLE_STATUSES.has(order.status) && (
+                        {CANCELABLE_STATUSES.has(order.shippingStatus) && (
                           <Button
                             size="small"
                             variant="secondary"
@@ -211,14 +226,29 @@ function OrderManage() {
                             취소
                           </Button>
                         )}
-                        {order.status === '반품요청' && (
+                      </div>
+                    </td>
+                    <td className="py-8 pl-16" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-8">
+                        <span>{order.returnStatus ?? '-'}</span>
+                        {order.returnStatus === '반품요청' && (
                           <Button
                             size="small"
                             variant="secondary"
                             className="h-28 !py-0"
-                            onClick={() => updateOrderStatuses([order.id], '반품접수')}
+                            onClick={() => updateReturnStatus(order.id, '반품접수')}
                           >
                             접수 처리
+                          </Button>
+                        )}
+                        {order.returnStatus === '반품접수' && (
+                          <Button
+                            size="small"
+                            variant="secondary"
+                            className="h-28 !py-0"
+                            onClick={() => updateReturnStatus(order.id, '반품완료')}
+                          >
+                            환불 완료
                           </Button>
                         )}
                       </div>
@@ -226,7 +256,7 @@ function OrderManage() {
                   </tr>
                   {expandedId === order.id && (
                     <tr className="border-b border-line bg-surface-muted">
-                      <td colSpan={7} className="px-16 py-16">
+                      <td colSpan={8} className="px-16 py-16">
                         <div className="mb-16 grid grid-cols-1 gap-12 rounded-sm border border-line bg-surface p-16 sm:grid-cols-2">
                           <div>
                             <p className="text-caption text-secondary">주문자</p>

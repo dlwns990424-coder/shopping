@@ -6,7 +6,7 @@ import { useOrderHistory } from '../../context/OrderHistoryContext'
 import { useProducts } from '../../context/ProductsContext'
 import { formatPrice } from '../../utils/formatPrice'
 import { orderTotal, isRevenueOrder } from '../../utils/orderStats'
-import type { OrderStatus } from '../../types'
+import type { ShippingStatus } from '../../types'
 
 function formatAxisValue(value: number) {
   if (value === 0) return '0'
@@ -16,7 +16,7 @@ function formatAxisValue(value: number) {
 
 type Period = 'today' | 'week' | 'month' | 'all' | 'custom'
 
-const ORDER_STATUSES: OrderStatus[] = ['결제완료', '배송준비', '배송중', '배송완료', '취소']
+const SHIPPING_STATUSES: ShippingStatus[] = ['결제완료', '배송준비', '배송중', '배송완료', '취소']
 
 const PERIOD_OPTIONS: { value: Period; label: string }[] = [
   { value: 'today', label: '오늘' },
@@ -92,9 +92,9 @@ function SalesManage() {
 
   const bestSellers = [...productStats.entries()].sort(([, a], [, b]) => b.quantity - a.quantity).slice(0, 5)
   const categoryBreakdown = [...categoryStats.entries()].sort(([, a], [, b]) => b - a)
-  const statusCounts = ORDER_STATUSES.map((status) => ({
+  const statusCounts = SHIPPING_STATUSES.map((status) => ({
     status,
-    count: periodOrders.filter((order) => order.status === status).length,
+    count: periodOrders.filter((order) => order.shippingStatus === status).length,
   }))
 
   return (
@@ -251,7 +251,7 @@ function SalesManage() {
       </div>
 
       <div>
-        <h2 className="text-h3 mb-10 font-bold">주문 상태 분포</h2>
+        <h2 className="text-h3 mb-10 font-bold">배송 상태 분포</h2>
         <div className="overflow-x-auto">
           <table className="w-full min-w-360 max-w-480 border-collapse text-left">
             <tbody>

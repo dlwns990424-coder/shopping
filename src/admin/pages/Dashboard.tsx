@@ -21,7 +21,7 @@ function Dashboard() {
   const today = new Date().toISOString().slice(0, 10)
   const totalRevenue = orders.filter(isRevenueOrder).reduce((sum, order) => sum + orderTotal(order), 0)
   const todayOrderCount = orders.filter((order) => order.date === today).length
-  const pendingReturnCount = orders.filter((order) => order.status === '반품요청').length
+  const pendingReturnCount = orders.filter((order) => order.returnStatus === '반품요청').length
   const recentOrders = orders.slice(0, 8)
 
   const kpis = [
@@ -79,7 +79,10 @@ function Dashboard() {
                     <td className="py-8 pr-16">{order.id}</td>
                     <td className="py-8 pr-16">{order.date}</td>
                     <td className="py-8 pr-16">{order.userEmail}</td>
-                    <td className="py-8 pr-16">{order.status}</td>
+                    <td className="py-8 pr-16">
+                      {order.shippingStatus}
+                      {order.returnStatus && ` · ${order.returnStatus}`}
+                    </td>
                     <td className="py-8 pr-16 text-right">{formatPrice(orderTotal(order))}</td>
                   </tr>
                 ))}

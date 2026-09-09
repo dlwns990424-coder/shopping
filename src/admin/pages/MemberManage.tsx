@@ -401,7 +401,10 @@ function MemberManage() {
                                       <tr key={order.id}>
                                         <td className="py-4 pr-16">{order.id}</td>
                                         <td className="py-4 pr-16">{order.date}</td>
-                                        <td className="py-4 pr-16">{order.status}</td>
+                                        <td className="py-4 pr-16">
+                                          {order.shippingStatus}
+                                          {order.returnStatus && ` · ${order.returnStatus}`}
+                                        </td>
                                         <td className="py-4 pr-16">
                                           {order.shippingName} · {order.shippingAddress}
                                         </td>

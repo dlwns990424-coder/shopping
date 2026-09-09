@@ -67,12 +67,17 @@ export interface CartItem {
   image: string | null
 }
 
-export type OrderStatus = '결제완료' | '배송준비' | '배송중' | '배송완료' | '반품요청' | '반품접수' | '반품완료' | '취소'
+// 배송 진행(결제완료~배송완료/취소)과 반품 진행(반품요청~반품완료)은 서로 독립적인
+// 축이라 별개 필드로 둔다 — 하나로 합쳐두면 반품이 시작되는 순간 "배송완료였다"는
+// 사실 자체가 덮어써져 사라지는 문제가 있었다.
+export type ShippingStatus = '결제완료' | '배송준비' | '배송중' | '배송완료' | '취소'
+export type ReturnStatus = '반품요청' | '반품접수' | '반품완료'
 
 export interface Order {
   id: string
   date: string
-  status: OrderStatus
+  shippingStatus: ShippingStatus
+  returnStatus?: ReturnStatus
   userEmail: string
   items: CartItem[]
   shippingFee: number

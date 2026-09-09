@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { OrderStatus } from '../types'
+import type { Order } from '../types'
 import Button from './Button'
 import ConfirmModal from './ConfirmModal'
 import OrderItemRow from './OrderItemRow'
@@ -10,32 +10,32 @@ import { formatPrice } from '../utils/formatPrice'
 import { RETURN_WINDOW_DAYS, isReturnWindowOpen, orderItemsTotal, orderTotal } from '../utils/orderStats'
 
 // 배송 완료된 지난 주문보다 "지금 내가 결제한 게 어떻게 되고 있는지"가 더 궁금하다는
-// 피드백으로, 날짜순 대신 진행 상태 우선순위로 정렬한다(같은 상태 안에서는 최신순 유지).
-// 반품요청/반품접수는 아직 처리 중인 관심사라 배송완료보다 앞에 둔다.
-const STATUS_PRIORITY: Record<OrderStatus, number> = {
-  결제완료: 0,
-  배송준비: 1,
-  배송중: 2,
-  반품요청: 3,
-  반품접수: 4,
-  배송완료: 5,
-  반품완료: 6,
-  취소: 7,
+// 피드백으로, 날짜순 대신 진행 상태 우선순위로 정렬한다(같은 순위 안에서는 최신순 유지).
+// 반품요청/반품접수는 배송 상태가 뭐든(배송완료로 고정) 아직 처리 중인 관심사라 최우선.
+function priorityOf(order: Order): number {
+  if (order.returnStatus === '반품요청') return 0
+  if (order.returnStatus === '반품접수') return 1
+  if (order.shippingStatus === '결제완료') return 2
+  if (order.shippingStatus === '배송준비') return 3
+  if (order.shippingStatus === '배송중') return 4
+  if (order.shippingStatus === '배송완료') return 5
+  if (order.returnStatus === '반품완료') return 6
+  return 7 // 취소
 }
 
 function OrderHistory() {
   const { user } = useAuth()
-  const { orders, updateOrderStatuses, requestReturn } = useOrderHistory()
+  const { orders, updateShippingStatuses, requestReturn } = useOrderHistory()
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null)
   const [returnTargetId, setReturnTargetId] = useState<string | null>(null)
   const myOrders = orders
     .filter((order) => order.userEmail === user?.email)
     .slice()
-    .sort((a, b) => STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status])
+    .sort((a, b) => priorityOf(a) - priorityOf(b))
 
   const confirmCancel = () => {
     if (!cancelTargetId) return
-    updateOrderStatuses([cancelTargetId], '취소')
+    updateShippingStatuses([cancelTargetId], '취소')
     setCancelTargetId(null)
   }
 
@@ -55,7 +55,10 @@ function OrderHistory() {
         <div key={order.id} className="rounded-sm border border-line px-24 py-16">
           <div className="text-body-sm flex justify-between border-b border-line pb-16 text-secondary">
             <span>{order.date}</span>
-            <span className="text-primary">{order.status}</span>
+            <span className="text-primary">
+              {order.shippingStatus}
+              {order.returnStatus && ` · ${order.returnStatus}`}
+            </span>
           </div>
           <div className="text-body-sm flex flex-col gap-2 border-b border-line py-16 text-secondary">
             <p>
@@ -85,7 +88,7 @@ function OrderHistory() {
               <span className="text-price">{formatPrice(orderTotal(order))}</span>
             </div>
           </div>
-          {(order.status === '반품요청' || order.status === '반품접수' || order.status === '반품완료') && (
+          {order.returnStatus && (
             <div className="text-body-sm mt-16 flex flex-col gap-8 rounded-sm bg-surface-muted p-12 text-secondary">
               <p>
                 반품 사유: <span className="text-primary">{order.returnReason}</span>
@@ -100,7 +103,7 @@ function OrderHistory() {
               )}
             </div>
           )}
-          {order.status === '결제완료' && (
+          {order.shippingStatus === '결제완료' && (
             <Button
               size="small"
               variant="secondary"
@@ -110,7 +113,8 @@ function OrderHistory() {
               주문취소
             </Button>
           )}
-          {order.status === '배송완료' &&
+          {order.shippingStatus === '배송완료' &&
+            !order.returnStatus &&
             (isReturnWindowOpen(order) ? (
               <Button
                 size="small"

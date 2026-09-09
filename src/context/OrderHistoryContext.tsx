@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import type { CartItem, Order, OrderStatus } from '../types'
+import type { CartItem, Order, ReturnStatus, ShippingStatus } from '../types'
 import { safeSetItem } from '../utils/storage'
 
 type OrderShippingInfo = Pick<
@@ -10,7 +10,8 @@ type OrderShippingInfo = Pick<
 interface OrderHistoryContextValue {
   orders: Order[]
   addOrder: (userEmail: string, items: CartItem[], shippingFee: number, shipping: OrderShippingInfo) => void
-  updateOrderStatuses: (orderIds: string[], status: OrderStatus) => void
+  updateShippingStatuses: (orderIds: string[], status: ShippingStatus) => void
+  updateReturnStatus: (orderId: string, status: ReturnStatus) => void
   requestReturn: (orderId: string, reason: string, detail: string, photos: string[]) => void
 }
 
@@ -33,7 +34,7 @@ export function OrderHistoryProvider({ children }: { children: ReactNode }) {
     const newOrder: Order = {
       id: `ORD-${Date.now()}`,
       date: new Date().toISOString().slice(0, 10),
-      status: '결제완료',
+      shippingStatus: '결제완료',
       userEmail,
       items,
       shippingFee,
@@ -46,14 +47,26 @@ export function OrderHistoryProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const updateOrderStatuses = (orderIds: string[], status: OrderStatus) => {
+  const updateShippingStatuses = (orderIds: string[], status: ShippingStatus) => {
     setOrders((prev) => {
       const idSet = new Set(orderIds)
       const next = prev.map((order) =>
         idSet.has(order.id)
-          ? { ...order, status, ...(status === '배송완료' ? { deliveredAt: new Date().toISOString() } : {}) }
+          ? {
+              ...order,
+              shippingStatus: status,
+              ...(status === '배송완료' ? { deliveredAt: new Date().toISOString() } : {}),
+            }
           : order,
       )
+      safeSetItem(ORDERS_KEY, next)
+      return next
+    })
+  }
+
+  const updateReturnStatus = (orderId: string, status: ReturnStatus) => {
+    setOrders((prev) => {
+      const next = prev.map((order) => (order.id === orderId ? { ...order, returnStatus: status } : order))
       safeSetItem(ORDERS_KEY, next)
       return next
     })
@@ -63,7 +76,7 @@ export function OrderHistoryProvider({ children }: { children: ReactNode }) {
     setOrders((prev) => {
       const next = prev.map((order) =>
         order.id === orderId
-          ? { ...order, status: '반품요청' as const, returnReason: reason, returnDetail: detail, returnPhotos: photos }
+          ? { ...order, returnStatus: '반품요청' as const, returnReason: reason, returnDetail: detail, returnPhotos: photos }
           : order,
       )
       safeSetItem(ORDERS_KEY, next)
@@ -72,7 +85,9 @@ export function OrderHistoryProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <OrderHistoryContext.Provider value={{ orders, addOrder, updateOrderStatuses, requestReturn }}>
+    <OrderHistoryContext.Provider
+      value={{ orders, addOrder, updateShippingStatuses, updateReturnStatus, requestReturn }}
+    >
       {children}
     </OrderHistoryContext.Provider>
   )
