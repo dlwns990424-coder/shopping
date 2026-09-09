@@ -11,15 +11,16 @@ import { RETURN_WINDOW_DAYS, isReturnWindowOpen, orderItemsTotal, orderTotal } f
 
 // 배송 완료된 지난 주문보다 "지금 내가 결제한 게 어떻게 되고 있는지"가 더 궁금하다는
 // 피드백으로, 날짜순 대신 진행 상태 우선순위로 정렬한다(같은 상태 안에서는 최신순 유지).
-// 반품접수는 아직 처리 중인 관심사라 배송완료보다 앞에 둔다.
+// 반품요청/반품접수는 아직 처리 중인 관심사라 배송완료보다 앞에 둔다.
 const STATUS_PRIORITY: Record<OrderStatus, number> = {
   결제완료: 0,
   배송준비: 1,
   배송중: 2,
-  반품접수: 3,
-  배송완료: 4,
-  반품완료: 5,
-  취소: 6,
+  반품요청: 3,
+  반품접수: 4,
+  배송완료: 5,
+  반품완료: 6,
+  취소: 7,
 }
 
 function OrderHistory() {
@@ -84,7 +85,7 @@ function OrderHistory() {
               <span className="text-price">{formatPrice(orderTotal(order))}</span>
             </div>
           </div>
-          {(order.status === '반품접수' || order.status === '반품완료') && (
+          {(order.status === '반품요청' || order.status === '반품접수' || order.status === '반품완료') && (
             <div className="text-body-sm mt-16 flex flex-col gap-8 rounded-sm bg-surface-muted p-12 text-secondary">
               <p>
                 반품 사유: <span className="text-primary">{order.returnReason}</span>

@@ -10,7 +10,16 @@ import type { OrderStatus } from '../../types'
 import { formatPrice } from '../../utils/formatPrice'
 import { orderTotal } from '../../utils/orderStats'
 
-const ORDER_STATUSES: OrderStatus[] = ['결제완료', '배송준비', '배송중', '배송완료', '반품접수', '반품완료', '취소']
+const ORDER_STATUSES: OrderStatus[] = [
+  '결제완료',
+  '배송준비',
+  '배송중',
+  '배송완료',
+  '반품요청',
+  '반품접수',
+  '반품완료',
+  '취소',
+]
 
 // 배송이 시작되면(배송중/배송완료) "취소"가 아니라 반품 절차로 넘어가야 하므로
 // 바로 취소 버튼은 아직 출고되지 않은 상태에서만 노출한다.
@@ -200,6 +209,16 @@ function OrderManage() {
                             onClick={() => setCancelTargetIds([order.id])}
                           >
                             취소
+                          </Button>
+                        )}
+                        {order.status === '반품요청' && (
+                          <Button
+                            size="small"
+                            variant="secondary"
+                            className="h-28 !py-0"
+                            onClick={() => updateOrderStatuses([order.id], '반품접수')}
+                          >
+                            접수 처리
                           </Button>
                         )}
                       </div>

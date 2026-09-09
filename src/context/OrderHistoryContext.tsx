@@ -63,7 +63,7 @@ export function OrderHistoryProvider({ children }: { children: ReactNode }) {
     setOrders((prev) => {
       const next = prev.map((order) =>
         order.id === orderId
-          ? { ...order, status: '반품접수' as const, returnReason: reason, returnDetail: detail, returnPhotos: photos }
+          ? { ...order, status: '반품요청' as const, returnReason: reason, returnDetail: detail, returnPhotos: photos }
           : order,
       )
       safeSetItem(ORDERS_KEY, next)

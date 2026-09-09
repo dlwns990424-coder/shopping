@@ -21,6 +21,7 @@ function Dashboard() {
   const today = new Date().toISOString().slice(0, 10)
   const totalRevenue = orders.filter(isRevenueOrder).reduce((sum, order) => sum + orderTotal(order), 0)
   const todayOrderCount = orders.filter((order) => order.date === today).length
+  const pendingReturnCount = orders.filter((order) => order.status === '반품요청').length
   const recentOrders = orders.slice(0, 8)
 
   const kpis = [
@@ -28,6 +29,7 @@ function Dashboard() {
     { label: '총 주문 수', value: `${orders.length}건` },
     { label: '오늘 주문 수', value: `${todayOrderCount}건` },
     { label: '총 회원 수', value: memberCount === null ? '-' : `${memberCount}명` },
+    { label: '반품요청', value: `${pendingReturnCount}건`, alert: pendingReturnCount > 0 },
   ]
 
   return (
@@ -37,11 +39,14 @@ function Dashboard() {
       </Helmet>
       <h1 className="text-h1">대시보드</h1>
 
-      <div className="grid grid-cols-2 gap-16 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-16 lg:grid-cols-5">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="rounded-sm border border-line px-20 py-16">
+          <div
+            key={kpi.label}
+            className={`rounded-sm border px-20 py-16 ${kpi.alert ? 'border-point bg-point-tint' : 'border-line'}`}
+          >
             <p className="text-body-sm text-secondary">{kpi.label}</p>
-            <p className="text-h2 mt-8">{kpi.value}</p>
+            <p className={`text-h2 mt-8 ${kpi.alert ? 'text-point' : ''}`}>{kpi.value}</p>
           </div>
         ))}
       </div>
