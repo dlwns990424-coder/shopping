@@ -14,7 +14,8 @@ function CategoryCard({ to, label, image, imageFit = 'contain' }: CategoryCardPr
         className={`absolute inset-0 bg-center bg-no-repeat ${imageFit === 'cover' ? 'bg-cover' : 'bg-contain'}`}
         style={image ? { backgroundImage: `url(${image})` } : undefined}
       />
-      <p className="absolute bottom-16 left-16 text-base font-semibold text-primary underline transition-colors group-hover:text-point">
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
+      <p className="absolute bottom-16 left-16 text-base font-semibold text-surface underline group-hover:text-point">
         {label}
       </p>
     </Link>

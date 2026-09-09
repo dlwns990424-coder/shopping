@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { ArrowRight } from 'lucide-react'
 import { useContent } from '../context/ContentContext'
 
 interface EventBanner {
@@ -53,7 +52,7 @@ function Home() {
         )}
         <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
         <div className="relative z-10 px-24 py-32 text-surface lg:p-64">
-          <h1 className="text-h1 text-[36px] text-[#fff] drop-shadow-md lg:text-[44px]">
+          <h1 className="text-h1 text-[40px] font-medium text-[#fff] drop-shadow-md lg:text-[50px]">
             {content['home.hero.title'] ?? '계절을 입다, 데일리를 완성하다'}
           </h1>
         </div>
@@ -78,7 +77,9 @@ function Home() {
               <p className="text-body-sm mb-16 text-surface">
                 {content['home.men_banner.copy'] ?? '댄디하고 심플한 무드의 새 시즌 컬렉션'}
               </p>
-              <span className="text-button border-b border-surface pb-2 text-surface">SHOP MEN&apos;S</span>
+              <span className="text-button border-b border-surface pb-2 text-surface group-hover:text-point">
+                SHOP MEN&apos;S
+              </span>
             </div>
           </Link>
           <Link
@@ -98,7 +99,9 @@ function Home() {
               <p className="text-body-sm mb-16 text-surface">
                 {content['home.women_banner.copy'] ?? '세련되고 감각적인 무드의 새 시즌 컬렉션'}
               </p>
-              <span className="text-button border-b border-surface pb-2 text-surface">SHOP WOMEN&apos;S</span>
+              <span className="text-button border-b border-surface pb-2 text-surface group-hover:text-point">
+                SHOP WOMEN&apos;S
+              </span>
             </div>
           </Link>
         </div>
@@ -121,9 +124,8 @@ function Home() {
                 <p className="text-h3 text-surface">
                   {content[`home.event_banner.${banner.id}.label`] ?? banner.label}
                 </p>
-                <span className="text-button inline-flex w-fit items-center gap-4 border-b border-surface pb-2 text-surface">
-                  이동
-                  <ArrowRight size={14} strokeWidth={1.5} />
+                <span className="text-button w-fit border-b border-surface pb-2 text-surface group-hover:text-point">
+                  Shop Now
                 </span>
               </div>
             </Link>

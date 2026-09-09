@@ -12,9 +12,15 @@ interface ImageCropModalProps {
 }
 
 function ImageCropModal({ file, aspect, onCancel, onConfirm }: ImageCropModalProps) {
+  // zoom이 정확히 1이면 라이브러리가 이미지를 크롭 박스에 딱 맞는 최소 크기로 놓는데,
+  // 이 경우 가로/세로 중 한 축은 이미지 경계와 완전히 일치해서 그 방향으로는 드래그해도
+  // 전혀 움직이지 않는다(사용자에게는 "크롭이 고정돼서 안 움직인다"는 버그처럼 보임).
+  // 시작 zoom을 최소값보다 살짝 높게 잡아서 두 방향 모두 처음부터 움직일 여지를 준다.
+  const INITIAL_ZOOM = 1.2
+
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
-  const [zoom, setZoom] = useState(1)
+  const [zoom, setZoom] = useState(INITIAL_ZOOM)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(null)
   const [processing, setProcessing] = useState(false)
   const [cropBoxSize, setCropBoxSize] = useState<{ width: number; height: number } | null>(null)
@@ -71,7 +77,8 @@ function ImageCropModal({ file, aspect, onCancel, onConfirm }: ImageCropModalPro
           )}
         </div>
         <p className="text-caption text-secondary">
-          안쪽 점선 안에 얼굴 등 핵심 요소를 두면 화면 크기와 상관없이 항상 보입니다.
+          안쪽 점선 안에 얼굴 등 핵심 요소를 두면 화면 크기와 상관없이 항상 보입니다. 상하좌우로 잘 안
+          움직이면 확대를 조금 더 올려주세요.
         </p>
 
         <div className="flex items-center gap-12">

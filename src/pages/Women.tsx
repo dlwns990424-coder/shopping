@@ -50,7 +50,7 @@ function Women() {
           style={{ backgroundImage: `url(${heroMobile})` }}
         />
         <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
-          <h1 className="text-h1 text-surface">
+          <h1 className="text-h1 text-[40px] font-medium text-surface lg:text-[50px]">
             {content['women.hero.title'] ?? '세련되고 감각적인 무드의 새 시즌 컬렉션'}
           </h1>
         </div>
