@@ -8,13 +8,9 @@ import Button from '../../components/Button'
 import ConfirmModal from '../../components/ConfirmModal'
 import type { ReturnStatus, ShippingStatus } from '../../types'
 import { formatPrice } from '../../utils/formatPrice'
-import { orderTotal } from '../../utils/orderStats'
+import { CANCELABLE_SHIPPING_STATUSES, orderTotal } from '../../utils/orderStats'
 
 const SHIPPING_STATUSES: ShippingStatus[] = ['결제완료', '배송준비', '배송중', '배송완료', '취소']
-
-// 배송이 시작되면(배송중/배송완료) "취소"가 아니라 반품 절차로 넘어가야 하므로
-// 바로 취소 버튼은 아직 출고되지 않은 상태에서만 노출한다.
-const CANCELABLE_STATUSES = new Set<ShippingStatus>(['결제완료', '배송준비'])
 
 type ReturnFilter = 'all' | 'none' | ReturnStatus
 
@@ -216,7 +212,7 @@ function OrderManage() {
                             className="pointer-events-none absolute right-8 top-1/2 -translate-y-1/2 text-secondary"
                           />
                         </div>
-                        {CANCELABLE_STATUSES.has(order.shippingStatus) && (
+                        {CANCELABLE_SHIPPING_STATUSES.has(order.shippingStatus) && (
                           <Button
                             size="small"
                             variant="secondary"

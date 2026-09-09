@@ -1,4 +1,8 @@
-import type { Order } from '../types'
+import type { Order, ShippingStatus } from '../types'
+
+// 아직 출고 전(배송준비까지)이면 취소 가능 — 대부분의 쇼핑몰이 "출고 여부"를 기준으로 삼는 것과
+// 동일한 기준. 고객 화면(OrderHistory)과 관리자 화면(OrderManage) 둘 다 이 기준을 공유한다.
+export const CANCELABLE_SHIPPING_STATUSES = new Set<ShippingStatus>(['결제완료', '배송준비'])
 
 export function orderItemsTotal(order: Order) {
   return order.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
