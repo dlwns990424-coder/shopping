@@ -101,7 +101,7 @@ function ProductDetail() {
       </Helmet>
 
       <div className="grid grid-cols-1 gap-64 px-24 pt-32 md:px-32 lg:grid-cols-[1fr_456px] lg:px-40 lg:pt-48">
-        <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {[product.image, ...product.detailImages].map((src, index) => (
             <div
               key={index}

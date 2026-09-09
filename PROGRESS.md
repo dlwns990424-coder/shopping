@@ -22,7 +22,8 @@
 5. **테스트 계정 — 2026-09-09부터 Supabase Auth 실계정으로 전환됨** (더 이상 localStorage 자동생성 아님, 실제 DB에 존재하는 계정): 일반 `test@test.com`(비밀번호는 사용자 본인 계정이라 기록 안 함), 관리자 `admin@test.com` / `admin1234`. 같은 Supabase 프로젝트를 쓰는 한 새 컴퓨터에서도 그대로 로그인 가능(계정이 서버에 있어서 로컬 설정 불필요) — `.env.local`만 있으면 됨
 
 ## 마지막 갱신
-- 날짜: 2026-09-09 (같은 날 네 번째 세션)
+- 날짜: 2026-09-09 (같은 날 다섯 번째 세션)
+- **상품 상세페이지 이미지 갤러리 2열 배치**: `ProductDetail.tsx`의 이미지 목록(`product.image` + `detailImages`)이 PC에서 1열로 세로 나열되던 걸 2열 그리드로 변경(`flex flex-col` → `grid grid-cols-1 lg:grid-cols-2`, 모바일은 기존 1열 유지, 이미지 홀수 개면 마지막 1장은 왼쪽 칸만 채움 — 사용자 확인 후 결정). 브라우저로 실제 상품(오버핏 울 코트, 이미지 3장)에서 2열 배치+홀수 처리 확인. `tsc`/`lint` 신규 에러 0건
 - **이번 세션 요약 — 홈 이벤트배너를 관리자 페이지에서 순서/링크 대상까지 편집 가능하게 개선**: 기존엔 라벨/이미지만 Supabase로 관리되고 순서·클릭 시 이동 경로(`to`)는 `Home.tsx` 코드에 하드코딩돼 있어 시즌마다 이벤트가 바뀔 때 코드 수정이 필요했던 문제 해결. "링크 URL 직접 입력"이 아니라 `CategoryListing.tsx`가 쓰는 성별/카테고리/서브카테고리 체계를 그대로 드롭다운으로 골라 URL이 자동 조립되는 방식으로 설계.
   1. `CategoryListing.tsx`의 `TABS`/`SUB_CATEGORIES` 상수를 `src/constants/categoryFilters.ts`로 추출(양쪽에서 재사용, 값 변경 없음)
   2. `scripts/sql/011_event_banner_link_target.sql` — 배너 4개 각각에 `.gender`/`.category`/`.sub`/`.order` row 신규 추가(기존 하드코딩 값과 동일하게 시딩). `scripts/seed-content.ts`에도 동일 반영. **사용자가 Supabase SQL Editor에서 실행 완료**
