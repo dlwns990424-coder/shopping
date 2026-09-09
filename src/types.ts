@@ -81,6 +81,7 @@ export interface Order {
   shippingAddress: string
   shippingAddressDetail?: string
   deliveryRequest?: string
+  deliveredAt?: string
   returnReason?: string
   returnDetail?: string
   returnPhotos?: string[]

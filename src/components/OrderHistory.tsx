@@ -7,7 +7,7 @@ import ReturnRequestModal from './ReturnRequestModal'
 import { useAuth } from '../context/AuthContext'
 import { useOrderHistory } from '../context/OrderHistoryContext'
 import { formatPrice } from '../utils/formatPrice'
-import { orderItemsTotal, orderTotal } from '../utils/orderStats'
+import { RETURN_WINDOW_DAYS, isReturnWindowOpen, orderItemsTotal, orderTotal } from '../utils/orderStats'
 
 // 배송 완료된 지난 주문보다 "지금 내가 결제한 게 어떻게 되고 있는지"가 더 궁금하다는
 // 피드백으로, 날짜순 대신 진행 상태 우선순위로 정렬한다(같은 상태 안에서는 최신순 유지).
@@ -109,16 +109,26 @@ function OrderHistory() {
               주문취소
             </Button>
           )}
-          {order.status === '배송완료' && (
-            <Button
-              size="small"
-              variant="secondary"
-              className="mt-16"
-              onClick={() => setReturnTargetId(order.id)}
-            >
-              반품 신청
-            </Button>
-          )}
+          {order.status === '배송완료' &&
+            (isReturnWindowOpen(order) ? (
+              <Button
+                size="small"
+                variant="secondary"
+                className="mt-16"
+                onClick={() => setReturnTargetId(order.id)}
+              >
+                반품 신청
+              </Button>
+            ) : (
+              <div className="mt-16 flex flex-col gap-4">
+                <Button size="small" variant="secondary" disabled>
+                  반품 신청
+                </Button>
+                <p className="text-caption text-secondary">
+                  반품 가능 기간({RETURN_WINDOW_DAYS}일)이 지났습니다.
+                </p>
+              </div>
+            ))}
         </div>
       ))}
 

@@ -49,7 +49,11 @@ export function OrderHistoryProvider({ children }: { children: ReactNode }) {
   const updateOrderStatuses = (orderIds: string[], status: OrderStatus) => {
     setOrders((prev) => {
       const idSet = new Set(orderIds)
-      const next = prev.map((order) => (idSet.has(order.id) ? { ...order, status } : order))
+      const next = prev.map((order) =>
+        idSet.has(order.id)
+          ? { ...order, status, ...(status === '배송완료' ? { deliveredAt: new Date().toISOString() } : {}) }
+          : order,
+      )
       safeSetItem(ORDERS_KEY, next)
       return next
     })

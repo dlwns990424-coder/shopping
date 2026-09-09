@@ -13,3 +13,13 @@ export function orderTotal(order: Order) {
 export function isRevenueOrder(order: Order) {
   return order.status !== '취소' && order.status !== '반품완료'
 }
+
+export const RETURN_WINDOW_DAYS = 7
+
+// deliveredAt이 없는 주문(이 필드가 생기기 전에 배송완료된 건)은 언제 배송됐는지 알 수 없으니
+// 기간 제한 없이 반품 가능한 것으로 취급한다.
+export function isReturnWindowOpen(order: Order) {
+  if (!order.deliveredAt) return true
+  const elapsedMs = Date.now() - new Date(order.deliveredAt).getTime()
+  return elapsedMs <= RETURN_WINDOW_DAYS * 24 * 60 * 60 * 1000
+}
