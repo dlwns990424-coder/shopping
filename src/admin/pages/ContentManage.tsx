@@ -41,10 +41,13 @@ function sectionOf(key: string) {
 // 모바일용/데스크톱용 이미지를 따로 받는다(_mobile/_desktop 접미사). event_banner와
 // 카테고리 카드는 화면 크기와 무관하게 이미지 1장만 받는다(카테고리는 CategoryCard의
 // 모바일 비율인 3:4 기준으로 크롭 — 데스크톱은 더 넓은 3:2라 좌우로 살짝 여유 있게 보임).
+// 모바일/태블릿 히어로·배너가 h-screen(풀스크린)에서 aspect-ratio 기반으로 바뀌면서
+// (Home/Men/Women 히어로 aspect-[3/4], 홈 젠더배너 aspect-[4/5]) 이 비율도 그에 맞게 갱신함.
+// 데스크톱(`lg:`)은 여전히 h-screen이라 16:9/4:5는 뷰포트에 따라 달라지는 근사값일 뿐임(기존과 동일).
 const RESPONSIVE_ASPECT: Record<string, { mobile: number; desktop: number }> = {
-  hero: { mobile: 9 / 19.5, desktop: 16 / 9 },
-  men_banner: { mobile: 9 / 19.5, desktop: 4 / 5 },
-  women_banner: { mobile: 9 / 19.5, desktop: 4 / 5 },
+  hero: { mobile: 3 / 4, desktop: 16 / 9 },
+  men_banner: { mobile: 4 / 5, desktop: 4 / 5 },
+  women_banner: { mobile: 4 / 5, desktop: 4 / 5 },
 }
 const FIXED_ASPECT = 2 / 3
 const RESPONSIVE_SECTIONS = new Set(Object.keys(RESPONSIVE_ASPECT))
@@ -52,9 +55,11 @@ const RESPONSIVE_SECTIONS = new Set(Object.keys(RESPONSIVE_ASPECT))
 const CATEGORY_ASPECT = 3 / 4
 const CATEGORY_SECTIONS = new Set(['category_all', 'category_outer', 'category_top', 'category_bottom'])
 
-// 히어로 섹션은 고정 헤더(h-64, 그 아래 그라디언트는 160px까지)가 이미지 위에 겹쳐진다.
+// 히어로 섹션은 고정 헤더(모바일 h-48, 그 아래 그라디언트는 160px까지)가 이미지 위에 겹쳐진다.
 // 크롭 높이 대비 대략적인 비율(여유를 좀 둔 값) — 이 안에는 얼굴 등 중요한 요소를 두면 안 됨.
-const HERO_HEADER_ZONE_RATIO = 0.12
+// 모바일 크롭 높이가 h-screen 기준일 때보다 짧아져서(aspect-[3/4]) 같은 절대 픽셀(그라디언트
+// 160px)이 차지하는 비중이 커졌으므로 비율을 올려잡음.
+const HERO_HEADER_ZONE_RATIO = 0.2
 
 // null이면 "모바일/데스크톱으로 나뉘어야 하는데 아직 안 나뉜 비정상 상태"라는 뜻.
 // 이 경우 잘못된 비율(예: 2:3)로 조용히 넘기지 않고 화면에서 바로 경고를 띄운다.

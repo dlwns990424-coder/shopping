@@ -4,9 +4,12 @@ import { ChevronDown, Heart } from 'lucide-react'
 import type { Product } from '../types'
 import { useWishlist } from '../context/WishlistContext'
 import { useCart } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
+import { useAuthModal } from '../context/AuthModalContext'
 import { formatPrice } from '../utils/formatPrice'
 import Button from './Button'
 import Checkbox from './Checkbox'
+import ConfirmModal from './ConfirmModal'
 
 interface WishlistCardProps {
   product: Product
@@ -19,16 +22,28 @@ interface WishlistCardProps {
 function WishlistCard({ product, selectionMode, selected, onToggleSelect, onAdded }: WishlistCardProps) {
   const { toggle } = useWishlist()
   const { addItem } = useCart()
+  const { user } = useAuth()
+  const { openLoginModal } = useAuthModal()
   const [size, setSize] = useState('')
+  const [confirmingRemove, setConfirmingRemove] = useState(false)
 
-  const handleRemove = (e: MouseEvent) => {
+  const handleRemoveClick = (e: MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    setConfirmingRemove(true)
+  }
+
+  const handleConfirmRemove = () => {
     toggle(product.id)
+    setConfirmingRemove(false)
   }
 
   const handleAdd = () => {
     if (!size) return
+    if (!user) {
+      openLoginModal()
+      return
+    }
     addItem(product, size)
     onAdded()
   }
@@ -44,7 +59,7 @@ function WishlistCard({ product, selectionMode, selected, onToggleSelect, onAdde
         >
           <button
             type="button"
-            onClick={handleRemove}
+            onClick={handleRemoveClick}
             aria-label="찜 해제"
             className="absolute right-8 top-8 flex h-32 w-32 items-center justify-center border-none bg-transparent p-0 text-primary lg:right-12 lg:top-12 lg:h-40 lg:w-40"
           >
@@ -90,6 +105,16 @@ function WishlistCard({ product, selectionMode, selected, onToggleSelect, onAdde
           장바구니 담기
         </Button>
       </div>
+
+      {confirmingRemove && (
+        <ConfirmModal
+          message="찜 목록에서 삭제할까요?"
+          confirmLabel="삭제"
+          cancelLabel="취소"
+          onConfirm={handleConfirmRemove}
+          onCancel={() => setConfirmingRemove(false)}
+        />
+      )}
     </div>
   )
 }

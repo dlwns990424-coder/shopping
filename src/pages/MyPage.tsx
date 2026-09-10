@@ -12,12 +12,14 @@ function MyPage() {
   const { logout } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const activeTab = searchParams.get('tab') || 'settings'
+  const activeTab = searchParams.get('tab') || 'orders'
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const handleConfirmLogout = async () => {
-    await logout()
+    // RequireAuth가 "보호된 페이지에 로그인 안 된 채로 있다"고 오인해 로그인 모달을
+    // 띄우지 않도록, 유저 상태를 지우기 전에 먼저 페이지를 벗어난다.
     navigate('/')
+    await logout()
   }
 
   return (
@@ -35,6 +37,14 @@ function MyPage() {
           {activeTab === 'recent' && <RecentlyViewed />}
           {activeTab !== 'orders' && activeTab !== 'recent' && <AccountSettingsForm />}
         </div>
+
+        <button
+          type="button"
+          className="cursor-pointer self-start border-none bg-transparent px-16 text-sm text-secondary transition-colors active:scale-95 hover:text-point md:hidden"
+          onClick={() => setShowLogoutConfirm(true)}
+        >
+          로그아웃
+        </button>
       </div>
 
       {showLogoutConfirm && (

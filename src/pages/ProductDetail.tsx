@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { Heart } from 'lucide-react'
 import SizeSelector from '../components/SizeSelector'
+import QuantityStepper from '../components/QuantityStepper'
 import Button from '../components/Button'
 import ProductCard from '../components/ProductCard'
 import Toast from '../components/Toast'
@@ -25,11 +26,20 @@ function ProductDetail() {
   const product = products.find((item) => item.id === productId)
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const [sizeError, setSizeError] = useState(false)
+  const [quantity, setQuantity] = useState(1)
   const [showToast, setShowToast] = useState(false)
 
   useEffect(() => {
     if (product) addRecentlyViewed(product.id)
   }, [product])
+
+  // 라우트 파라미터만 바뀌면 컴포넌트가 재마운트되지 않아, 상품을 이동해도
+  // 이전 상품에서 고른 사이즈/수량이 그대로 남아있던 문제를 막는다.
+  useEffect(() => {
+    setSelectedSize(null)
+    setSizeError(false)
+    setQuantity(1)
+  }, [productId])
 
   if (loading) {
     return (
@@ -65,7 +75,7 @@ function ProductDetail() {
       setSizeError(true)
       return
     }
-    addItem(product, selectedSize)
+    addItem(product, selectedSize, quantity)
     setShowToast(true)
   }
 
@@ -83,10 +93,11 @@ function ProductDetail() {
         items: [
           {
             id: `${product.id}-${product.color.label}-${selectedSize}`,
+            productId: product.id,
             name: product.name,
             option: `${product.color.label} · ${selectedSize}`,
             price: product.salePrice ?? product.price,
-            quantity: 1,
+            quantity,
             image: product.image,
           },
         ],
@@ -146,6 +157,13 @@ function ProductDetail() {
         </div>
         {sizeError && <p className="text-caption text-point">사이즈를 선택해주세요.</p>}
       </div>
+
+      <div className="flex flex-col items-start gap-12">
+        <p className="text-body-lg">수량</p>
+        <QuantityStepper value={quantity} onChange={setQuantity} />
+      </div>
+
+      {!user && <p className="text-caption text-secondary">로그인 후 담기·구매가 가능합니다.</p>}
     </>
   )
 
@@ -163,7 +181,7 @@ function ProductDetail() {
       </Helmet>
 
       {/* 모바일 전용: 사진 1장만 보고 바로 이름/가격/사이즈에 닿도록 순서를 다시 짬(데스크톱은 아래 별도 블록, 손 안 댐) */}
-      <div className="flex flex-col gap-32 px-24 pt-32 md:px-32 lg:hidden">
+      <div className="flex flex-col gap-32 px-20 pt-32 md:px-32 lg:hidden">
         <div
           className="aspect-[4/5] bg-surface-muted bg-cover bg-center bg-no-repeat md:aspect-auto md:h-[420px]"
           style={{ backgroundImage: `url(${product.image})` }}
@@ -213,7 +231,7 @@ function ProductDetail() {
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-fixed-bar flex gap-8 border-t border-line bg-surface px-24 pb-[calc(12px+env(safe-area-inset-bottom))] pt-12 lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-fixed-bar flex gap-8 border-t border-line bg-surface px-20 pb-[calc(12px+env(safe-area-inset-bottom))] pt-12 lg:hidden">
         <Button variant="secondary" size="large" className="flex-1" onClick={handleAddToCart}>
           장바구니 담기
         </Button>

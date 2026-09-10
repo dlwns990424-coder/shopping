@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import Checkbox from '../components/Checkbox'
+import ConfirmModal from '../components/ConfirmModal'
 import Toast from '../components/Toast'
 import WishlistCard from '../components/WishlistCard'
 import { useProducts } from '../context/ProductsContext'
 import { useWishlist } from '../context/WishlistContext'
+import { subjectJosa } from '../utils/josa'
 
 function Wishlist() {
   const { ids, removeMany } = useWishlist()
@@ -13,6 +15,7 @@ function Wishlist() {
 
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [confirmingRemoveSelected, setConfirmingRemoveSelected] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [showToast, setShowToast] = useState(false)
 
@@ -39,6 +42,7 @@ function Wishlist() {
   const handleRemoveSelected = () => {
     removeMany(selectedIds)
     setSelectedIds([])
+    setConfirmingRemoveSelected(false)
   }
 
   return (
@@ -66,8 +70,8 @@ function Wishlist() {
                 <>
                   <button
                     type="button"
-                    className="text-body-sm cursor-pointer border-none bg-transparent text-secondary disabled:cursor-not-allowed disabled:text-disabled"
-                    onClick={handleRemoveSelected}
+                    className="text-body-sm cursor-pointer border-none bg-transparent text-secondary disabled:cursor-default disabled:text-disabled"
+                    onClick={() => setConfirmingRemoveSelected(true)}
                     disabled={selectedIds.length === 0}
                   >
                     선택삭제
@@ -100,11 +104,21 @@ function Wishlist() {
                 selectionMode={selectionMode}
                 selected={selectedIds.includes(product.id)}
                 onToggleSelect={() => toggleOne(product.id)}
-                onAdded={() => notify(`${product.name}이(가) 장바구니에 담겼습니다.`)}
+                onAdded={() => notify(`${product.name}${subjectJosa(product.name)} 장바구니에 담겼습니다.`)}
               />
             ))}
           </div>
         </>
+      )}
+
+      {confirmingRemoveSelected && (
+        <ConfirmModal
+          message={`선택한 ${selectedIds.length}개 상품을 찜 목록에서 삭제할까요?`}
+          confirmLabel="삭제"
+          cancelLabel="취소"
+          onConfirm={handleRemoveSelected}
+          onCancel={() => setConfirmingRemoveSelected(false)}
+        />
       )}
 
       <Toast message={toastMessage} show={showToast} onClose={() => setShowToast(false)} />

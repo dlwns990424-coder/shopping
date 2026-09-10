@@ -5,7 +5,7 @@ import { uploadImage } from '../utils/uploadImage'
 
 interface ReturnRequestModalProps {
   onCancel: () => void
-  onSubmit: (reason: string, detail: string, photos: string[]) => void
+  onSubmit: (reason: string, detail: string, photos: string[]) => Promise<boolean>
 }
 
 const RETURN_REASONS = ['단순변심', '사이즈가 안 맞음', '상품 불량', '오배송', '기타']
@@ -20,12 +20,18 @@ function ReturnRequestModal({ onCancel, onSubmit }: ReturnRequestModalProps) {
   const [error, setError] = useState<string | null>(null)
 
   const handlePhotoSelect = async (e: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []).slice(0, MAX_PHOTOS - photos.length)
+    const selected = Array.from(e.target.files ?? [])
+    const remainingSlots = MAX_PHOTOS - photos.length
+    const files = selected.slice(0, remainingSlots)
     e.target.value = ''
     if (files.length === 0) return
 
     setUploading(true)
-    setError(null)
+    setError(
+      selected.length > remainingSlots
+        ? `사진은 최대 ${MAX_PHOTOS}장까지 첨부할 수 있어 ${selected.length - remainingSlots}장은 제외되었습니다.`
+        : null,
+    )
     try {
       const urls = await Promise.all(files.map((file) => uploadImage(file, 'returns')))
       setPhotos((prev) => [...prev, ...urls])
@@ -42,8 +48,12 @@ function ReturnRequestModal({ onCancel, onSubmit }: ReturnRequestModalProps) {
 
   const handleSubmit = async () => {
     setSubmitting(true)
+    setError(null)
     try {
-      onSubmit(reason, detail, photos)
+      const success = await onSubmit(reason, detail, photos)
+      if (!success) {
+        setError('반품 신청에 실패했습니다. 잠시 후 다시 시도해주세요.')
+      }
     } finally {
       setSubmitting(false)
     }

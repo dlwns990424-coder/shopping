@@ -6,7 +6,7 @@ interface QuantityStepperProps {
 }
 
 const BUTTON_CLASSES =
-  'h-32 w-32 border-none bg-surface text-base text-primary cursor-pointer disabled:cursor-not-allowed disabled:text-disabled'
+  'h-32 w-32 border-none bg-surface text-base text-primary cursor-pointer disabled:cursor-default disabled:text-disabled'
 
 function QuantityStepper({ value, onChange, min = 1, max = 99 }: QuantityStepperProps) {
   const decrease = () => onChange(Math.max(min, value - 1))

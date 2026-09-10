@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 function Footer() {
   return (
     <footer className="mt-auto bg-inverse text-surface">
-      <div className="flex flex-wrap gap-48 px-24 pb-32 pt-64 md:px-32 lg:px-40">
+      <div className="flex flex-wrap gap-48 px-20 pb-32 pt-64 md:px-32 lg:px-40">
         <img src="/images/brand/novera-logo-header.png" alt="NOVERA" className="block h-22 w-auto invert" />
 
         <div className="flex min-w-160 flex-col gap-8">
@@ -42,7 +42,7 @@ function Footer() {
         </div>
       </div>
 
-      <div className="text-caption border-t border-white/15 px-24 py-16 text-disabled md:px-32 lg:px-40">
+      <div className="text-caption border-t border-white/15 px-20 py-16 text-disabled md:px-32 lg:px-40">
         <p>© 2026 NOVERA. All rights reserved.</p>
       </div>
     </footer>

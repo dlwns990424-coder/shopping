@@ -60,6 +60,7 @@ export interface SignupInput {
 
 export interface CartItem {
   id: string
+  productId?: string
   name: string
   option: string
   price: number

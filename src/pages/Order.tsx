@@ -15,6 +15,7 @@ import { SHIPPING_FEE } from '../constants'
 import { formatPrice } from '../utils/formatPrice'
 
 const PHONE_REGEX = /^01[0-9]-?\d{3,4}-?\d{4}$/
+const CHECKOUT_ITEMS_KEY = 'shop_checkout_items'
 
 const DELIVERY_REQUEST_PRESETS = [
   '문 앞에 놓아주세요',
@@ -30,13 +31,36 @@ interface ShippingForm {
   shippingAddressDetail: string
 }
 
+function validateShipping(form: ShippingForm): Partial<Record<keyof ShippingForm, string>> {
+  const errors: Partial<Record<keyof ShippingForm, string>> = {}
+  if (!form.shippingName.trim()) {
+    errors.shippingName = '수령인을 입력해주세요.'
+  }
+  if (!PHONE_REGEX.test(form.shippingPhone)) {
+    errors.shippingPhone = '연락처를 정확한 형식으로 입력해주세요. (예: 010-1234-5678)'
+  }
+  if (!form.shippingAddress.trim()) {
+    errors.shippingAddress = '주소를 입력해주세요.'
+  }
+  return errors
+}
+
 function Order() {
   const { user, updateProfile } = useAuth()
   const { removeItems } = useCart()
   const { addOrder } = useOrderHistory()
   const location = useLocation()
   const navigate = useNavigate()
-  const items = (location.state as { items?: CartItem[] } | null)?.items
+  const stateItems = (location.state as { items?: CartItem[] } | null)?.items
+  const [items] = useState<CartItem[] | null>(() => {
+    if (stateItems && stateItems.length > 0) return stateItems
+    try {
+      const stored = sessionStorage.getItem(CHECKOUT_ITEMS_KEY)
+      return stored ? (JSON.parse(stored) as CartItem[]) : null
+    } catch {
+      return null
+    }
+  })
 
   const hasSavedShipping = Boolean(user?.shippingName && user?.shippingPhone && user?.shippingAddress)
 
@@ -51,11 +75,23 @@ function Order() {
   const [saveAsDefault, setSaveAsDefault] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false)
   const [deliveryRequestPreset, setDeliveryRequestPreset] = useState('')
   const [deliveryRequestCustom, setDeliveryRequestCustom] = useState('')
   const handleSearchAddress = useDaumPostcodeSearch((roadAddress) => {
     setShippingForm((prev) => ({ ...prev, shippingAddress: roadAddress }))
   })
+
+  // 새로고침해도 결제 정보가 날아가지 않도록, 넘어온 상품 목록을 탭 안에 붙잡아둔다.
+  useEffect(() => {
+    if (stateItems && stateItems.length > 0) {
+      try {
+        sessionStorage.setItem(CHECKOUT_ITEMS_KEY, JSON.stringify(stateItems))
+      } catch {
+        // 저장 공간이 없어도 결제 자체는 계속 진행 가능해야 하므로 무시한다.
+      }
+    }
+  }, [stateItems])
 
   useEffect(() => {
     if (!items || items.length === 0) {
@@ -70,10 +106,7 @@ function Order() {
   const productTotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const totalPrice = productTotal + SHIPPING_FEE
 
-  const isShippingValid =
-    shippingForm.shippingName.trim() !== '' &&
-    PHONE_REGEX.test(shippingForm.shippingPhone) &&
-    shippingForm.shippingAddress.trim() !== ''
+  const shippingErrors = attemptedSubmit ? validateShipping(shippingForm) : {}
 
   const finalDeliveryRequest =
     deliveryRequestPreset === '직접 입력' ? deliveryRequestCustom.trim() : deliveryRequestPreset
@@ -85,6 +118,15 @@ function Order() {
 
   const handleCheckout = async () => {
     setCheckoutError(null)
+
+    const errors = validateShipping(shippingForm)
+    if (Object.keys(errors).length > 0) {
+      setAttemptedSubmit(true)
+      setIsEditingShipping(true)
+      setCheckoutError('배송지 정보를 확인해주세요.')
+      return
+    }
+
     setSubmitting(true)
 
     const success = await addOrder(user!.email, items, SHIPPING_FEE, {
@@ -106,6 +148,11 @@ function Order() {
       updateProfile(shippingForm)
     }
     removeItems(items.map((item) => item.id))
+    try {
+      sessionStorage.removeItem(CHECKOUT_ITEMS_KEY)
+    } catch {
+      // no-op
+    }
     navigate('/order/complete', {
       replace: true,
       state: { itemCount: items.length, totalPrice },
@@ -118,11 +165,11 @@ function Order() {
         <title>NOVERA | 주문/결제</title>
       </Helmet>
 
-      <div className="px-24 pb-16 pt-32 md:px-32 lg:px-40 lg:pb-24 lg:pt-48">
+      <div className="px-20 pb-16 pt-32 md:px-32 lg:px-40 lg:pb-24 lg:pt-48">
         <h1 className="text-h2">주문/결제</h1>
       </div>
 
-      <div className="flex flex-col gap-32 px-24 pb-32 md:px-32 lg:flex-row lg:items-start lg:gap-64 lg:px-40 lg:pb-80">
+      <div className="flex flex-col gap-32 px-20 pb-32 md:px-32 lg:flex-row lg:items-start lg:gap-64 lg:px-40 lg:pb-80">
         <div className="flex min-w-0 flex-1 flex-col gap-48">
           <div className="flex flex-col gap-16">
             <div className="flex items-center justify-between">
@@ -145,13 +192,16 @@ function Order() {
                   label="수령인"
                   value={shippingForm.shippingName}
                   onChange={handleShippingChange('shippingName')}
+                  error={shippingErrors.shippingName}
                 />
                 <Input
                   id="order-shipping-phone"
                   label="연락처"
                   type="tel"
+                  placeholder="010-1234-5678"
                   value={shippingForm.shippingPhone}
                   onChange={handleShippingChange('shippingPhone')}
+                  error={shippingErrors.shippingPhone}
                 />
                 <div className="flex flex-col gap-8">
                   <label className="text-caption text-secondary" htmlFor="order-shipping-address">
@@ -169,6 +219,9 @@ function Order() {
                       주소 검색
                     </Button>
                   </div>
+                  {shippingErrors.shippingAddress && (
+                    <p className="text-caption text-point">{shippingErrors.shippingAddress}</p>
+                  )}
                 </div>
                 <Input
                   id="order-shipping-address-detail"
@@ -264,7 +317,7 @@ function Order() {
             variant="primary"
             size="large"
             className="w-full"
-            disabled={!agreed || !isShippingValid || submitting}
+            disabled={!agreed || submitting}
             onClick={handleCheckout}
           >
             {submitting ? '처리 중...' : '결제하기'}

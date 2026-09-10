@@ -21,7 +21,7 @@ function OrderComplete() {
   }
 
   return (
-    <div className="flex min-h-480 flex-col items-center justify-center gap-16 px-24 py-64 text-center lg:min-h-640">
+    <div className="flex min-h-480 flex-col items-center justify-center gap-16 px-20 py-64 text-center lg:min-h-640">
       <Helmet>
         <title>NOVERA | 주문완료</title>
       </Helmet>

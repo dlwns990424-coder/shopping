@@ -112,7 +112,7 @@ function CategoryListing({ basePath, products, defaultGender, categoryParam }: C
     }`
 
   return (
-    <div className="px-24 pb-32 pt-32 md:px-32 md:pt-48 lg:px-40 lg:pb-64">
+    <div className="px-20 pb-32 pt-32 md:px-32 md:pt-48 lg:px-40 lg:pb-64">
       <Helmet>
         <title>{`NOVERA | ${genderLabel} | ${title}`}</title>
       </Helmet>

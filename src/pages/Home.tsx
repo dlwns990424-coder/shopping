@@ -17,10 +17,10 @@ function Home() {
 
   const heroDesktop = content['home.hero.image_desktop']
   const heroMobile = content['home.hero.image_mobile'] || heroDesktop
-  const menBannerDesktop = content['home.men_banner.image_desktop']
-  const menBannerMobile = content['home.men_banner.image_mobile'] || menBannerDesktop
-  const womenBannerDesktop = content['home.women_banner.image_desktop']
-  const womenBannerMobile = content['home.women_banner.image_mobile'] || womenBannerDesktop
+  const menBannerDesktop = '/images/banner/men-banner.avif'
+  const menBannerMobile = '/images/banner/men-banner.avif'
+  const womenBannerDesktop = '/images/banner/women-banner.avif'
+  const womenBannerMobile = '/images/banner/women-banner.avif'
 
   const eventBanners = EVENT_BANNER_IDS.map((id) => ({
     id,
@@ -38,7 +38,7 @@ function Home() {
         <title>NOVERA</title>
       </Helmet>
 
-      <section className="relative -mt-64 flex h-screen items-end overflow-hidden">
+      <section className="relative -mt-48 flex aspect-[3/4] items-end overflow-hidden md:-mt-64 lg:aspect-auto lg:h-screen">
         {heroDesktop || heroMobile ? (
           <>
             <div
@@ -58,8 +58,8 @@ function Home() {
           </div>
         )}
         <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
-        <div className="relative z-10 px-24 py-32 text-surface lg:p-64">
-          <h1 className="text-h1 text-[40px] font-medium text-[#fff] drop-shadow-md lg:text-[50px]">
+        <div className="relative z-10 px-20 py-32 text-surface lg:p-64">
+          <h1 className="text-h1 text-[32px] font-medium text-[#fff] drop-shadow-md lg:text-[40px]">
             {content['home.hero.title'] ?? '계절을 입다, 데일리를 완성하다'}
           </h1>
         </div>
@@ -69,7 +69,7 @@ function Home() {
         <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
           <Link
             to="/men"
-            className="group relative flex h-screen items-end overflow-hidden rounded-none bg-secondary"
+            className="group relative flex aspect-[4/5] items-end overflow-hidden rounded-none bg-secondary lg:aspect-auto lg:h-screen"
           >
             <div
               className="absolute inset-0 hidden bg-cover bg-center lg:block"
@@ -79,19 +79,20 @@ function Home() {
               className="absolute inset-0 bg-cover bg-center lg:hidden"
               style={menBannerMobile ? { backgroundImage: `url(${menBannerMobile})` } : undefined}
             />
-            <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
-              <h2 className="text-h1 mb-8 text-surface">MEN</h2>
+            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
+            <div className="relative z-10 px-20 pt-32 pb-48 text-surface md:px-32 lg:px-40">
+              <h2 className="mb-8 text-2xl font-medium leading-[1.3] text-surface">MEN</h2>
               <p className="text-body-sm mb-16 text-surface">
                 {content['home.men_banner.copy'] ?? '댄디하고 심플한 무드의 새 시즌 컬렉션'}
               </p>
-              <span className="text-button border-b border-surface pb-2 text-surface group-hover:text-point">
+              <span className="text-base font-medium text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:group-hover:text-surface/70">
                 SHOP MEN&apos;S
               </span>
             </div>
           </Link>
           <Link
             to="/women"
-            className="group relative flex h-screen items-end overflow-hidden rounded-none bg-secondary"
+            className="group relative flex aspect-[4/5] items-end overflow-hidden rounded-none bg-secondary lg:aspect-auto lg:h-screen"
           >
             <div
               className="absolute inset-0 hidden bg-cover bg-center lg:block"
@@ -101,12 +102,13 @@ function Home() {
               className="absolute inset-0 bg-cover bg-center lg:hidden"
               style={womenBannerMobile ? { backgroundImage: `url(${womenBannerMobile})` } : undefined}
             />
-            <div className="relative z-10 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
-              <h2 className="text-h1 mb-8 text-surface">WOMEN</h2>
+            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
+            <div className="relative z-10 px-20 pt-32 pb-48 text-surface md:px-32 lg:px-40">
+              <h2 className="mb-8 text-2xl font-medium leading-[1.3] text-surface">WOMEN</h2>
               <p className="text-body-sm mb-16 text-surface">
                 {content['home.women_banner.copy'] ?? '세련되고 감각적인 무드의 새 시즌 컬렉션'}
               </p>
-              <span className="text-button border-b border-surface pb-2 text-surface group-hover:text-point">
+              <span className="text-base font-medium text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:group-hover:text-surface/70">
                 SHOP WOMEN&apos;S
               </span>
             </div>
@@ -123,9 +125,10 @@ function Home() {
               className="group relative flex aspect-[2/3] items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
               style={banner.image ? { backgroundImage: `url(${banner.image})` } : undefined}
             >
-              <div className="relative z-10 flex flex-col gap-8 px-24 pt-32 pb-48 text-surface md:px-32 lg:px-40">
-                <p className="text-h3 text-surface">{banner.label}</p>
-                <span className="text-button w-fit border-b border-surface pb-2 text-surface group-hover:text-point">
+              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
+              <div className="relative z-10 flex flex-col gap-8 px-16 pt-16 pb-20 text-surface md:px-32 md:pt-32 md:pb-48 lg:px-40">
+                <p className="text-base font-medium leading-[1.3] text-surface lg:text-lg">{banner.label}</p>
+                <span className="w-fit text-sm font-medium text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:text-base lg:group-hover:text-surface/70">
                   Shop Now
                 </span>
               </div>

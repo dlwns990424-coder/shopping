@@ -22,6 +22,8 @@
   --color-point-hover: #36525f;
   --color-point-tint: #eaf0f2;
 
+  --color-danger: #dc2626;
+
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -43,6 +45,26 @@
   to {
     opacity: 1;
     transform: translate(-50%, 0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -112,7 +134,7 @@
   }
 
   .page-section {
-    @apply px-24 pb-0 pt-32 md:px-32 md:pt-48 lg:px-40 lg:pt-64;
+    @apply px-20 pb-0 pt-32 md:px-32 md:pt-48 lg:px-40 lg:pt-64;
   }
 
   .page-section:last-of-type {

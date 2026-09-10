@@ -61,6 +61,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         ...prev,
         {
           id,
+          productId: product.id,
           name: product.name,
           option,
           price: product.salePrice ?? product.price,

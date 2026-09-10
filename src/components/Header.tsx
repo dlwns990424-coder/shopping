@@ -1,4 +1,4 @@
-import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
+import { forwardRef, useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { Search, Heart, ShoppingBag, User, Menu, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -29,9 +29,14 @@ interface IconButtonProps {
   onClick?: () => void
   children: ReactNode
   light?: boolean
+  ariaExpanded?: boolean
+  ariaControls?: string
 }
 
-function IconButton({ label, to, onClick, children, light }: IconButtonProps) {
+const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
+  { label, to, onClick, children, light, ariaExpanded, ariaControls },
+  ref,
+) {
   const content = (
     <>
       <span className="sr-only">{label}</span>
@@ -50,11 +55,19 @@ function IconButton({ label, to, onClick, children, light }: IconButtonProps) {
     )
   }
   return (
-    <button type="button" className={className} aria-label={label} onClick={onClick}>
+    <button
+      ref={ref}
+      type="button"
+      className={className}
+      aria-label={label}
+      aria-expanded={ariaExpanded}
+      aria-controls={ariaControls}
+      onClick={onClick}
+    >
       {content}
     </button>
   )
-}
+})
 
 function Header() {
   const { user } = useAuth()
@@ -67,6 +80,8 @@ function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [hovered, setHovered] = useState(false)
+  const menuToggleRef = useRef<HTMLButtonElement | null>(null)
+  const firstMenuLinkRef = useRef<HTMLButtonElement | null>(null)
 
   const isHeroPage =
     (location.pathname === '/' || location.pathname === '/men' || location.pathname === '/women') &&
@@ -77,6 +92,20 @@ function Header() {
     setSearchOpen(false)
     setMenuOpen(false)
   }, [location.pathname])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    firstMenuLinkRef.current?.focus()
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false)
+        menuToggleRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [menuOpen])
 
   useEffect(() => {
     if (!isHeroPage) {
@@ -110,9 +139,9 @@ function Header() {
 
   return (
     <header
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className={`fixed inset-x-0 top-0 z-header flex h-64 items-center gap-16 border-b px-24 transition-colors duration-300 md:gap-32 md:px-32 lg:px-40 ${
+      onPointerEnter={(e) => e.pointerType === 'mouse' && setHovered(true)}
+      onPointerLeave={(e) => e.pointerType === 'mouse' && setHovered(false)}
+      className={`fixed inset-x-0 top-0 z-header flex h-48 items-center gap-16 border-b px-20 transition-colors duration-300 md:h-64 md:gap-32 md:px-32 lg:px-40 ${
         isTransparent ? 'border-transparent bg-transparent' : 'border-line bg-surface'
       }`}
     >
@@ -169,9 +198,12 @@ function Header() {
 
       <div className="md:hidden">
         <IconButton
+          ref={menuToggleRef}
           label={menuOpen ? '메뉴 닫기' : '메뉴 열기'}
           onClick={() => setMenuOpen((prev) => !prev)}
           light={isTransparent}
+          ariaExpanded={menuOpen}
+          ariaControls="mobile-menu-panel"
         >
           {menuOpen ? <X size={22} strokeWidth={1.5} /> : <Menu size={22} strokeWidth={1.5} />}
         </IconButton>
@@ -182,12 +214,16 @@ function Header() {
       {menuOpen && (
         <>
           <div
-            className="fixed inset-0 top-64 z-modal bg-black/40 md:hidden"
+            className="fixed inset-0 top-48 z-modal bg-black/40 animate-[fade-in_0.2s_ease-out_forwards] md:hidden"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="fixed inset-x-0 top-64 z-modal border-b border-line bg-surface shadow-lg md:hidden">
-            <nav className="flex flex-col px-24">
+          <div
+            id="mobile-menu-panel"
+            className="fixed inset-x-0 top-48 z-modal border-b border-line bg-surface shadow-lg animate-[menu-in_0.2s_ease-out_forwards] md:hidden"
+          >
+            <nav className="flex flex-col px-20">
               <button
+                ref={firstMenuLinkRef}
                 type="button"
                 onClick={() => {
                   setMenuOpen(false)

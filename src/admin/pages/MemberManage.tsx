@@ -334,7 +334,7 @@ function MemberManage() {
                               onClick={() =>
                                 member.suspended ? handleUnsuspend(member) : setSuspendConfirmTarget(member)
                               }
-                              className="text-body-sm text-secondary underline hover:text-point disabled:cursor-not-allowed disabled:text-disabled disabled:no-underline"
+                              className="text-body-sm text-secondary underline hover:text-point disabled:cursor-default disabled:text-disabled disabled:no-underline"
                             >
                               {member.suspended ? '해제' : '정지'}
                             </button>
@@ -346,7 +346,7 @@ function MemberManage() {
                               value={member.role}
                               disabled={isSelf}
                               onChange={(e) => handleRoleChange(member, e.target.value as UserRole)}
-                              className="text-body-sm appearance-none rounded-sm border border-line py-4 pl-8 pr-28 disabled:cursor-not-allowed disabled:text-disabled"
+                              className="text-body-sm appearance-none rounded-sm border border-line py-4 pl-8 pr-28 disabled:cursor-default disabled:text-disabled"
                             >
                               <option value="user">일반회원</option>
                               <option value="admin">관리자</option>
@@ -363,7 +363,7 @@ function MemberManage() {
                             type="button"
                             disabled={isSelf}
                             onClick={() => openEditModal(member)}
-                            className="text-body-sm text-secondary hover:text-point disabled:cursor-not-allowed disabled:text-disabled disabled:hover:text-disabled"
+                            className="text-body-sm text-secondary hover:text-point disabled:cursor-default disabled:text-disabled disabled:hover:text-disabled"
                           >
                             수정
                           </button>
@@ -373,7 +373,7 @@ function MemberManage() {
                             type="button"
                             disabled={isSelf}
                             onClick={() => setDeleteTarget(member)}
-                            className="text-body-sm text-secondary hover:text-point disabled:cursor-not-allowed disabled:text-disabled disabled:hover:text-disabled"
+                            className="text-body-sm text-secondary hover:text-point disabled:cursor-default disabled:text-disabled disabled:hover:text-disabled"
                           >
                             삭제
                           </button>

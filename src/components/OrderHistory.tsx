@@ -33,29 +33,49 @@ function OrderHistory() {
   const { user } = useAuth()
   const { orders, loading, error, updateShippingStatuses, requestReturn } = useOrderHistory()
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelError, setCancelError] = useState<string | null>(null)
   const [returnTargetId, setReturnTargetId] = useState<string | null>(null)
   const myOrders = orders
     .filter((order) => order.userEmail === user?.email)
     .slice()
     .sort((a, b) => priorityOf(a) - priorityOf(b))
 
+  const openCancelModal = (id: string) => {
+    setCancelError(null)
+    setCancelTargetId(id)
+  }
+
+  const closeCancelModal = () => {
+    setCancelTargetId(null)
+    setCancelError(null)
+  }
+
   const confirmCancel = async () => {
     if (!cancelTargetId) return
-    await updateShippingStatuses([cancelTargetId], '취소')
+    setCancelling(true)
+    setCancelError(null)
+    const success = await updateShippingStatuses([cancelTargetId], '취소')
+    setCancelling(false)
+    if (!success) {
+      setCancelError('주문 취소에 실패했습니다. 잠시 후 다시 시도해주세요.')
+      return
+    }
     setCancelTargetId(null)
   }
 
   const submitReturn = async (reason: string, detail: string, photos: string[]) => {
-    if (!returnTargetId) return
-    await requestReturn(returnTargetId, reason, detail, photos)
-    setReturnTargetId(null)
+    if (!returnTargetId) return false
+    const success = await requestReturn(returnTargetId, reason, detail, photos)
+    if (success) setReturnTargetId(null)
+    return success
   }
 
   if (loading) {
     return <p className="text-body-sm text-secondary">불러오는 중...</p>
   }
 
-  if (error) {
+  if (error && myOrders.length === 0) {
     return <p className="text-body-sm text-point">{error}</p>
   }
 
@@ -122,7 +142,7 @@ function OrderHistory() {
               size="small"
               variant="secondary"
               className="mt-16"
-              onClick={() => setCancelTargetId(order.id)}
+              onClick={() => openCancelModal(order.id)}
             >
               주문취소
             </Button>
@@ -156,8 +176,10 @@ function OrderHistory() {
           message="이 주문을 취소하시겠어요?"
           confirmLabel="주문취소"
           cancelLabel="닫기"
+          confirming={cancelling}
+          error={cancelError}
           onConfirm={confirmCancel}
-          onCancel={() => setCancelTargetId(null)}
+          onCancel={closeCancelModal}
         />
       )}
 

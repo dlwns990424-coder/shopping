@@ -11,13 +11,20 @@ interface FormState {
   nickname: string
   email: string
   password: string
+  passwordConfirm: string
   phone: string
 }
 
 function Signup() {
   const navigate = useNavigate()
   const { signup } = useAuth()
-  const [form, setForm] = useState<FormState>({ nickname: '', email: '', password: '', phone: '' })
+  const [form, setForm] = useState<FormState>({
+    nickname: '',
+    email: '',
+    password: '',
+    passwordConfirm: '',
+    phone: '',
+  })
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const [showToast, setShowToast] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -36,6 +43,8 @@ function Signup() {
     }
     if (!PASSWORD_REGEX.test(form.password)) {
       nextErrors.password = '비밀번호는 영문/숫자를 포함해 8~16자로 입력해주세요.'
+    } else if (form.password !== form.passwordConfirm) {
+      nextErrors.passwordConfirm = '비밀번호가 일치하지 않습니다.'
     }
     if (!PHONE_REGEX.test(form.phone)) {
       nextErrors.phone = '휴대폰번호를 정확하게 입력해주세요.'
@@ -62,7 +71,7 @@ function Signup() {
   }
 
   return (
-    <div className="flex justify-center px-24 pb-96 pt-48 lg:pb-128 lg:pt-96">
+    <div className="flex justify-center px-20 pb-96 pt-48 lg:pb-128 lg:pt-96">
       <Helmet>
         <title>NOVERA | 회원가입</title>
       </Helmet>
@@ -95,6 +104,15 @@ function Signup() {
             value={form.password}
             onChange={handleChange('password')}
             error={errors.password}
+          />
+          <Input
+            id="signup-password-confirm"
+            label="비밀번호 확인"
+            type="password"
+            placeholder="비밀번호를 다시 입력해주세요"
+            value={form.passwordConfirm}
+            onChange={handleChange('passwordConfirm')}
+            error={errors.passwordConfirm}
           />
           <Input
             id="signup-phone"

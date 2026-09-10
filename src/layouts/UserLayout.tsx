@@ -6,7 +6,7 @@ function UserLayout() {
   return (
     <div className="flex min-h-svh flex-col">
       <Header />
-      <main className="flex-1 pt-64">
+      <main className="flex-1 pt-48 md:pt-64">
         <Outlet />
       </main>
       <Footer />

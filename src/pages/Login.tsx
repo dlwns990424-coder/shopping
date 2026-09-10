@@ -44,7 +44,7 @@ function Login() {
   }
 
   return (
-    <div className="flex justify-center px-24 pb-96 pt-48 lg:pb-128 lg:pt-96">
+    <div className="flex justify-center px-20 pb-96 pt-48 lg:pb-128 lg:pt-96">
       <Helmet>
         <title>NOVERA | 로그인</title>
       </Helmet>
