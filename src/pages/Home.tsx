@@ -17,10 +17,10 @@ function Home() {
 
   const heroDesktop = content['home.hero.image_desktop']
   const heroMobile = content['home.hero.image_mobile'] || heroDesktop
-  const menBannerDesktop = '/images/banner/men-banner.avif'
-  const menBannerMobile = '/images/banner/men-banner.avif'
-  const womenBannerDesktop = '/images/banner/women-banner.avif'
-  const womenBannerMobile = '/images/banner/women-banner.avif'
+  const menBannerDesktop = content['home.men_banner.image_desktop']
+  const menBannerMobile = content['home.men_banner.image_mobile'] || menBannerDesktop
+  const womenBannerDesktop = content['home.women_banner.image_desktop']
+  const womenBannerMobile = content['home.women_banner.image_mobile'] || womenBannerDesktop
 
   const eventBanners = EVENT_BANNER_IDS.map((id) => ({
     id,
