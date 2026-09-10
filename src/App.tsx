@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async'
 import { AuthProvider } from './context/AuthContext'
 import { CartProvider } from './context/CartContext'
 import { WishlistProvider } from './context/WishlistContext'
+import { RecentSearchProvider } from './context/RecentSearchContext'
 import { OrderHistoryProvider } from './context/OrderHistoryContext'
 import { AuthModalProvider } from './context/AuthModalContext'
 import { ProductsProvider } from './context/ProductsContext'
@@ -42,42 +43,44 @@ function App() {
           <ContentProvider>
             <CartProvider>
               <WishlistProvider>
-                <OrderHistoryProvider>
-                  <BrowserRouter>
-                    <AuthModalProvider>
-                      <ScrollToTop />
-                      <Routes>
-                        <Route element={<UserLayout />}>
-                          <Route path="/" element={<Home />} />
-                          <Route path="/men" element={<Men />} />
-                          <Route path="/women" element={<Women />} />
-                          <Route path="/products/:productId" element={<ProductDetail />} />
-                          <Route path="/wishlist" element={<Wishlist />} />
-                          <Route path="/login" element={<Login />} />
-                          <Route path="/signup" element={<Signup />} />
+                <RecentSearchProvider>
+                  <OrderHistoryProvider>
+                    <BrowserRouter>
+                      <AuthModalProvider>
+                        <ScrollToTop />
+                        <Routes>
+                          <Route element={<UserLayout />}>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/men" element={<Men />} />
+                            <Route path="/women" element={<Women />} />
+                            <Route path="/products/:productId" element={<ProductDetail />} />
+                            <Route path="/wishlist" element={<Wishlist />} />
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/signup" element={<Signup />} />
 
-                          <Route element={<RequireAuth />}>
-                            <Route path="/cart" element={<Cart />} />
-                            <Route path="/order" element={<Order />} />
-                            <Route path="/order/complete" element={<OrderComplete />} />
-                            <Route path="/mypage" element={<MyPage />} />
+                            <Route element={<RequireAuth />}>
+                              <Route path="/cart" element={<Cart />} />
+                              <Route path="/order" element={<Order />} />
+                              <Route path="/order/complete" element={<OrderComplete />} />
+                              <Route path="/mypage" element={<MyPage />} />
+                            </Route>
                           </Route>
-                        </Route>
 
-                        <Route element={<RequireAdmin />}>
-                          <Route path="/admin" element={<AdminLayout />}>
-                            <Route index element={<Dashboard />} />
-                            <Route path="products" element={<ProductManage />} />
-                            <Route path="orders" element={<OrderManage />} />
-                            <Route path="members" element={<MemberManage />} />
-                            <Route path="sales" element={<SalesManage />} />
-                            <Route path="content" element={<ContentManage />} />
+                          <Route element={<RequireAdmin />}>
+                            <Route path="/admin" element={<AdminLayout />}>
+                              <Route index element={<Dashboard />} />
+                              <Route path="products" element={<ProductManage />} />
+                              <Route path="orders" element={<OrderManage />} />
+                              <Route path="members" element={<MemberManage />} />
+                              <Route path="sales" element={<SalesManage />} />
+                              <Route path="content" element={<ContentManage />} />
+                            </Route>
                           </Route>
-                        </Route>
-                      </Routes>
-                    </AuthModalProvider>
-                  </BrowserRouter>
-                </OrderHistoryProvider>
+                        </Routes>
+                      </AuthModalProvider>
+                    </BrowserRouter>
+                  </OrderHistoryProvider>
+                </RecentSearchProvider>
               </WishlistProvider>
             </CartProvider>
           </ContentProvider>

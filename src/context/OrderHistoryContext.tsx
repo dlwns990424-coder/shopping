@@ -17,7 +17,7 @@ interface OrderHistoryContextValue {
     items: CartItem[],
     shippingFee: number,
     shipping: OrderShippingInfo,
-  ) => Promise<boolean>
+  ) => Promise<string | null>
   updateShippingStatuses: (orderIds: string[], status: ShippingStatus) => Promise<boolean>
   updateReturnStatus: (orderId: string, status: ReturnStatus) => Promise<boolean>
   requestReturn: (orderId: string, reason: string, detail: string, photos: string[]) => Promise<boolean>
@@ -95,14 +95,15 @@ export function OrderHistoryProvider({ children }: { children: ReactNode }) {
     items: CartItem[],
     shippingFee: number,
     shipping: OrderShippingInfo,
-  ): Promise<boolean> => {
+  ): Promise<string | null> => {
     if (!user) {
       setError('로그인이 필요합니다.')
-      return false
+      return null
     }
     setError(null)
+    const id = `ORD-${Date.now()}`
     const { error } = await supabase.from('orders').insert({
-      id: `ORD-${Date.now()}`,
+      id,
       user_id: user.id,
       user_email: userEmail,
       shipping_status: '결제완료',
@@ -116,10 +117,10 @@ export function OrderHistoryProvider({ children }: { children: ReactNode }) {
     })
     if (error) {
       setError(error.message)
-      return false
+      return null
     }
     await load()
-    return true
+    return id
   }
 
   const updateShippingStatuses = async (orderIds: string[], status: ShippingStatus): Promise<boolean> => {

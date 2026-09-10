@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, X } from 'lucide-react'
 import { useProducts } from '../context/ProductsContext'
+import { useRecentSearch } from '../context/RecentSearchContext'
 import { formatPrice } from '../utils/formatPrice'
 
 const PREVIEW_LIMIT = 6
@@ -13,6 +14,7 @@ interface SearchOverlayProps {
 
 function SearchOverlay({ open, onClose }: SearchOverlayProps) {
   const { products } = useProducts()
+  const { terms: recentTerms, addTerm, removeTerm, clearAll } = useRecentSearch()
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -30,6 +32,11 @@ function SearchOverlay({ open, onClose }: SearchOverlayProps) {
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') onClose()
+  }
+
+  const handleSelect = () => {
+    addTerm(trimmedQuery)
+    onClose()
   }
 
   return (
@@ -70,7 +77,7 @@ function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                   <Link
                     key={product.id}
                     to={`/products/${product.id}`}
-                    onClick={onClose}
+                    onClick={handleSelect}
                     className="flex items-center gap-12 rounded-sm p-8 text-inherit no-underline transition-colors hover:bg-surface-muted"
                   >
                     <div
@@ -90,7 +97,7 @@ function SearchOverlay({ open, onClose }: SearchOverlayProps) {
                 ))}
                 <Link
                   to={`/men?category=all&q=${encodeURIComponent(trimmedQuery)}`}
-                  onClick={onClose}
+                  onClick={handleSelect}
                   className="text-body-sm mt-8 text-secondary underline underline-offset-2 hover:text-primary"
                 >
                   전체 {matches.length}개 결과 보기
@@ -99,6 +106,45 @@ function SearchOverlay({ open, onClose }: SearchOverlayProps) {
             ) : (
               <p className="text-body-sm mt-16 text-secondary">검색 결과가 없습니다.</p>
             )
+          )}
+
+          {!trimmedQuery && recentTerms.length > 0 && (
+            <div className="mt-16">
+              <div className="mb-8 flex items-center justify-between">
+                <p className="text-caption text-secondary">최근 검색어</p>
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  className="text-caption cursor-pointer border-none bg-transparent text-secondary hover:text-primary"
+                >
+                  전체 삭제
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-8">
+                {recentTerms.map((term) => (
+                  <span
+                    key={term}
+                    className="flex items-center gap-4 rounded-full border border-line py-6 pl-12 pr-8"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setQuery(term)}
+                      className="text-body-sm cursor-pointer border-none bg-transparent text-primary"
+                    >
+                      {term}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeTerm(term)}
+                      aria-label={`${term} 삭제`}
+                      className="flex h-16 w-16 cursor-pointer items-center justify-center border-none bg-transparent text-secondary"
+                    >
+                      <X size={12} strokeWidth={1.5} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>

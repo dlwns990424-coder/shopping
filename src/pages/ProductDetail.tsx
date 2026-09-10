@@ -6,9 +6,10 @@ import SizeSelector from '../components/SizeSelector'
 import QuantityStepper from '../components/QuantityStepper'
 import Button from '../components/Button'
 import ProductCard from '../components/ProductCard'
+import RecentlyViewed from '../components/RecentlyViewed'
 import Toast from '../components/Toast'
 import { useProducts } from '../context/ProductsContext'
-import { addRecentlyViewed } from '../utils/recentlyViewed'
+import { addRecentlyViewed, getRecentlyViewedIds } from '../utils/recentlyViewed'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { useAuth } from '../context/AuthContext'
@@ -60,6 +61,7 @@ function ProductDetail() {
   const relatedProducts = products
     .filter((item) => item.id !== product.id && item.gender === product.gender)
     .slice(0, 4)
+  const hasOtherRecentlyViewed = getRecentlyViewedIds().some((id) => id !== product.id)
 
   const handleSelectSize = (size: string) => {
     setSelectedSize(size)
@@ -250,6 +252,15 @@ function ProductDetail() {
           ))}
         </div>
       </section>
+
+      {hasOtherRecentlyViewed && (
+        <section className="page-section">
+          <div className="page-section__header">
+            <h2 className="text-base font-bold">RECENTLY VIEWED</h2>
+          </div>
+          <RecentlyViewed excludeId={product.id} hideWhenEmpty />
+        </section>
+      )}
 
       <Toast message="장바구니에 담았습니다." show={showToast} onClose={() => setShowToast(false)} />
     </div>

@@ -129,7 +129,7 @@ function Order() {
 
     setSubmitting(true)
 
-    const success = await addOrder(user!.email, items, SHIPPING_FEE, {
+    const orderId = await addOrder(user!.email, items, SHIPPING_FEE, {
       shippingName: shippingForm.shippingName,
       shippingPhone: shippingForm.shippingPhone,
       shippingAddress: shippingForm.shippingAddress,
@@ -139,7 +139,7 @@ function Order() {
 
     setSubmitting(false)
 
-    if (!success) {
+    if (!orderId) {
       setCheckoutError('주문 처리에 실패했습니다. 잠시 후 다시 시도해주세요.')
       return
     }
@@ -155,7 +155,15 @@ function Order() {
     }
     navigate('/order/complete', {
       replace: true,
-      state: { itemCount: items.length, totalPrice },
+      state: {
+        orderId,
+        itemCount: items.length,
+        totalPrice,
+        items,
+        shippingName: shippingForm.shippingName,
+        shippingAddress: shippingForm.shippingAddress,
+        shippingAddressDetail: shippingForm.shippingAddressDetail || undefined,
+      },
     })
   }
 
@@ -220,7 +228,7 @@ function Order() {
                     </Button>
                   </div>
                   {shippingErrors.shippingAddress && (
-                    <p className="text-caption text-point">{shippingErrors.shippingAddress}</p>
+                    <p className="text-caption text-danger">{shippingErrors.shippingAddress}</p>
                   )}
                 </div>
                 <Input
@@ -312,7 +320,7 @@ function Order() {
             onChange={(e) => setAgreed(e.target.checked)}
             label="주문내용 확인 및 결제진행에 동의"
           />
-          {checkoutError && <p className="text-body-sm text-point">{checkoutError}</p>}
+          {checkoutError && <p className="text-body-sm text-danger">{checkoutError}</p>}
           <Button
             variant="primary"
             size="large"
