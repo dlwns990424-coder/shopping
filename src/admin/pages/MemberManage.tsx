@@ -325,7 +325,11 @@ function MemberManage() {
                         <td className="py-8 pr-16 text-right">{formatPrice(stat.total)}</td>
                         <td className="py-8 pr-16" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-8">
-                            <span className={`text-body-sm ${member.suspended ? 'text-point' : 'text-secondary'}`}>
+                            {/* 상태 텍스트 길이가 활성(2자)/정지됨(3자)로 달라지면 auto layout
+                                테이블 컬럼 폭이 행마다 다시 계산돼 다른 행까지 밀리므로 폭을 고정한다. */}
+                            <span
+                              className={`text-body-sm inline-block w-48 ${member.suspended ? 'text-point' : 'text-secondary'}`}
+                            >
                               {member.suspended ? '정지됨' : '활성'}
                             </span>
                             <button
@@ -334,7 +338,7 @@ function MemberManage() {
                               onClick={() =>
                                 member.suspended ? handleUnsuspend(member) : setSuspendConfirmTarget(member)
                               }
-                              className="text-body-sm text-secondary underline hover:text-point disabled:cursor-default disabled:text-disabled disabled:no-underline"
+                              className="text-body-sm w-32 shrink-0 text-secondary underline hover:text-point disabled:cursor-default disabled:text-disabled disabled:no-underline"
                             >
                               {member.suspended ? '해제' : '정지'}
                             </button>
@@ -346,7 +350,7 @@ function MemberManage() {
                               value={member.role}
                               disabled={isSelf}
                               onChange={(e) => handleRoleChange(member, e.target.value as UserRole)}
-                              className="text-body-sm appearance-none rounded-sm border border-line py-4 pl-8 pr-28 disabled:cursor-default disabled:text-disabled"
+                              className="text-body-sm w-96 appearance-none rounded-sm border border-line py-4 pl-8 pr-28 disabled:cursor-default disabled:text-disabled"
                             >
                               <option value="user">일반회원</option>
                               <option value="admin">관리자</option>

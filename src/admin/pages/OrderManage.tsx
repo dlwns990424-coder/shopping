@@ -202,7 +202,7 @@ function OrderManage() {
                           <select
                             value={order.shippingStatus}
                             onChange={(e) => handleShippingStatusChange(order.id, e.target.value as ShippingStatus)}
-                            className="text-body-sm h-28 appearance-none rounded-sm border border-line py-4 pl-8 pr-28"
+                            className="text-body-sm h-28 w-96 appearance-none rounded-sm border border-line py-4 pl-8 pr-28"
                           >
                             {SHIPPING_STATUSES.map((status) => (
                               <option key={status} value={status}>
@@ -216,41 +216,37 @@ function OrderManage() {
                             className="pointer-events-none absolute right-8 top-1/2 -translate-y-1/2 text-secondary"
                           />
                         </div>
-                        {CANCELABLE_SHIPPING_STATUSES.has(order.shippingStatus) && (
-                          <Button
-                            size="small"
-                            variant="secondary"
-                            className="h-28 !py-0"
-                            onClick={() => setCancelTargetIds([order.id])}
-                          >
-                            취소
-                          </Button>
-                        )}
+                        {/* 조건부로 마운트/언마운트하면 이 버튼이 생겼다 없어졌다 할 때마다
+                            테이블이 auto layout이라 컬럼 폭이 같이 흔들려서(다른 행까지 밀림),
+                            항상 마운트해두고 invisible로만 토글해 폭을 고정한다. */}
+                        <Button
+                          size="small"
+                          variant="secondary"
+                          className={`h-28 !py-0 ${CANCELABLE_SHIPPING_STATUSES.has(order.shippingStatus) ? '' : 'invisible'}`}
+                          disabled={!CANCELABLE_SHIPPING_STATUSES.has(order.shippingStatus)}
+                          onClick={() => setCancelTargetIds([order.id])}
+                        >
+                          취소
+                        </Button>
                       </div>
                     </td>
                     <td className="py-8 pl-16" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-8">
-                        <span>{order.returnStatus ?? '-'}</span>
-                        {order.returnStatus === '반품요청' && (
-                          <Button
-                            size="small"
-                            variant="secondary"
-                            className="h-28 !py-0"
-                            onClick={() => updateReturnStatus(order.id, '반품접수')}
-                          >
-                            접수 처리
-                          </Button>
-                        )}
-                        {order.returnStatus === '반품접수' && (
-                          <Button
-                            size="small"
-                            variant="secondary"
-                            className="h-28 !py-0"
-                            onClick={() => updateReturnStatus(order.id, '반품완료')}
-                          >
-                            환불 완료
-                          </Button>
-                        )}
+                        <span className="w-64 shrink-0">{order.returnStatus ?? '-'}</span>
+                        {/* 위와 동일한 이유로 항상 마운트하고 invisible로만 토글 */}
+                        <Button
+                          size="small"
+                          variant="secondary"
+                          className={`h-28 !py-0 ${
+                            order.returnStatus === '반품요청' || order.returnStatus === '반품접수' ? '' : 'invisible'
+                          }`}
+                          disabled={order.returnStatus !== '반품요청' && order.returnStatus !== '반품접수'}
+                          onClick={() =>
+                            updateReturnStatus(order.id, order.returnStatus === '반품요청' ? '반품접수' : '반품완료')
+                          }
+                        >
+                          {order.returnStatus === '반품접수' ? '환불 완료' : '접수 처리'}
+                        </Button>
                       </div>
                     </td>
                   </tr>

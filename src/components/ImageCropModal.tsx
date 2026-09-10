@@ -18,8 +18,10 @@ function ImageCropModal({ file, aspect, topDangerZoneRatio, onCancel, onConfirm 
   // zoom이 정확히 1이면 라이브러리가 이미지를 크롭 박스에 딱 맞는 최소 크기로 놓는데,
   // 이 경우 가로/세로 중 한 축은 이미지 경계와 완전히 일치해서 그 방향으로는 드래그해도
   // 전혀 움직이지 않는다(사용자에게는 "크롭이 고정돼서 안 움직인다"는 버그처럼 보임).
-  // 시작 zoom을 최소값보다 살짝 높게 잡아서 두 방향 모두 처음부터 움직일 여지를 준다.
-  const INITIAL_ZOOM = 1.2
+  // 시작 zoom을 최소값보다 아주 살짝만 높게 잡아서 두 방향 모두 움직일 여지는 주되,
+  // 처음 열었을 때 불필요하게 확대된 것처럼 보이지 않게 한다(예전엔 1.2라 과하게 확대돼 보였음 —
+  // 원본 비율과 크롭 비율이 많이 다른 이미지일수록 이 여유값이 그대로 손실로 이어지므로 최소화).
+  const INITIAL_ZOOM = 1.03
 
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })

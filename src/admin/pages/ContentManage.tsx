@@ -43,11 +43,15 @@ function sectionOf(key: string) {
 // 모바일 비율인 3:4 기준으로 크롭 — 데스크톱은 더 넓은 3:2라 좌우로 살짝 여유 있게 보임).
 // 모바일/태블릿 히어로·배너가 h-screen(풀스크린)에서 aspect-ratio 기반으로 바뀌면서
 // (Home/Men/Women 히어로 aspect-[3/4], 홈 젠더배너 aspect-[4/5]) 이 비율도 그에 맞게 갱신함.
-// 데스크톱(`lg:`)은 여전히 h-screen이라 16:9/4:5는 뷰포트에 따라 달라지는 근사값일 뿐임(기존과 동일).
+// 데스크톱(`lg:`)은 여전히 h-screen이라 실제 비율은 방문자 화면 크기에 따라 달라지는 근사값일
+// 뿐이지만, 가장 흔한 모니터 비율(16:9)을 기준으로 잡는다. 히어로는 화면 폭을 그대로 다 쓰니
+// 화면 비율 그 자체(16:9)이고, 젠더배너는 2열로 반씩 나눠 쓰니 그 절반(16:9 ÷ 2)이다 — 고정
+// 소수값을 박아두지 않고 이 관계식 그대로 둬서, 기준 화면비를 바꿔도 자동으로 같이 바뀌게 한다.
+const DESKTOP_SCREEN_ASPECT = 16 / 9
 const RESPONSIVE_ASPECT: Record<string, { mobile: number; desktop: number }> = {
-  hero: { mobile: 3 / 4, desktop: 16 / 9 },
-  men_banner: { mobile: 4 / 5, desktop: 4 / 5 },
-  women_banner: { mobile: 4 / 5, desktop: 4 / 5 },
+  hero: { mobile: 3 / 4, desktop: DESKTOP_SCREEN_ASPECT },
+  men_banner: { mobile: 4 / 5, desktop: DESKTOP_SCREEN_ASPECT / 2 },
+  women_banner: { mobile: 4 / 5, desktop: DESKTOP_SCREEN_ASPECT / 2 },
 }
 const FIXED_ASPECT = 2 / 3
 const RESPONSIVE_SECTIONS = new Set(Object.keys(RESPONSIVE_ASPECT))
