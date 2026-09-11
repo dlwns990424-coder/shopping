@@ -30,6 +30,7 @@ function Men() {
     .sort((a, b) => (a.featuredOrder ?? 0) - (b.featuredOrder ?? 0))
 
   const heroDesktop = content['men.hero.image_desktop']
+  const heroTablet = content['men.hero.image_tablet'] || heroDesktop
   const heroMobile = content['men.hero.image_mobile'] || heroDesktop
 
   return (
@@ -38,15 +39,19 @@ function Men() {
         <title>NOVERA | MEN</title>
       </Helmet>
 
-      <section className="relative -mt-48 flex aspect-[3/4] items-end overflow-hidden md:-mt-64 lg:aspect-auto lg:h-screen">
-        {heroDesktop || heroMobile ? (
+      <section className="relative -mt-48 flex aspect-[3/4] items-end overflow-hidden md:-mt-64 md:aspect-square lg:aspect-auto lg:h-screen">
+        {heroDesktop || heroTablet || heroMobile ? (
           <>
             <div
               className="absolute inset-0 hidden bg-cover bg-center lg:block"
               style={heroDesktop ? { backgroundImage: `url(${heroDesktop})` } : undefined}
             />
             <div
-              className="absolute inset-0 bg-cover bg-center lg:hidden"
+              className="absolute inset-0 hidden bg-cover bg-center md:block lg:hidden"
+              style={heroTablet ? { backgroundImage: `url(${heroTablet})` } : undefined}
+            />
+            <div
+              className="absolute inset-0 bg-cover bg-center md:hidden"
               style={heroMobile ? { backgroundImage: `url(${heroMobile})` } : undefined}
             />
           </>
@@ -67,13 +72,16 @@ function Men() {
 
       {featuredProducts.length > 0 && (
         <section className="mt-20 px-20 md:px-32 lg:px-40">
+          <div className="page-section__header">
+            <h2 className="text-xl font-bold">추천 상품</h2>
+          </div>
           <ProductCarousel products={featuredProducts} />
         </section>
       )}
 
       <section className="mt-20 px-20 pb-20 md:px-32 lg:px-40">
         <div className="page-section__header">
-          <h2 className="text-base font-bold">SHOP BY CATEGORY</h2>
+          <h2 className="text-xl font-bold">카테고리</h2>
         </div>
         <div className="category-grid">
           {menCategories.map((category) => (

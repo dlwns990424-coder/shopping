@@ -63,8 +63,8 @@ function WishlistCard({ product, selectionMode, selected, onToggleSelect, onAdde
             aria-label="찜 해제"
             className="absolute right-8 top-8 flex h-32 w-32 items-center justify-center border-none bg-transparent p-0 text-primary lg:right-12 lg:top-12 lg:h-40 lg:w-40"
           >
-            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-surface/92 lg:h-40 lg:w-40">
-              <Heart size={16} strokeWidth={1.5} fill="currentColor" />
+            <span className="flex h-24 w-24 items-center justify-center drop-shadow-[0_0_2px_rgba(255,255,255,0.9)] lg:h-40 lg:w-40">
+              <Heart size={16} strokeWidth={1.5} color="#dc2626" fill="#dc2626" />
             </span>
           </button>
         </div>

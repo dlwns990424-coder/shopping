@@ -52,7 +52,7 @@ function Order() {
   const location = useLocation()
   const navigate = useNavigate()
   const stateItems = (location.state as { items?: CartItem[] } | null)?.items
-  const [items] = useState<CartItem[] | null>(() => {
+  const [items, setItems] = useState<CartItem[] | null>(() => {
     if (stateItems && stateItems.length > 0) return stateItems
     try {
       const stored = sessionStorage.getItem(CHECKOUT_ITEMS_KEY)
@@ -61,6 +61,35 @@ function Order() {
       return null
     }
   })
+
+  // 주문서의 상품 목록은 장바구니에서 넘어온 스냅샷일 뿐이라, 여기서 수량을 줄이거나
+  // 빼도 장바구니 원본에는 영향이 없다 — 결제 성공 시 장바구니에서는 어차피 id 기준으로
+  // 통째로 지우지(수량만큼 빼는 게 아니라) 때문에 애초에 수량을 맞춰둘 필요가 없다.
+  const persistItems = (next: CartItem[]) => {
+    try {
+      sessionStorage.setItem(CHECKOUT_ITEMS_KEY, JSON.stringify(next))
+    } catch {
+      // 저장 공간이 없어도 화면 상의 수정 자체는 계속 가능해야 하므로 무시한다.
+    }
+  }
+
+  const handleItemQuantityChange = (id: string, quantity: number) => {
+    setItems((prev) => {
+      if (!prev) return prev
+      const next = prev.map((item) => (item.id === id ? { ...item, quantity } : item))
+      persistItems(next)
+      return next
+    })
+  }
+
+  const handleItemRemove = (id: string) => {
+    setItems((prev) => {
+      if (!prev) return prev
+      const next = prev.filter((item) => item.id !== id)
+      persistItems(next)
+      return next
+    })
+  }
 
   const hasSavedShipping = Boolean(user?.shippingName && user?.shippingPhone && user?.shippingAddress)
 
@@ -293,7 +322,12 @@ function Order() {
             <p className="text-body-lg font-bold text-primary">주문상품</p>
             <div>
               {items.map((item) => (
-                <OrderItemRow key={item.id} item={{ ...item, price: formatPrice(item.price) }} />
+                <OrderItemRow
+                  key={item.id}
+                  item={{ ...item, price: formatPrice(item.price) }}
+                  onQuantityChange={(quantity) => handleItemQuantityChange(item.id, quantity)}
+                  onRemove={() => handleItemRemove(item.id)}
+                />
               ))}
             </div>
           </div>

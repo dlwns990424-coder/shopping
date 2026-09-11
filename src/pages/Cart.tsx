@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { ShoppingBag } from 'lucide-react'
@@ -16,10 +16,21 @@ function Cart() {
   const navigate = useNavigate()
   const { items: cartItems, updateQuantity, removeItem, removeItems } = useCart()
   const { products } = useProducts()
-  const [selectedIds, setSelectedIds] = useState(() => cartItems.map((item) => item.id))
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [expanded, setExpanded] = useState(false)
   const [removeTargetId, setRemoveTargetId] = useState<string | null>(null)
   const [confirmingRemoveSelected, setConfirmingRemoveSelected] = useState(false)
+
+  // CartContext는 로그인 확인 후 localStorage에서 비동기로 아이템을 채우기 때문에,
+  // /cart 새로고침·직링크 진입 시 최초 렌더에는 cartItems가 아직 비어있을 수 있다.
+  // 실제 데이터가 처음 도착한 시점에 한 번만 전체선택으로 맞춰준다.
+  const hasInitializedSelection = useRef(false)
+  useEffect(() => {
+    if (!hasInitializedSelection.current && cartItems.length > 0) {
+      setSelectedIds(cartItems.map((item) => item.id))
+      hasInitializedSelection.current = true
+    }
+  }, [cartItems])
 
   // 담을 당시 가격을 스냅샷으로 저장해두지만, 장바구니에 떠 있는 동안은 세일가 변동을
   // 그대로 반영해서 보여준다 — 실제 결제 금액도 이 값 기준으로 넘긴다.

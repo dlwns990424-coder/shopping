@@ -39,8 +39,9 @@ function sectionOf(key: string) {
 
 // hero/men_banner/women_banner는 화면 크기에 따라 실제로 잘리는 비율이 크게 달라서
 // 모바일용/데스크톱용 이미지를 따로 받는다(_mobile/_desktop 접미사). event_banner와
-// 카테고리 카드는 화면 크기와 무관하게 이미지 1장만 받는다(카테고리는 CategoryCard의
-// 모바일 비율인 3:4 기준으로 크롭 — 데스크톱은 더 넓은 3:2라 좌우로 살짝 여유 있게 보임).
+// 카테고리 카드는 화면 크기와 무관하게 이미지 1장만 받는다(CategoryCard가 전 구간에서
+// 동일하게 3:4를 쓰도록 통일했으므로, 이 비율 그대로 크롭한 이미지가 어느 화면에서도
+// 잘리는 부분 없이 그대로 표시된다).
 // 모바일/태블릿 히어로·배너가 h-screen(풀스크린)에서 aspect-ratio 기반으로 바뀌면서
 // (Home/Men/Women 히어로 aspect-[3/4], 홈 젠더배너 aspect-[4/5]) 이 비율도 그에 맞게 갱신함.
 // 데스크톱(`lg:`)은 여전히 h-screen이라 실제 비율은 방문자 화면 크기에 따라 달라지는 근사값일
@@ -48,8 +49,11 @@ function sectionOf(key: string) {
 // 화면 비율 그 자체(16:9)이고, 젠더배너는 2열로 반씩 나눠 쓰니 그 절반(16:9 ÷ 2)이다 — 고정
 // 소수값을 박아두지 않고 이 관계식 그대로 둬서, 기준 화면비를 바꿔도 자동으로 같이 바뀌게 한다.
 const DESKTOP_SCREEN_ASPECT = 16 / 9
-const RESPONSIVE_ASPECT: Record<string, { mobile: number; desktop: number }> = {
-  hero: { mobile: 3 / 4, desktop: DESKTOP_SCREEN_ASPECT },
+// 히어로는 태블릿 구간(md~lg)에서 정사각형(aspect-square)을 쓰므로 별도 크롭이 필요하다.
+// MEN/WOMEN 배너는 태블릿에서 컬럼 수만 늘어날 뿐 개별 비율(4:5)은 그대로라 모바일 크롭을
+// 그대로 재사용해도 되어서 tablet 항목이 없음 — aspectForKey가 null을 돌려주면(아래) 없는 것.
+const RESPONSIVE_ASPECT: Record<string, { mobile: number; desktop: number; tablet?: number }> = {
+  hero: { mobile: 3 / 4, desktop: DESKTOP_SCREEN_ASPECT, tablet: 1 },
   men_banner: { mobile: 4 / 5, desktop: DESKTOP_SCREEN_ASPECT / 2 },
   women_banner: { mobile: 4 / 5, desktop: DESKTOP_SCREEN_ASPECT / 2 },
 }
@@ -70,6 +74,7 @@ const HERO_HEADER_ZONE_RATIO = 0.2
 function aspectForKey(key: string): number | null {
   const section = sectionOf(key)
   if (key.endsWith('_mobile')) return RESPONSIVE_ASPECT[section]?.mobile ?? null
+  if (key.endsWith('_tablet')) return RESPONSIVE_ASPECT[section]?.tablet ?? null
   if (key.endsWith('_desktop')) return RESPONSIVE_ASPECT[section]?.desktop ?? null
   if (RESPONSIVE_SECTIONS.has(section)) return null
   if (CATEGORY_SECTIONS.has(section)) return CATEGORY_ASPECT
@@ -230,7 +235,7 @@ function ContentManage() {
                 <h3 className="text-body-sm font-bold text-secondary">{SECTION_LABELS[section] ?? section}</h3>
                 <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-3">
                   {sectionRows.map((row) => {
-                const isImage = /\.image(_mobile|_desktop)?$/.test(row.key)
+                const isImage = /\.image(_mobile|_tablet|_desktop)?$/.test(row.key)
 
                 if (isImage) {
                   const aspect = aspectForKey(row.key)

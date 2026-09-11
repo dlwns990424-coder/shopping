@@ -19,7 +19,11 @@ function SearchOverlay({ open, onClose }: SearchOverlayProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (open) inputRef.current?.focus()
+    if (open) {
+      inputRef.current?.focus()
+    } else {
+      setQuery('')
+    }
   }, [open])
 
   if (!open) return null

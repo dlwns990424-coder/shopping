@@ -32,6 +32,7 @@ function Women() {
   const heroFallback =
     'https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_2000/v1/home%20banner%202025/craftcore_des?_i=AH'
   const heroDesktop = content['women.hero.image_desktop'] || heroFallback
+  const heroTablet = content['women.hero.image_tablet'] || content['women.hero.image_desktop'] || heroFallback
   const heroMobile = content['women.hero.image_mobile'] || content['women.hero.image_desktop'] || heroFallback
 
   return (
@@ -40,13 +41,17 @@ function Women() {
         <title>NOVERA | WOMEN</title>
       </Helmet>
 
-      <section className="relative -mt-48 flex aspect-[3/4] items-end overflow-hidden md:-mt-64 lg:aspect-auto lg:h-screen">
+      <section className="relative -mt-48 flex aspect-[3/4] items-end overflow-hidden md:-mt-64 md:aspect-square lg:aspect-auto lg:h-screen">
         <div
           className="absolute inset-0 hidden bg-cover bg-center lg:block"
           style={{ backgroundImage: `url(${heroDesktop})` }}
         />
         <div
-          className="absolute inset-0 bg-cover bg-center lg:hidden"
+          className="absolute inset-0 hidden bg-cover bg-center md:block lg:hidden"
+          style={{ backgroundImage: `url(${heroTablet})` }}
+        />
+        <div
+          className="absolute inset-0 bg-cover bg-center md:hidden"
           style={{ backgroundImage: `url(${heroMobile})` }}
         />
         <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
@@ -59,13 +64,16 @@ function Women() {
 
       {featuredProducts.length > 0 && (
         <section className="mt-20 px-20 md:px-32 lg:px-40">
+          <div className="page-section__header">
+            <h2 className="text-xl font-bold">추천 상품</h2>
+          </div>
           <ProductCarousel products={featuredProducts} />
         </section>
       )}
 
       <section className="mt-20 px-20 pb-20 md:px-32 lg:px-40">
         <div className="page-section__header">
-          <h2 className="text-base font-bold">SHOP BY CATEGORY</h2>
+          <h2 className="text-xl font-bold">카테고리</h2>
         </div>
         <div className="category-grid">
           {womenCategories.map((category) => (

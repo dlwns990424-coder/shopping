@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import { useAuth } from './AuthContext'
 
@@ -12,6 +12,7 @@ const AuthModalContext = createContext<AuthModalContextValue | null>(null)
 export function AuthModalProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
   const { user } = useAuth()
 
   // 모달의 "로그인하기" 버튼을 거치지 않고 다른 경로로 로그인에 성공해도
@@ -25,7 +26,7 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
 
   const handleLogin = () => {
     close()
-    navigate('/login')
+    navigate('/login', { state: { from: location.pathname + location.search } })
   }
 
   return (

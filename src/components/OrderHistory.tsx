@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ShoppingBag } from 'lucide-react'
 import type { Order } from '../types'
 import Button from './Button'
 import ConfirmModal from './ConfirmModal'
@@ -30,6 +32,7 @@ function priorityOf(order: Order): number {
 }
 
 function OrderHistory() {
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { orders, loading, error, updateShippingStatuses, requestReturn } = useOrderHistory()
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null)
@@ -80,7 +83,16 @@ function OrderHistory() {
   }
 
   if (myOrders.length === 0) {
-    return <p className="text-body-sm">주문 내역이 없습니다.</p>
+    return (
+      <div className="flex min-h-320 flex-col items-center justify-center gap-16 px-20 py-64 text-center">
+        <ShoppingBag size={48} strokeWidth={1.2} className="text-disabled" />
+        <p className="text-h3">아직 주문한 상품이 없습니다</p>
+        <p className="text-body text-secondary">마음에 드는 상품을 만나보세요</p>
+        <Button variant="primary" size="large" onClick={() => navigate('/')}>
+          쇼핑하러 가기
+        </Button>
+      </div>
+    )
   }
 
   return (
@@ -105,7 +117,7 @@ function OrderHistory() {
           </div>
           {order.items.map((item, index) => (
             <div key={`${order.id}-${index}`} className="[&:not(:last-of-type)]:border-b [&:not(:last-of-type)]:border-line">
-              <OrderItemRow item={{ ...item, price: formatPrice(item.price) }} />
+              <OrderItemRow item={{ ...item, price: formatPrice(item.price) }} linkToProduct />
             </div>
           ))}
           <div className="flex flex-col gap-4 pt-16">

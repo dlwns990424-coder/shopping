@@ -16,6 +16,11 @@ import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 import { formatPrice } from '../utils/formatPrice'
 
+// 로그인 안 된 상태로 담기/구매를 누르면 로그인 모달→/login→복귀 과정에서 이 페이지가
+// 통째로 재마운트되어 선택한 사이즈·수량이 날아간다. 그 사이만 잠깐 붙잡아두는 용도라
+// 상품ID가 다르면(다른 상품 보다 로그인한 경우 등) 무시하고, 읽는 즉시 지워서 1회성으로 쓴다.
+const PENDING_SELECTION_KEY = 'pdp_pending_selection'
+
 function ProductDetail() {
   const { productId } = useParams()
   const navigate = useNavigate()
@@ -41,6 +46,23 @@ function ProductDetail() {
     setSizeError(false)
     setQuantity(1)
   }, [productId])
+
+  // 로그인 유도 때 저장해둔 사이즈·수량이 있으면(같은 상품 + 로그인 완료 상태) 복원.
+  useEffect(() => {
+    if (!product || !user) return
+    try {
+      const raw = sessionStorage.getItem(PENDING_SELECTION_KEY)
+      if (!raw) return
+      sessionStorage.removeItem(PENDING_SELECTION_KEY)
+      const saved = JSON.parse(raw) as { productId: string; selectedSize: string | null; quantity: number }
+      if (saved.productId === product.id) {
+        setSelectedSize(saved.selectedSize)
+        setQuantity(saved.quantity)
+      }
+    } catch {
+      // 저장된 값이 깨져있어도 페이지는 정상 동작해야 하므로 무시한다.
+    }
+  }, [product, user])
 
   if (loading) {
     return (
@@ -68,8 +90,20 @@ function ProductDetail() {
     setSizeError(false)
   }
 
+  const savePendingSelection = () => {
+    try {
+      sessionStorage.setItem(
+        PENDING_SELECTION_KEY,
+        JSON.stringify({ productId: product.id, selectedSize, quantity })
+      )
+    } catch {
+      // 저장 실패해도 로그인 유도 자체는 계속 진행되어야 한다.
+    }
+  }
+
   const handleAddToCart = () => {
     if (!user) {
+      savePendingSelection()
       openLoginModal()
       return
     }
@@ -83,6 +117,7 @@ function ProductDetail() {
 
   const handleBuyNow = () => {
     if (!user) {
+      savePendingSelection()
       openLoginModal()
       return
     }
@@ -244,7 +279,7 @@ function ProductDetail() {
 
       <section className="page-section">
         <div className="page-section__header">
-          <h2 className="text-base font-bold">RECOMMENDED</h2>
+          <h2 className="text-base font-bold">추천 상품</h2>
         </div>
         <div className="product-grid">
           {relatedProducts.map((item) => (
@@ -256,7 +291,7 @@ function ProductDetail() {
       {hasOtherRecentlyViewed && (
         <section className="page-section">
           <div className="page-section__header">
-            <h2 className="text-base font-bold">RECENTLY VIEWED</h2>
+            <h2 className="text-base font-bold">최근 본 상품</h2>
           </div>
           <RecentlyViewed excludeId={product.id} hideWhenEmpty />
         </section>

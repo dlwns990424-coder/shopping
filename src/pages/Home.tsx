@@ -16,6 +16,7 @@ function Home() {
   const { content } = useContent()
 
   const heroDesktop = content['home.hero.image_desktop']
+  const heroTablet = content['home.hero.image_tablet'] || heroDesktop
   const heroMobile = content['home.hero.image_mobile'] || heroDesktop
   const menBannerDesktop = content['home.men_banner.image_desktop']
   const menBannerMobile = content['home.men_banner.image_mobile'] || menBannerDesktop
@@ -38,15 +39,19 @@ function Home() {
         <title>NOVERA</title>
       </Helmet>
 
-      <section className="relative -mt-48 flex aspect-[3/4] items-end overflow-hidden md:-mt-64 lg:aspect-auto lg:h-screen">
-        {heroDesktop || heroMobile ? (
+      <section className="relative -mt-48 flex aspect-[3/4] items-end overflow-hidden md:-mt-64 md:aspect-square lg:aspect-auto lg:h-screen">
+        {heroDesktop || heroTablet || heroMobile ? (
           <>
             <div
               className="absolute inset-0 hidden bg-cover bg-center lg:block"
               style={heroDesktop ? { backgroundImage: `url(${heroDesktop})` } : undefined}
             />
             <div
-              className="absolute inset-0 bg-cover bg-center lg:hidden"
+              className="absolute inset-0 hidden bg-cover bg-center md:block lg:hidden"
+              style={heroTablet ? { backgroundImage: `url(${heroTablet})` } : undefined}
+            />
+            <div
+              className="absolute inset-0 bg-cover bg-center md:hidden"
               style={heroMobile ? { backgroundImage: `url(${heroMobile})` } : undefined}
             />
           </>
@@ -66,7 +71,7 @@ function Home() {
       </section>
 
       <section className="mt-20">
-        <div className="grid grid-cols-1 gap-0 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-0 md:grid-cols-2">
           <Link
             to="/men"
             className="group relative flex aspect-[4/5] items-end overflow-hidden rounded-none bg-secondary lg:aspect-auto lg:h-screen"
@@ -117,7 +122,7 @@ function Home() {
       </section>
 
       <section className="mt-20 pb-20">
-        <div className="grid grid-cols-2 gap-0 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-0 md:grid-cols-4">
           {eventBanners.map((banner) => (
             <Link
               key={banner.id}
@@ -129,7 +134,7 @@ function Home() {
               <div className="relative z-10 flex flex-col gap-8 px-16 pt-16 pb-20 text-surface md:px-32 md:pt-32 md:pb-48 lg:px-40">
                 <p className="text-base font-medium leading-[1.3] text-surface lg:text-lg">{banner.label}</p>
                 <span className="w-fit text-sm font-medium text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:text-base lg:group-hover:text-surface/70">
-                  Shop Now
+                  SHOP NOW
                 </span>
               </div>
             </Link>

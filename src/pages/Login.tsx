@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useAuth } from '../context/AuthContext'
 import Input from '../components/Input'
@@ -12,7 +12,9 @@ interface FormState {
 
 function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
+  const from = (location.state as { from?: string } | null)?.from ?? '/'
   const [form, setForm] = useState<FormState>({ email: '', password: '' })
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -40,7 +42,7 @@ function Login() {
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
-    navigate('/')
+    navigate(from, { replace: true })
   }
 
   return (
