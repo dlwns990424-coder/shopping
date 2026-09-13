@@ -34,7 +34,7 @@ function MyPage() {
 
         <div className="min-h-0 md:min-h-600">
           {activeTab === 'orders' && <OrderHistory />}
-          {activeTab === 'recent' && <RecentlyViewed />}
+          {activeTab === 'recent' && <RecentlyViewed dense />}
           {activeTab !== 'orders' && activeTab !== 'recent' && <AccountSettingsForm />}
         </div>
 

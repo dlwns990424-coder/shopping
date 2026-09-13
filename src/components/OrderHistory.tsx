@@ -96,15 +96,23 @@ function OrderHistory() {
   }
 
   return (
-    <div className="flex max-w-640 flex-col gap-16">
+    <div className="flex max-w-1200 flex-col gap-16">
       {myOrders.map((order) => (
         <div key={order.id} className="rounded-sm border border-line px-24 py-16">
-          <div className="text-body-sm flex justify-between border-b border-line pb-16 text-secondary">
-            <span>{order.date}</span>
-            <span className="text-primary">
-              {order.shippingStatus}
-              {order.returnStatus && ` · ${order.returnStatus}`}
-            </span>
+          <div className="border-b border-line pb-16">
+            <div className="text-body-sm flex justify-between text-secondary">
+              <span>{order.date}</span>
+              <span className="text-primary">
+                {order.shippingStatus}
+                {order.returnStatus && ` · ${order.returnStatus}`}
+              </span>
+            </div>
+            <div className="mt-8 flex items-baseline justify-between">
+              <span className="text-caption text-secondary">
+                상품금액 {formatPrice(orderItemsTotal(order))} + 배송비 {formatPrice(order.shippingFee ?? 0)}
+              </span>
+              <span className="text-price">{formatPrice(orderTotal(order))}</span>
+            </div>
           </div>
           <div className="text-body-sm flex flex-col gap-2 border-b border-line py-16 text-secondary">
             <p>
@@ -120,20 +128,6 @@ function OrderHistory() {
               <OrderItemRow item={{ ...item, price: formatPrice(item.price) }} linkToProduct />
             </div>
           ))}
-          <div className="flex flex-col gap-4 pt-16">
-            <div className="text-body-sm flex items-center justify-between text-secondary">
-              <span>상품금액</span>
-              <span>{formatPrice(orderItemsTotal(order))}</span>
-            </div>
-            <div className="text-body-sm flex items-center justify-between text-secondary">
-              <span>배송비</span>
-              <span>{formatPrice(order.shippingFee ?? 0)}</span>
-            </div>
-            <div className="flex items-baseline justify-between pt-4">
-              <span className="text-body-sm text-secondary">총 결제금액</span>
-              <span className="text-price">{formatPrice(orderTotal(order))}</span>
-            </div>
-          </div>
           {order.returnStatus && (
             <div className="text-body-sm mt-16 flex flex-col gap-8 rounded-sm bg-surface-muted p-12 text-secondary">
               <p>

@@ -71,17 +71,17 @@ function Men() {
       </section>
 
       {featuredProducts.length > 0 && (
-        <section className="mt-20 px-20 md:px-32 lg:px-40">
+        <section className="mt-32 px-20 md:mt-48 md:px-32 lg:mt-64 lg:px-40">
           <div className="page-section__header">
-            <h2 className="text-xl font-bold">추천 상품</h2>
+            <h2 className="text-xl font-bold lg:text-2xl">추천 상품</h2>
           </div>
           <ProductCarousel products={featuredProducts} />
         </section>
       )}
 
-      <section className="mt-20 px-20 pb-20 md:px-32 lg:px-40">
+      <section className="mt-32 px-20 pb-32 md:mt-48 md:px-32 md:pb-48 lg:mt-64 lg:px-40 lg:pb-64">
         <div className="page-section__header">
-          <h2 className="text-xl font-bold">카테고리</h2>
+          <h2 className="text-xl font-bold lg:text-2xl">카테고리</h2>
         </div>
         <div className="category-grid">
           {menCategories.map((category) => (

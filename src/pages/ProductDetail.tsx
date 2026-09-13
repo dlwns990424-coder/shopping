@@ -279,7 +279,7 @@ function ProductDetail() {
 
       <section className="page-section">
         <div className="page-section__header">
-          <h2 className="text-base font-bold">추천 상품</h2>
+          <h2 className="text-xl font-bold lg:text-2xl">추천 상품</h2>
         </div>
         <div className="product-grid">
           {relatedProducts.map((item) => (
@@ -291,7 +291,7 @@ function ProductDetail() {
       {hasOtherRecentlyViewed && (
         <section className="page-section">
           <div className="page-section__header">
-            <h2 className="text-base font-bold">최근 본 상품</h2>
+            <h2 className="text-xl font-bold lg:text-2xl">최근 본 상품</h2>
           </div>
           <RecentlyViewed excludeId={product.id} hideWhenEmpty />
         </section>

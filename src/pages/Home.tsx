@@ -70,11 +70,11 @@ function Home() {
         </div>
       </section>
 
-      <section className="mt-20">
+      <section className="mt-32 md:mt-48 lg:mt-64">
         <div className="grid grid-cols-1 gap-0 md:grid-cols-2">
           <Link
             to="/men"
-            className="group relative flex aspect-[4/5] items-end overflow-hidden rounded-none bg-secondary lg:aspect-auto lg:h-screen"
+            className="group relative flex aspect-[4/5] items-end rounded-none bg-secondary lg:aspect-auto lg:h-screen"
           >
             <div
               className="absolute inset-0 hidden bg-cover bg-center lg:block"
@@ -84,20 +84,22 @@ function Home() {
               className="absolute inset-0 bg-cover bg-center lg:hidden"
               style={menBannerMobile ? { backgroundImage: `url(${menBannerMobile})` } : undefined}
             />
-            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
-            <div className="relative z-10 px-20 pt-32 pb-48 text-surface md:px-32 lg:px-40">
-              <h2 className="mb-8 text-2xl font-medium leading-[1.3] text-surface">MEN</h2>
-              <p className="text-body-sm mb-16 text-surface">
-                {content['home.men_banner.copy'] ?? '댄디하고 심플한 무드의 새 시즌 컬렉션'}
-              </p>
-              <span className="text-base font-medium text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:group-hover:text-surface/70">
-                SHOP MEN&apos;S
-              </span>
+            <div className="relative z-10 w-full lg:sticky lg:bottom-0">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+              <div className="relative px-20 pt-32 pb-48 text-surface md:px-32 lg:px-40">
+                <h2 className="mb-8 text-2xl font-medium leading-[1.3] text-surface lg:text-3xl">MEN</h2>
+                <p className="text-body-sm mb-16 text-surface">
+                  {content['home.men_banner.copy'] ?? '댄디하고 심플한 무드의 새 시즌 컬렉션'}
+                </p>
+                <span className="text-base font-medium text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:group-hover:text-surface/70">
+                  SHOP MEN&apos;S
+                </span>
+              </div>
             </div>
           </Link>
           <Link
             to="/women"
-            className="group relative flex aspect-[4/5] items-end overflow-hidden rounded-none bg-secondary lg:aspect-auto lg:h-screen"
+            className="group relative flex aspect-[4/5] items-end rounded-none bg-secondary lg:aspect-auto lg:h-screen"
           >
             <div
               className="absolute inset-0 hidden bg-cover bg-center lg:block"
@@ -107,21 +109,23 @@ function Home() {
               className="absolute inset-0 bg-cover bg-center lg:hidden"
               style={womenBannerMobile ? { backgroundImage: `url(${womenBannerMobile})` } : undefined}
             />
-            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
-            <div className="relative z-10 px-20 pt-32 pb-48 text-surface md:px-32 lg:px-40">
-              <h2 className="mb-8 text-2xl font-medium leading-[1.3] text-surface">WOMEN</h2>
-              <p className="text-body-sm mb-16 text-surface">
-                {content['home.women_banner.copy'] ?? '세련되고 감각적인 무드의 새 시즌 컬렉션'}
-              </p>
-              <span className="text-base font-medium text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:group-hover:text-surface/70">
-                SHOP WOMEN&apos;S
-              </span>
+            <div className="relative z-10 w-full lg:sticky lg:bottom-0">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+              <div className="relative px-20 pt-32 pb-48 text-surface md:px-32 lg:px-40">
+                <h2 className="mb-8 text-2xl font-medium leading-[1.3] text-surface lg:text-3xl">WOMEN</h2>
+                <p className="text-body-sm mb-16 text-surface">
+                  {content['home.women_banner.copy'] ?? '세련되고 감각적인 무드의 새 시즌 컬렉션'}
+                </p>
+                <span className="text-base font-medium text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:group-hover:text-surface/70">
+                  SHOP WOMEN&apos;S
+                </span>
+              </div>
             </div>
           </Link>
         </div>
       </section>
 
-      <section className="mt-20 pb-20">
+      <section className="mt-32 pb-32 md:mt-48 md:pb-48 lg:mt-64 lg:pb-64">
         <div className="grid grid-cols-2 gap-0 md:grid-cols-4">
           {eventBanners.map((banner) => (
             <Link

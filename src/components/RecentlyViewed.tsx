@@ -6,9 +6,10 @@ import type { Product } from '../types'
 interface RecentlyViewedProps {
   excludeId?: string
   hideWhenEmpty?: boolean
+  dense?: boolean
 }
 
-function RecentlyViewed({ excludeId, hideWhenEmpty = false }: RecentlyViewedProps) {
+function RecentlyViewed({ excludeId, hideWhenEmpty = false, dense = false }: RecentlyViewedProps) {
   const { products } = useProducts()
   // localStorage 동기 읽기라 상태로 캐싱할 이유가 없음 — 캐싱하면 상품 상세를
   // SPA 내비게이션으로 옮겨다닐 때(리마운트 없음) 목록이 첫 조회 시점에 고정되는 버그가 있었음.
@@ -24,7 +25,7 @@ function RecentlyViewed({ excludeId, hideWhenEmpty = false }: RecentlyViewedProp
   }
 
   return (
-    <div className="product-grid">
+    <div className={`product-grid gap-y-32 ${dense ? 'lg:grid-cols-5' : ''}`}>
       {items.map((product) => (
         <ProductCard key={product.id} {...product} />
       ))}
