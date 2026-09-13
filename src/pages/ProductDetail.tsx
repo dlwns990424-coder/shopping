@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { Heart } from 'lucide-react'
@@ -10,6 +10,7 @@ import RecentlyViewed from '../components/RecentlyViewed'
 import Toast from '../components/Toast'
 import { useProducts } from '../context/ProductsContext'
 import { addRecentlyViewed, getRecentlyViewedIds } from '../utils/recentlyViewed'
+import type { Product } from '../types'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
 import { useAuth } from '../context/AuthContext'
@@ -20,6 +21,32 @@ import { formatPrice } from '../utils/formatPrice'
 // 통째로 재마운트되어 선택한 사이즈·수량이 날아간다. 그 사이만 잠깐 붙잡아두는 용도라
 // 상품ID가 다르면(다른 상품 보다 로그인한 경우 등) 무시하고, 읽는 즉시 지워서 1회성으로 쓴다.
 const PENDING_SELECTION_KEY = 'pdp_pending_selection'
+
+function shuffle<T>(items: T[]): T[] {
+  const copy = [...items]
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy
+}
+
+// subCategory(코트↔코트) → category(아우터 전체) → gender 순으로 폴백하며 채운다.
+// 각 단계 안에서는 셔플해서 매번 같은 4개로 고정되지 않게 한다.
+function pickRelatedProducts(pools: Product[][], count: number): Product[] {
+  const picked: Product[] = []
+  const usedIds = new Set<string>()
+  for (const pool of pools) {
+    if (picked.length >= count) break
+    for (const item of shuffle(pool)) {
+      if (picked.length >= count) break
+      if (usedIds.has(item.id)) continue
+      picked.push(item)
+      usedIds.add(item.id)
+    }
+  }
+  return picked
+}
 
 function ProductDetail() {
   const { productId } = useParams()
@@ -40,29 +67,40 @@ function ProductDetail() {
   }, [product])
 
   // 라우트 파라미터만 바뀌면 컴포넌트가 재마운트되지 않아, 상품을 이동해도
-  // 이전 상품에서 고른 사이즈/수량이 그대로 남아있던 문제를 막는다.
+  // 이전 상품에서 고른 사이즈·수량이 그대로 남아있던 문제를 막는다 — 단, 로그인
+  // 유도 후 복귀 시 저장해둔 선택값이 있으면 리셋 대신 그걸 복원한다.
+  // 두 동작을 한 effect로 합쳐서 처리한 이유: React 18 StrictMode(개발 모드)는
+  // 마운트 effect를 두 번 연달아 실행하는데, "복원"과 "리셋"이 서로 다른 effect로
+  // 나뉘어 있으면 1차 실행에서 정상 복원된 값을 2차 실행의 리셋 effect가 덮어써버리는
+  // 버그가 있었다(로그인 후 사이즈/수량이 항상 초기화되던 원인). productId별로 한 번만
+  // 처리하도록 ref로 막아서 이 이중 실행에도 안전하게 만든다.
+  const processedProductIdRef = useRef<string | undefined>(undefined)
   useEffect(() => {
+    if (processedProductIdRef.current === productId) return
+    processedProductIdRef.current = productId
+
+    if (user && productId) {
+      try {
+        const raw = sessionStorage.getItem(PENDING_SELECTION_KEY)
+        if (raw) {
+          const saved = JSON.parse(raw) as { productId: string; selectedSize: string | null; quantity: number }
+          if (saved.productId === productId) {
+            sessionStorage.removeItem(PENDING_SELECTION_KEY)
+            setSelectedSize(saved.selectedSize)
+            setSizeError(false)
+            setQuantity(saved.quantity)
+            return
+          }
+        }
+      } catch {
+        // 저장된 값이 깨져있어도 페이지는 정상 동작해야 하므로 무시하고 아래에서 리셋한다.
+      }
+    }
+
     setSelectedSize(null)
     setSizeError(false)
     setQuantity(1)
-  }, [productId])
-
-  // 로그인 유도 때 저장해둔 사이즈·수량이 있으면(같은 상품 + 로그인 완료 상태) 복원.
-  useEffect(() => {
-    if (!product || !user) return
-    try {
-      const raw = sessionStorage.getItem(PENDING_SELECTION_KEY)
-      if (!raw) return
-      sessionStorage.removeItem(PENDING_SELECTION_KEY)
-      const saved = JSON.parse(raw) as { productId: string; selectedSize: string | null; quantity: number }
-      if (saved.productId === product.id) {
-        setSelectedSize(saved.selectedSize)
-        setQuantity(saved.quantity)
-      }
-    } catch {
-      // 저장된 값이 깨져있어도 페이지는 정상 동작해야 하므로 무시한다.
-    }
-  }, [product, user])
+  }, [productId, user])
 
   if (loading) {
     return (
@@ -80,9 +118,19 @@ function ProductDetail() {
     )
   }
 
-  const relatedProducts = products
-    .filter((item) => item.id !== product.id && item.gender === product.gender)
-    .slice(0, 4)
+  const recentlyViewedIds = new Set(getRecentlyViewedIds())
+  const candidates = products.filter((item) => item.id !== product.id && item.gender === product.gender)
+  const freshCandidates = candidates.filter((item) => !recentlyViewedIds.has(item.id))
+  const relatedPools = [
+    freshCandidates.filter((item) => item.subCategory === product.subCategory),
+    freshCandidates.filter((item) => item.category === product.category),
+    freshCandidates,
+    // 같은 성별에 신상품이 4개가 안 될 만큼 적으면 "최근 본 상품"과 겹치더라도 채운다.
+    candidates.filter((item) => item.subCategory === product.subCategory),
+    candidates.filter((item) => item.category === product.category),
+    candidates,
+  ]
+  const relatedProducts = pickRelatedProducts(relatedPools, 4)
   const hasOtherRecentlyViewed = getRecentlyViewedIds().some((id) => id !== product.id)
 
   const handleSelectSize = (size: string) => {
@@ -293,7 +341,7 @@ function ProductDetail() {
           <div className="page-section__header">
             <h2 className="text-xl font-bold lg:text-2xl">최근 본 상품</h2>
           </div>
-          <RecentlyViewed excludeId={product.id} hideWhenEmpty />
+          <RecentlyViewed excludeId={product.id} hideWhenEmpty dense collapsible />
         </section>
       )}
 
