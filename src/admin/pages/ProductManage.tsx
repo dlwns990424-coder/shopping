@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { ChevronDown, GripVertical } from 'lucide-react'
+import { ChevronDown, GripVertical, Star } from 'lucide-react'
 import { supabase } from '../../lib/supabaseClient'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
@@ -10,6 +10,7 @@ import { uploadImage } from '../../utils/uploadImage'
 import { sizeOptions } from '../../mock/productDetail'
 import { MAX_DETAIL_IMAGES } from '../../types'
 import { PRODUCT_CATEGORIES, SUB_CATEGORIES } from '../../constants/categoryFilters'
+import { useReviews } from '../../context/ReviewsContext'
 
 interface AdminProduct {
   id: string
@@ -49,6 +50,9 @@ function ProductManage() {
   const [products, setProducts] = useState<AdminProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { reviews, deleteReview } = useReviews()
+  const [reviewManageId, setReviewManageId] = useState<string | null>(null)
+  const [reviewDeleteTargetId, setReviewDeleteTargetId] = useState<string | null>(null)
 
   const [genderFilter, setGenderFilter] = useState<'all' | 'men' | 'women'>('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
@@ -143,11 +147,19 @@ function ProductManage() {
 
   const openCreateForm = () => {
     setEditingId(null)
+    setReviewManageId(null)
     setForm(EMPTY_FORM)
     setShowForm(true)
   }
 
+  const toggleReviewManage = (id: string) => {
+    setShowForm(false)
+    setEditingId(null)
+    setReviewManageId((prev) => (prev === id ? null : id))
+  }
+
   const openEditForm = (product: AdminProduct) => {
+    setReviewManageId(null)
     setEditingId(product.id)
     setForm({
       name: product.name,
@@ -729,6 +741,13 @@ function ProductManage() {
                       </button>
                       <button
                         type="button"
+                        onClick={() => toggleReviewManage(product.id)}
+                        className="text-body-sm text-secondary hover:text-primary"
+                      >
+                        리뷰 관리 ({reviews.filter((review) => review.productId === product.id).length})
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => setDeleteTargetId(product.id)}
                         className="text-body-sm text-secondary hover:text-point"
                       >
@@ -741,6 +760,66 @@ function ProductManage() {
                   <tr className="border-b border-line bg-surface-muted">
                     <td colSpan={8} className="p-16">
                       {editFormElement}
+                    </td>
+                  </tr>
+                )}
+                {reviewManageId === product.id && (
+                  <tr className="border-b border-line bg-surface-muted">
+                    <td colSpan={8} className="p-16">
+                      <div className="flex flex-col gap-12 rounded-sm border border-line bg-surface p-16">
+                        <h3 className="text-body-lg font-bold">리뷰 관리 — {product.name}</h3>
+                        {reviews.filter((review) => review.productId === product.id).length === 0 ? (
+                          <p className="text-body-sm text-secondary">아직 작성된 리뷰가 없습니다.</p>
+                        ) : (
+                          reviews
+                            .filter((review) => review.productId === product.id)
+                            .map((review) => (
+                              <div
+                                key={review.id}
+                                className="flex items-start justify-between gap-16 border-b border-line pb-12 last:border-b-0"
+                              >
+                                <div className="flex flex-col gap-4">
+                                  <div className="flex items-center gap-8">
+                                    <span className="flex items-center gap-2 text-point">
+                                      {Array.from({ length: 5 }).map((_, i) => (
+                                        <Star
+                                          key={i}
+                                          size={14}
+                                          strokeWidth={1.5}
+                                          fill={i < review.rating ? 'currentColor' : 'none'}
+                                        />
+                                      ))}
+                                    </span>
+                                    <span className="text-body-sm font-medium">{review.nickname}</span>
+                                    <span className="text-caption text-secondary">
+                                      {new Date(review.createdAt).toLocaleDateString('ko-KR')}
+                                    </span>
+                                  </div>
+                                  <p className="text-body-sm text-secondary">{review.content}</p>
+                                  {review.photos.length > 0 && (
+                                    <div className="flex gap-8">
+                                      {review.photos.map((url) => (
+                                        <img
+                                          key={url}
+                                          src={url}
+                                          alt="리뷰 사진"
+                                          className="h-56 w-56 rounded-sm border border-line object-cover"
+                                        />
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setReviewDeleteTargetId(review.id)}
+                                  className="text-body-sm shrink-0 text-secondary hover:text-point"
+                                >
+                                  삭제
+                                </button>
+                              </div>
+                            ))
+                        )}
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -757,6 +836,18 @@ function ProductManage() {
           confirmLabel="삭제"
           onConfirm={confirmDelete}
           onCancel={() => setDeleteTargetId(null)}
+        />
+      )}
+
+      {reviewDeleteTargetId && (
+        <ConfirmModal
+          message="이 리뷰를 삭제할까요?"
+          confirmLabel="삭제"
+          onConfirm={async () => {
+            await deleteReview(reviewDeleteTargetId)
+            setReviewDeleteTargetId(null)
+          }}
+          onCancel={() => setReviewDeleteTargetId(null)}
         />
       )}
     </div>

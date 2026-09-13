@@ -6,6 +6,7 @@ import { CartProvider } from './context/CartContext'
 import { WishlistProvider } from './context/WishlistContext'
 import { RecentSearchProvider } from './context/RecentSearchContext'
 import { OrderHistoryProvider } from './context/OrderHistoryContext'
+import { ReviewsProvider } from './context/ReviewsContext'
 import { AuthModalProvider } from './context/AuthModalContext'
 import { ProductsProvider } from './context/ProductsContext'
 import { ContentProvider } from './context/ContentContext'
@@ -45,6 +46,7 @@ function App() {
               <WishlistProvider>
                 <RecentSearchProvider>
                   <OrderHistoryProvider>
+                    <ReviewsProvider>
                     <BrowserRouter>
                       <AuthModalProvider>
                         <ScrollToTop />
@@ -79,6 +81,7 @@ function App() {
                         </Routes>
                       </AuthModalProvider>
                     </BrowserRouter>
+                    </ReviewsProvider>
                   </OrderHistoryProvider>
                 </RecentSearchProvider>
               </WishlistProvider>

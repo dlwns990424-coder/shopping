@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { Heart } from 'lucide-react'
+import { ChevronDown, Heart } from 'lucide-react'
 import SizeSelector from '../components/SizeSelector'
 import QuantityStepper from '../components/QuantityStepper'
 import Button from '../components/Button'
 import ProductCard from '../components/ProductCard'
 import RecentlyViewed from '../components/RecentlyViewed'
+import ReviewSection from '../components/ReviewSection'
 import Toast from '../components/Toast'
+import InfoTooltip from '../components/InfoTooltip'
 import { useProducts } from '../context/ProductsContext'
 import { addRecentlyViewed, getRecentlyViewedIds } from '../utils/recentlyViewed'
 import type { Product } from '../types'
@@ -16,6 +18,8 @@ import { useWishlist } from '../context/WishlistContext'
 import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 import { formatPrice } from '../utils/formatPrice'
+import { SHIPPING_FEE } from '../constants'
+import { RETURN_WINDOW_DAYS } from '../utils/orderStats'
 
 // 로그인 안 된 상태로 담기/구매를 누르면 로그인 모달→/login→복귀 과정에서 이 페이지가
 // 통째로 재마운트되어 선택한 사이즈·수량이 날아간다. 그 사이만 잠깐 붙잡아두는 용도라
@@ -61,10 +65,48 @@ function ProductDetail() {
   const [sizeError, setSizeError] = useState(false)
   const [quantity, setQuantity] = useState(1)
   const [showToast, setShowToast] = useState(false)
+  const [descriptionOpen, setDescriptionOpen] = useState(true)
+  const [activeAnchor, setActiveAnchor] = useState<'info' | 'review' | 'related'>('info')
 
   useEffect(() => {
     if (product) addRecentlyViewed(product.id)
   }, [product])
+
+  // 스크롤 위치에 따라 상단 탭("정보"/"리뷰"/"추천")의 활성 표시를 갱신한다.
+  // "정보"는 모바일/데스크톱 전용 블록에 중복 렌더링되므로(위 사이즈 섹션과 동일한 이유)
+  // 매번 실제로 보이는 쪽을 다시 찾는다 — 리사이즈로 breakpoint가 바뀌어도 안전하다.
+  useEffect(() => {
+    const getTargets = () => {
+      const infoCandidates = document.querySelectorAll<HTMLElement>('[data-anchor="info"]')
+      const infoEl = Array.from(infoCandidates).find((el) => el.offsetParent !== null)
+      const reviewEl = document.getElementById('review-section')
+      const relatedEl = document.getElementById('related-section')
+      const targets: Array<{ anchor: 'info' | 'review' | 'related'; el: HTMLElement }> = []
+      if (infoEl) targets.push({ anchor: 'info', el: infoEl })
+      if (reviewEl) targets.push({ anchor: 'review', el: reviewEl })
+      if (relatedEl) targets.push({ anchor: 'related', el: relatedEl })
+      return targets
+    }
+
+    // 헤더(최대 64px) + 탭바 높이만큼 여유를 둬서, 섹션 제목이 탭바 아래로 막
+    // 넘어온 시점에 활성으로 바뀌게 한다.
+    const ACTIVE_THRESHOLD_PX = 140
+
+    const handleScroll = () => {
+      const targets = getTargets()
+      let current: 'info' | 'review' | 'related' = 'info'
+      for (const { anchor, el } of targets) {
+        if (el.getBoundingClientRect().top <= ACTIVE_THRESHOLD_PX) {
+          current = anchor
+        }
+      }
+      setActiveAnchor(current)
+    }
+
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [productId])
 
   // 라우트 파라미터만 바뀌면 컴포넌트가 재마운트되지 않아, 상품을 이동해도
   // 이전 상품에서 고른 사이즈·수량이 그대로 남아있던 문제를 막는다 — 단, 로그인
@@ -149,6 +191,29 @@ function ProductDetail() {
     }
   }
 
+  // 모바일 하단 고정바에서 누르면 사이즈 선택 영역이 이미 스크롤 밖으로 벗어나 있을 수
+  // 있어서, 에러 문구만으로는 원인이 안 보일 수 있다 — 현재 보이는(mobile/desktop 중
+  // display:none이 아닌) 사이즈 영역으로 스크롤해서 강조한다.
+  const scrollToSizeSection = () => {
+    const sections = document.querySelectorAll<HTMLElement>('[data-size-section]')
+    const visible = Array.from(sections).find((el) => el.offsetParent !== null)
+    visible?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
+  // "정보"는 모바일/데스크톱 전용 블록에 각각 한 번씩 중복 렌더링되므로(위 사이즈 섹션과
+  // 동일한 이유) 실제로 보이는 쪽을 찾아서 스크롤한다. "리뷰"/"추천 상품"은 중복 없이
+  // 페이지 하단에 한 번만 있어서 id로 바로 찾는다.
+  const scrollToAnchor = (anchor: 'info' | 'review' | 'related') => {
+    if (anchor === 'info') {
+      const sections = document.querySelectorAll<HTMLElement>('[data-anchor="info"]')
+      const visible = Array.from(sections).find((el) => el.offsetParent !== null)
+      visible?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return
+    }
+    const id = anchor === 'review' ? 'review-section' : 'related-section'
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   const handleAddToCart = () => {
     if (!user) {
       savePendingSelection()
@@ -157,6 +222,7 @@ function ProductDetail() {
     }
     if (!selectedSize) {
       setSizeError(true)
+      scrollToSizeSection()
       return
     }
     addItem(product, selectedSize, quantity)
@@ -171,6 +237,7 @@ function ProductDetail() {
     }
     if (!selectedSize) {
       setSizeError(true)
+      scrollToSizeSection()
       return
     }
     navigate('/order', {
@@ -209,8 +276,8 @@ function ProductDetail() {
         <button
           type="button"
           onClick={() => toggle(product.id)}
-          className={`flex h-40 w-40 shrink-0 cursor-pointer items-center justify-center rounded-sm border bg-transparent transition-colors ${
-            isWishlisted(product.id) ? 'border-point text-point' : 'border-line text-primary'
+          className={`flex h-40 w-40 shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-colors ${
+            isWishlisted(product.id) ? 'text-danger' : 'text-primary'
           }`}
           aria-label={isWishlisted(product.id) ? '찜 해제' : '위시리스트 추가'}
           aria-pressed={isWishlisted(product.id)}
@@ -228,7 +295,12 @@ function ProductDetail() {
         />
       </div>
 
-      <div className="flex flex-col gap-12">
+      <div
+        data-size-section
+        className={`-m-8 flex flex-col gap-12 rounded-sm p-8 ring-1 transition-colors duration-300 ${
+          sizeError ? 'bg-danger/5 ring-danger' : 'ring-transparent'
+        }`}
+      >
         <p className="text-body-lg">사이즈</p>
         <div className="flex flex-wrap gap-8">
           {product.sizes.map((size) => (
@@ -240,7 +312,7 @@ function ProductDetail() {
             />
           ))}
         </div>
-        {sizeError && <p className="text-caption text-point">사이즈를 선택해주세요.</p>}
+        {sizeError && <p className="text-caption text-danger">사이즈를 선택해주세요.</p>}
       </div>
 
       <div className="flex flex-col items-start gap-12">
@@ -248,14 +320,37 @@ function ProductDetail() {
         <QuantityStepper value={quantity} onChange={setQuantity} />
       </div>
 
+      <InfoTooltip label="배송·반품 안내">
+        배송비 {formatPrice(SHIPPING_FEE)} · 배송완료 후 {RETURN_WINDOW_DAYS}일 이내 반품 신청이 가능합니다.
+      </InfoTooltip>
+
+      {/* 모바일/태블릿 전용: 하단 고정바까지 안 가도 여기서 바로 구매할 수 있게. 데스크톱은 바로 아래에 구매 버튼이 있어 중복이라 숨김 */}
+      <Button variant="primary" size="large" className="w-full lg:hidden" onClick={handleBuyNow}>
+        바로 구매
+      </Button>
+
       {!user && <p className="text-caption text-secondary">로그인 후 담기·구매가 가능합니다.</p>}
     </>
   )
 
   const descriptionBlock = (
     <div className="flex flex-col gap-12">
-      <p className="text-h3">제품 정보</p>
-      <p className="text-body-sm whitespace-pre-line leading-[1.6] text-secondary">{product.description}</p>
+      <button
+        type="button"
+        onClick={() => setDescriptionOpen((prev) => !prev)}
+        className="flex cursor-pointer items-center justify-between border-none bg-transparent p-0 text-h3"
+        aria-expanded={descriptionOpen}
+      >
+        <span>제품 정보</span>
+        <ChevronDown
+          size={20}
+          strokeWidth={1.5}
+          className={`transition-transform duration-200 ${descriptionOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {descriptionOpen && (
+        <p className="text-body-sm whitespace-pre-line leading-[1.6] text-secondary">{product.description}</p>
+      )}
     </div>
   )
 
@@ -265,10 +360,42 @@ function ProductDetail() {
         <title>{`NOVERA | ${product.name}`}</title>
       </Helmet>
 
+      {/* 모바일 전용 탭바: 데스크톱은 좌측 이미지 칼럼 밑으로 옮겨서 별도로 둠(아래) */}
+      <nav className="sticky top-48 z-fixed-bar flex justify-center gap-16 border-b border-line bg-surface-muted px-20 text-body text-secondary md:gap-80 lg:hidden">
+        <button
+          type="button"
+          onClick={() => scrollToAnchor('info')}
+          className={`cursor-pointer rounded-sm border-none px-20 py-16 font-medium hover:text-primary ${
+            activeAnchor === 'info' ? 'bg-line text-primary underline underline-offset-8' : 'bg-transparent'
+          }`}
+        >
+          정보
+        </button>
+        <button
+          type="button"
+          onClick={() => scrollToAnchor('review')}
+          className={`cursor-pointer rounded-sm border-none px-20 py-16 font-medium hover:text-primary ${
+            activeAnchor === 'review' ? 'bg-line text-primary underline underline-offset-8' : 'bg-transparent'
+          }`}
+        >
+          리뷰
+        </button>
+        <button
+          type="button"
+          onClick={() => scrollToAnchor('related')}
+          className={`cursor-pointer rounded-sm border-none px-20 py-16 font-medium hover:text-primary ${
+            activeAnchor === 'related' ? 'bg-line text-primary underline underline-offset-8' : 'bg-transparent'
+          }`}
+        >
+          추천
+        </button>
+      </nav>
+
       {/* 모바일 전용: 사진 1장만 보고 바로 이름/가격/사이즈에 닿도록 순서를 다시 짬(데스크톱은 아래 별도 블록, 손 안 댐) */}
       <div className="flex flex-col gap-32 px-20 pt-32 md:px-32 lg:hidden">
         <div
-          className="aspect-[4/5] bg-surface-muted bg-cover bg-center bg-no-repeat md:aspect-auto md:h-[420px]"
+          data-anchor="info"
+          className="aspect-[4/5] scroll-mt-96 bg-surface-muted bg-cover bg-center bg-no-repeat md:scroll-mt-112"
           style={{ backgroundImage: `url(${product.image})` }}
         />
 
@@ -289,21 +416,60 @@ function ProductDetail() {
         {descriptionBlock}
       </div>
 
-      {/* 데스크톱 전용: 기존 좌(이미지 2열)/우(정보, sticky) 배치 그대로 */}
-      <div className="hidden lg:grid lg:grid-cols-[1fr_456px] lg:gap-64 lg:px-40 lg:pt-48">
-        <div className="grid grid-cols-2 gap-4">
-          {[product.image, ...product.detailImages].map((src, index) => (
-            <div
-              key={index}
-              className="aspect-[4/5] bg-surface-muted bg-cover bg-center bg-no-repeat"
-              style={{ backgroundImage: `url(${src})` }}
-            />
-          ))}
+      {/* 데스크톱 전용 탭바: 그리드 안쪽 sticky는 그리드 영역을 벗어나면(리뷰/추천 지나서) 같이 사라지는 문제가 있어서,
+          그리드 밖으로 꺼내 페이지 전체 기준 fixed로 바꿈 — 맨 아래로 스크롤해도 항상 보임.
+          그리드와 동일한 mx-auto/max-w-1920/grid-cols-[11fr_9fr]를 그대로 복제해서 버튼 위치를 이미지 칼럼과 맞춤 */}
+      <nav className="fixed inset-x-0 top-64 z-fixed-bar hidden bg-surface-muted text-body text-secondary lg:block">
+        <div className="mx-auto grid max-w-1920 grid-cols-[11fr_9fr] gap-64">
+          <div className="flex justify-center gap-80 px-20">
+            <button
+              type="button"
+              onClick={() => scrollToAnchor('info')}
+              className={`cursor-pointer rounded-sm border-none px-20 py-16 font-medium hover:text-primary ${
+                activeAnchor === 'info' ? 'bg-line text-primary underline underline-offset-8' : 'bg-transparent'
+              }`}
+            >
+              정보
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToAnchor('review')}
+              className={`cursor-pointer rounded-sm border-none px-20 py-16 font-medium hover:text-primary ${
+                activeAnchor === 'review' ? 'bg-line text-primary underline underline-offset-8' : 'bg-transparent'
+              }`}
+            >
+              리뷰
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToAnchor('related')}
+              className={`cursor-pointer rounded-sm border-none px-20 py-16 font-medium hover:text-primary ${
+                activeAnchor === 'related' ? 'bg-line text-primary underline underline-offset-8' : 'bg-transparent'
+              }`}
+            >
+              추천
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* 데스크톱 전용: 좌(이미지 1열)/우(정보, sticky) 5.5:4.5 비율, 1600px에서 폭 제한. 회색 캔버스 위에 흰색 패널 2개.
+          위 fixed 탭바가 실제 공간을 안 차지하니(fixed는 흐름에서 빠짐) pt-56으로 탭바 높이만큼 띄워줌 */}
+      <div className="hidden lg:mx-auto lg:grid lg:max-w-1920 lg:grid-cols-[11fr_9fr] lg:gap-x-64 lg:pt-56">
+        <div className="bg-surface">
+          <div data-anchor="info" className="grid scroll-mt-112 grid-cols-1 gap-4 px-40 py-40">
+            {[product.image, ...product.detailImages].map((src, index) => (
+              <div
+                key={index}
+                className="aspect-[4/5] bg-surface-muted bg-cover bg-center bg-no-repeat"
+                style={{ backgroundImage: `url(${src})` }}
+              />
+            ))}
+          </div>
         </div>
 
-        <div className="flex flex-col gap-32 self-start lg:sticky lg:top-96">
+        <div className="flex flex-col gap-32 self-start bg-surface-muted px-40 py-40 lg:sticky lg:top-96">
           {purchaseEssentials}
-          {descriptionBlock}
 
           <div className="flex flex-col gap-12">
             <Button variant="secondary" size="large" className="w-full" onClick={handleAddToCart}>
@@ -313,6 +479,8 @@ function ProductDetail() {
               바로 구매
             </Button>
           </div>
+
+          {descriptionBlock}
         </div>
       </div>
 
@@ -325,7 +493,14 @@ function ProductDetail() {
         </Button>
       </div>
 
-      <section className="page-section">
+      <section id="review-section" className="page-section scroll-mt-96 md:scroll-mt-112">
+        <div className="page-section__header">
+          <h2 className="text-xl font-bold lg:text-2xl">리뷰</h2>
+        </div>
+        <ReviewSection productId={product.id} />
+      </section>
+
+      <section id="related-section" className="page-section scroll-mt-96 md:scroll-mt-112">
         <div className="page-section__header">
           <h2 className="text-xl font-bold lg:text-2xl">추천 상품</h2>
         </div>

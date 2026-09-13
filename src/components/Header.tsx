@@ -3,6 +3,7 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { Search, Heart, ShoppingBag, User, Menu, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
+import { useCart } from '../context/CartContext'
 import { useProducts } from '../context/ProductsContext'
 import SearchOverlay from './SearchOverlay'
 
@@ -31,19 +32,30 @@ interface IconButtonProps {
   light?: boolean
   ariaExpanded?: boolean
   ariaControls?: string
+  badgeCount?: number
 }
 
 const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
-  { label, to, onClick, children, light, ariaExpanded, ariaControls },
+  { label, to, onClick, children, light, ariaExpanded, ariaControls, badgeCount },
   ref,
 ) {
   const content = (
     <>
       <span className="sr-only">{label}</span>
       {children}
+      {Boolean(badgeCount) && (
+        <span
+          aria-hidden
+          className={`absolute right-2 top-2 flex h-16 w-16 items-center justify-center rounded-full bg-point text-[10px] font-semibold leading-none ${
+            light ? 'text-primary' : 'text-surface'
+          }`}
+        >
+          {badgeCount! > 9 ? '9+' : badgeCount}
+        </span>
+      )}
     </>
   )
-  const className = `inline-flex h-44 w-44 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-colors active:scale-90 ${
+  const className = `relative inline-flex h-44 w-44 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-colors active:scale-90 ${
     light ? 'text-white hover:text-white/70' : 'text-primary hover:text-disabled'
   }`
 
@@ -72,8 +84,11 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconB
 function Header() {
   const { user } = useAuth()
   const { openLoginModal } = useAuthModal()
+  const { items: cartItems } = useCart()
   const { products } = useProducts()
   const location = useLocation()
+  // Cart.tsx의 "총 N개 상품"과 동일하게 라인(종류) 개수 기준으로 통일 — 수량 합산 아님
+  const cartCount = cartItems.length
   const [searchParams] = useSearchParams()
   const activeGender = getActiveGender(location.pathname, products)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -183,6 +198,7 @@ function Header() {
           to={user ? '/cart' : undefined}
           onClick={user ? undefined : openLoginModal}
           light={isTransparent}
+          badgeCount={user ? cartCount : 0}
         >
           <ShoppingBag size={20} strokeWidth={1.5} />
         </IconButton>
@@ -249,6 +265,11 @@ function Header() {
               >
                 <ShoppingBag size={20} strokeWidth={1.5} />
                 장바구니
+                {user && cartCount > 0 && (
+                  <span className="flex h-20 w-20 items-center justify-center rounded-full bg-point text-[11px] font-semibold leading-none text-surface">
+                    {cartCount > 9 ? '9+' : cartCount}
+                  </span>
+                )}
               </Link>
               <Link
                 to={user ? '/mypage' : '#'}

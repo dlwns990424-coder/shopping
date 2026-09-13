@@ -25,6 +25,17 @@ export interface Product {
 
 export const MAX_DETAIL_IMAGES = 6
 
+export interface Review {
+  id: string
+  productId: string
+  userId: string
+  nickname: string
+  rating: number
+  content: string
+  photos: string[]
+  createdAt: string
+}
+
 export interface Category {
   id: string
   label: string
