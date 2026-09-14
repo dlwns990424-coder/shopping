@@ -20,18 +20,22 @@ import {
   orderTotal,
 } from '../utils/orderStats'
 
-// 배송 완료된 지난 주문보다 "지금 내가 결제한 게 어떻게 되고 있는지"가 더 궁금하다는
-// 피드백으로, 날짜순 대신 진행 상태 우선순위로 정렬한다(같은 순위 안에서는 최신순 유지).
-// 반품요청/반품접수는 배송 상태가 뭐든(배송완료로 고정) 아직 처리 중인 관심사라 최우선.
-function priorityOf(order: Order): number {
-  if (order.returnStatus === '반품요청') return 0
-  if (order.returnStatus === '반품접수') return 1
-  if (order.shippingStatus === '결제완료') return 2
-  if (order.shippingStatus === '배송준비') return 3
-  if (order.shippingStatus === '배송중') return 4
-  if (order.shippingStatus === '배송완료') return 5
-  if (order.returnStatus === '반품완료') return 6
-  return 7 // 취소
+type StatusFilter = 'all' | 'preparing' | 'shipping' | 'delivered' | 'cancelled'
+
+const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
+  { value: 'all', label: '전체' },
+  { value: 'preparing', label: '배송준비중' },
+  { value: 'shipping', label: '배송중' },
+  { value: 'delivered', label: '배송완료' },
+  { value: 'cancelled', label: '취소·반품' },
+]
+
+// 취소되었거나 반품이 진행 중/완료된 주문은 배송 상태가 뭐든(반품은 배송완료 상태에서 시작) "취소·반품"으로 묶는다.
+function statusFilterOf(order: Order): StatusFilter {
+  if (order.shippingStatus === '취소' || order.returnStatus) return 'cancelled'
+  if (order.shippingStatus === '결제완료' || order.shippingStatus === '배송준비') return 'preparing'
+  if (order.shippingStatus === '배송중') return 'shipping'
+  return 'delivered'
 }
 
 function OrderHistory() {
@@ -45,10 +49,12 @@ function OrderHistory() {
   const [returnTargetId, setReturnTargetId] = useState<string | null>(null)
   const [reviewTarget, setReviewTarget] = useState<CartItem | null>(null)
   const [showReviewToast, setShowReviewToast] = useState(false)
-  const myOrders = orders
-    .filter((order) => order.userEmail === user?.email)
-    .slice()
-    .sort((a, b) => priorityOf(a) - priorityOf(b))
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+
+  // 최신순 정렬 — orders 자체가 이미 created_at desc로 내려오므로 그대로 필터만 적용한다.
+  const myOrders = orders.filter((order) => order.userEmail === user?.email)
+  const filteredOrders =
+    statusFilter === 'all' ? myOrders : myOrders.filter((order) => statusFilterOf(order) === statusFilter)
 
   const openCancelModal = (id: string) => {
     setCancelError(null)
@@ -113,7 +119,28 @@ function OrderHistory() {
 
   return (
     <div className="flex max-w-1200 flex-col gap-16">
-      {myOrders.map((order) => (
+      <div className="flex flex-wrap gap-8">
+        {STATUS_FILTERS.map((filter) => (
+          <button
+            key={filter.value}
+            type="button"
+            onClick={() => setStatusFilter(filter.value)}
+            className={`rounded-full border px-16 py-6 text-body-sm transition-colors active:scale-95 ${
+              statusFilter === filter.value
+                ? 'border-primary bg-primary text-surface'
+                : 'border-line text-secondary hover:border-primary hover:text-primary'
+            }`}
+          >
+            {filter.label}
+          </button>
+        ))}
+      </div>
+
+      {filteredOrders.length === 0 && (
+        <p className="py-32 text-center text-body-sm text-secondary">해당하는 주문이 없습니다.</p>
+      )}
+
+      {filteredOrders.map((order) => (
         <div key={order.id} className="rounded-sm border border-line px-24 py-16">
           <div className="border-b border-line pb-16">
             <div className="text-body-sm flex justify-between text-secondary">

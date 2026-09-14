@@ -54,7 +54,7 @@ function QuantityStepper({ value, onChange, min = 1, max = 99 }: QuantityStepper
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         aria-label="수량 입력"
-        className="text-body w-32 border-none bg-transparent p-0 text-center text-primary outline-none"
+        className="text-body h-32 w-32 border-none bg-surface p-0 text-center text-primary outline-none"
       />
       <button type="button" className={BUTTON_CLASSES} onClick={increase} disabled={value >= max} aria-label="수량 증가">
         +
