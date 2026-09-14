@@ -89,13 +89,13 @@ function Men() {
           </div>
         )}
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/35 to-transparent" />
-        {/* bottom-[25%]: 완전 중앙정렬 대신 바닥에서 살짝 띄운 위치 — 어떤 히어로 사진이 올라와도
+        {/* bottom-[20%]: 완전 중앙정렬 대신 바닥에서 살짝 띄운 위치 — 어떤 히어로 사진이 올라와도
             안전한 하단 그라디언트 스크림은 유지하면서, 텍스트가 가장자리에 눌려있는 느낌만 해소 */}
-        <div className="absolute inset-x-0 bottom-[25%] z-10 px-20 text-surface md:px-32 lg:px-40">
-          <h1 className="text-[52px] font-medium leading-[1.2] text-surface">
+        <div className="absolute inset-x-0 bottom-[20%] z-10 px-20 text-surface md:px-32 lg:px-40">
+          <h1 className="text-[52px] font-medium leading-[1.2] text-surface drop-shadow-md">
             {content['men.hero.title'] ?? '댄디하고 심플한 무드의 새 시즌 컬렉션'}
           </h1>
-          <p className="mt-12 text-body-lg text-surface">
+          <p className="mt-12 text-[18px] text-surface drop-shadow-md">
             {content['men.hero.subtitle'] || '이번 시즌 새롭게 만나는 NOVERA의 제안'}
           </p>
         </div>
