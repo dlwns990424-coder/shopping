@@ -7,11 +7,14 @@ import { uploadImage } from '../utils/uploadImage'
 interface ReviewFormModalProps {
   onCancel: () => void
   onSubmit: (rating: number, content: string, photos: string[]) => Promise<{ success: boolean; message?: string }>
+  // 상품 상세페이지에서는 이미 어떤 상품인지 화면에 나와있어 생략, 마이페이지 주문내역처럼
+  // 문맥 없이 여러 상품 중 하나를 고르는 곳에서 열 때만 넘겨서 표시한다.
+  productName?: string
 }
 
 const MAX_PHOTOS = 4
 
-function ReviewFormModal({ onCancel, onSubmit }: ReviewFormModalProps) {
+function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalProps) {
   const [rating, setRating] = useState(5)
   const [content, setContent] = useState('')
   const [photos, setPhotos] = useState<string[]>([])
@@ -65,7 +68,10 @@ function ReviewFormModal({ onCancel, onSubmit }: ReviewFormModalProps) {
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 px-24">
       <div className="flex w-full max-w-480 flex-col gap-16 rounded-md bg-surface p-24">
-        <p className="text-h3">리뷰 작성</p>
+        <div>
+          <p className="text-h3">리뷰 작성</p>
+          {productName && <p className="text-body-sm mt-4 text-secondary">{productName}</p>}
+        </div>
 
         <div className="flex flex-col gap-8">
           <label className="text-body-sm text-secondary">별점</label>

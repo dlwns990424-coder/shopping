@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ShoppingBag } from 'lucide-react'
-import type { Order } from '../types'
+import type { CartItem, Order } from '../types'
 import Button from './Button'
 import ConfirmModal from './ConfirmModal'
 import OrderItemRow from './OrderItemRow'
 import ReturnRequestModal from './ReturnRequestModal'
+import ReviewFormModal from './ReviewFormModal'
+import Toast from './Toast'
 import { useAuth } from '../context/AuthContext'
 import { useOrderHistory } from '../context/OrderHistoryContext'
+import { useReviews } from '../context/ReviewsContext'
 import { formatPrice } from '../utils/formatPrice'
 import {
   CANCELABLE_SHIPPING_STATUSES,
@@ -35,10 +38,13 @@ function OrderHistory() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { orders, loading, error, updateShippingStatuses, requestReturn } = useOrderHistory()
+  const { reviews, addReview } = useReviews()
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
   const [returnTargetId, setReturnTargetId] = useState<string | null>(null)
+  const [reviewTarget, setReviewTarget] = useState<CartItem | null>(null)
+  const [showReviewToast, setShowReviewToast] = useState(false)
   const myOrders = orders
     .filter((order) => order.userEmail === user?.email)
     .slice()
@@ -72,6 +78,16 @@ function OrderHistory() {
     const success = await requestReturn(returnTargetId, reason, detail, photos)
     if (success) setReturnTargetId(null)
     return success
+  }
+
+  const submitReview = async (rating: number, content: string, photos: string[]) => {
+    if (!reviewTarget?.productId) return { success: false, message: '리뷰 등록에 실패했습니다.' }
+    const result = await addReview({ productId: reviewTarget.productId, rating, content, photos })
+    if (result.success) {
+      setReviewTarget(null)
+      setShowReviewToast(true)
+    }
+    return result
   }
 
   if (loading) {
@@ -123,11 +139,33 @@ function OrderHistory() {
             </p>
             {order.deliveryRequest && <p>배송 요청: {order.deliveryRequest}</p>}
           </div>
-          {order.items.map((item, index) => (
-            <div key={`${order.id}-${index}`} className="[&:not(:last-of-type)]:border-b [&:not(:last-of-type)]:border-line">
-              <OrderItemRow item={{ ...item, price: formatPrice(item.price) }} linkToProduct />
-            </div>
-          ))}
+          {order.items.map((item, index) => {
+            const alreadyReviewed = reviews.some(
+              (review) => review.productId === item.productId && review.userId === user?.id,
+            )
+            return (
+              <div
+                key={`${order.id}-${index}`}
+                className="[&:not(:last-of-type)]:border-b [&:not(:last-of-type)]:border-line"
+              >
+                <OrderItemRow item={{ ...item, price: formatPrice(item.price) }} linkToProduct />
+                {order.shippingStatus === '배송완료' &&
+                  item.productId &&
+                  (alreadyReviewed ? (
+                    <p className="pb-16 text-caption text-secondary">리뷰 작성 완료</p>
+                  ) : (
+                    <Button
+                      size="small"
+                      variant="secondary"
+                      className="mb-16"
+                      onClick={() => setReviewTarget(item)}
+                    >
+                      리뷰 작성
+                    </Button>
+                  ))}
+              </div>
+            )
+          })}
           {order.returnStatus && (
             <div className="text-body-sm mt-16 flex flex-col gap-8 rounded-sm bg-surface-muted p-12 text-secondary">
               <p>
@@ -190,6 +228,16 @@ function OrderHistory() {
       )}
 
       {returnTargetId && <ReturnRequestModal onCancel={() => setReturnTargetId(null)} onSubmit={submitReturn} />}
+
+      {reviewTarget && (
+        <ReviewFormModal
+          productName={reviewTarget.name}
+          onCancel={() => setReviewTarget(null)}
+          onSubmit={submitReview}
+        />
+      )}
+
+      <Toast message="리뷰가 등록되었습니다." show={showReviewToast} onClose={() => setShowReviewToast(false)} />
     </div>
   )
 }
