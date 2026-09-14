@@ -14,6 +14,17 @@ const SHIPPING_STATUSES: ShippingStatus[] = ['결제완료', '배송준비', '�
 
 type ReturnFilter = 'all' | 'none' | ReturnStatus
 
+function shippingStatusConfirmMessage(status: ShippingStatus, count: number): string {
+  const subject = count > 1 ? `주문 ${count}건을` : '이 주문을'
+  if (status === '배송완료') {
+    return `${subject} 배송완료 처리하시겠습니까? 이후 고객이 반품을 신청할 수 있는 기간이 시작됩니다.`
+  }
+  if (status === '취소') {
+    return `${subject} 취소 처리하시겠습니까?`
+  }
+  return `${subject} '${status}' 상태로 변경하시겠습니까?`
+}
+
 function OrderManage() {
   const { orders, loading, error, updateShippingStatuses, updateReturnStatus } = useOrderHistory()
   const [searchParams] = useSearchParams()
@@ -24,7 +35,10 @@ function OrderManage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [bulkStatus, setBulkStatus] = useState<ShippingStatus>(SHIPPING_STATUSES[0])
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const [cancelTargetIds, setCancelTargetIds] = useState<string[] | null>(null)
+  const [statusChangeTarget, setStatusChangeTarget] = useState<{ orderIds: string[]; status: ShippingStatus } | null>(
+    null,
+  )
+  const [returnStatusTarget, setReturnStatusTarget] = useState<{ orderId: string; next: ReturnStatus } | null>(null)
 
   const filteredOrders = orders.filter((order) => {
     if (statusFilter !== 'all' && order.shippingStatus !== statusFilter) return false
@@ -51,27 +65,24 @@ function OrderManage() {
 
   const handleBulkApply = () => {
     if (selectedIds.size === 0) return
-    if (bulkStatus === '취소') {
-      setCancelTargetIds(Array.from(selectedIds))
-      return
-    }
-    updateShippingStatuses(Array.from(selectedIds), bulkStatus)
-    setSelectedIds(new Set())
+    setStatusChangeTarget({ orderIds: Array.from(selectedIds), status: bulkStatus })
   }
 
   const handleShippingStatusChange = (orderId: string, status: ShippingStatus) => {
-    if (status === '취소') {
-      setCancelTargetIds([orderId])
-      return
-    }
-    updateShippingStatuses([orderId], status)
+    setStatusChangeTarget({ orderIds: [orderId], status })
   }
 
-  const confirmCancel = () => {
-    if (!cancelTargetIds) return
-    updateShippingStatuses(cancelTargetIds, '취소')
+  const confirmStatusChange = () => {
+    if (!statusChangeTarget) return
+    updateShippingStatuses(statusChangeTarget.orderIds, statusChangeTarget.status)
     setSelectedIds(new Set())
-    setCancelTargetIds(null)
+    setStatusChangeTarget(null)
+  }
+
+  const confirmReturnStatusChange = () => {
+    if (!returnStatusTarget) return
+    updateReturnStatus(returnStatusTarget.orderId, returnStatusTarget.next)
+    setReturnStatusTarget(null)
   }
 
   return (
@@ -224,7 +235,7 @@ function OrderManage() {
                           variant="secondary"
                           className={`h-28 !py-0 ${CANCELABLE_SHIPPING_STATUSES.has(order.shippingStatus) ? '' : 'invisible'}`}
                           disabled={!CANCELABLE_SHIPPING_STATUSES.has(order.shippingStatus)}
-                          onClick={() => setCancelTargetIds([order.id])}
+                          onClick={() => setStatusChangeTarget({ orderIds: [order.id], status: '취소' })}
                         >
                           취소
                         </Button>
@@ -242,7 +253,10 @@ function OrderManage() {
                           }`}
                           disabled={order.returnStatus !== '반품요청' && order.returnStatus !== '반품접수'}
                           onClick={() =>
-                            updateReturnStatus(order.id, order.returnStatus === '반품요청' ? '반품접수' : '반품완료')
+                            setReturnStatusTarget({
+                              orderId: order.id,
+                              next: order.returnStatus === '반품요청' ? '반품접수' : '반품완료',
+                            })
                           }
                         >
                           {order.returnStatus === '반품접수' ? '환불 완료' : '접수 처리'}
@@ -311,13 +325,27 @@ function OrderManage() {
         </div>
       )}
 
-      {cancelTargetIds && (
+      {statusChangeTarget && (
         <ConfirmModal
-          message={`주문 ${cancelTargetIds.length}건을 취소 처리할까요?`}
-          confirmLabel="취소 처리"
+          message={shippingStatusConfirmMessage(statusChangeTarget.status, statusChangeTarget.orderIds.length)}
+          confirmLabel="변경"
           cancelLabel="닫기"
-          onConfirm={confirmCancel}
-          onCancel={() => setCancelTargetIds(null)}
+          onConfirm={confirmStatusChange}
+          onCancel={() => setStatusChangeTarget(null)}
+        />
+      )}
+
+      {returnStatusTarget && (
+        <ConfirmModal
+          message={
+            returnStatusTarget.next === '반품완료'
+              ? '환불 완료 처리하시겠습니까? 매출 집계에도 반영됩니다.'
+              : '반품 접수 처리하시겠습니까?'
+          }
+          confirmLabel={returnStatusTarget.next === '반품완료' ? '환불 완료' : '접수 처리'}
+          cancelLabel="닫기"
+          onConfirm={confirmReturnStatusChange}
+          onCancel={() => setReturnStatusTarget(null)}
         />
       )}
     </div>

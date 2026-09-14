@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
+import { ChevronDown, X } from 'lucide-react'
 import StarRating from './StarRating'
 import Button from './Button'
 import ReviewFormModal from './ReviewFormModal'
@@ -149,20 +149,27 @@ function ReviewSection({ productId }: ReviewSectionProps) {
       ) : (
         <>
           <div className="mt-16 flex justify-end">
-            <select
-              value={sortOrder}
-              onChange={(e) => {
-                setSortOrder(e.target.value as SortOrder)
-                setVisibleCount(REVIEWS_PAGE_SIZE)
-              }}
-              className="cursor-pointer rounded-sm border border-line bg-surface px-12 py-6 text-body-sm text-secondary"
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={sortOrder}
+                onChange={(e) => {
+                  setSortOrder(e.target.value as SortOrder)
+                  setVisibleCount(REVIEWS_PAGE_SIZE)
+                }}
+                className="cursor-pointer appearance-none rounded-sm border border-line bg-surface py-6 pl-12 pr-32 text-body-sm text-secondary"
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={14}
+                strokeWidth={1.5}
+                className="pointer-events-none absolute right-10 top-1/2 -translate-y-1/2 text-secondary"
+              />
+            </div>
           </div>
 
           <div className="mt-12 flex flex-col gap-16">

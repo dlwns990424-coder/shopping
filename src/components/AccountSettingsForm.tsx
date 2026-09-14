@@ -30,6 +30,8 @@ function AccountSettingsForm() {
   })
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const [showToast, setShowToast] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const handleChange = (field: keyof FormState) => (e: ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }))
@@ -60,14 +62,22 @@ function AccountSettingsForm() {
     return nextErrors
   }
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     const nextErrors = validate()
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
-    updateProfile(form)
+    setSubmitError(null)
+    setSubmitting(true)
+    const result = await updateProfile(form)
+    setSubmitting(false)
+
+    if (!result.success) {
+      setSubmitError(result.message)
+      return
+    }
     setShowToast(true)
   }
 
@@ -127,7 +137,7 @@ function AccountSettingsForm() {
                 주소 검색
               </Button>
             </div>
-            {errors.shippingAddress && <p className="text-caption text-point">{errors.shippingAddress}</p>}
+            {errors.shippingAddress && <p className="text-caption text-danger">{errors.shippingAddress}</p>}
           </div>
           <Input
             id="mypage-shipping-address-detail"
@@ -138,8 +148,10 @@ function AccountSettingsForm() {
           />
         </section>
 
-        <Button type="submit" className="w-full">
-          저장
+        {submitError && <p className="text-body-sm text-danger">{submitError}</p>}
+
+        <Button type="submit" className="w-full" disabled={submitting}>
+          {submitting ? '저장 중...' : '저장'}
         </Button>
       </form>
 

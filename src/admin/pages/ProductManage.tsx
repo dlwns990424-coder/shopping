@@ -61,6 +61,8 @@ function ProductManage() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [initialForm, setInitialForm] = useState(EMPTY_FORM)
+  const [discardConfirmAction, setDiscardConfirmAction] = useState<(() => void) | null>(null)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadingDetailImage, setUploadingDetailImage] = useState(false)
@@ -148,6 +150,7 @@ function ProductManage() {
   const openCreateForm = () => {
     setEditingId(null)
     setReviewManageId(null)
+    setInitialForm(EMPTY_FORM)
     setForm(EMPTY_FORM)
     setShowForm(true)
   }
@@ -161,7 +164,7 @@ function ProductManage() {
   const openEditForm = (product: AdminProduct) => {
     setReviewManageId(null)
     setEditingId(product.id)
-    setForm({
+    const nextForm = {
       name: product.name,
       price: String(product.price),
       sale_price: product.sale_price != null ? String(product.sale_price) : '',
@@ -175,8 +178,22 @@ function ProductManage() {
       color_hex: product.color_hex,
       sizes: product.sizes,
       description: product.description,
-    })
+    }
+    setInitialForm(nextForm)
+    setForm(nextForm)
     setShowForm(true)
+  }
+
+  // 저장 안 한 이미지 업로드·입력값이 있는 채로 폼을 닫거나 다른 상품 수정으로 전환하면
+  // 경고 없이 통째로 날아가던 문제(오늘 세션에 실제로 겪음) — 변경사항이 있으면 한 번 더 확인한다.
+  const isFormDirty = showForm && JSON.stringify(form) !== JSON.stringify(initialForm)
+
+  const requestFormClose = (action: () => void) => {
+    if (isFormDirty) {
+      setDiscardConfirmAction(() => action)
+    } else {
+      action()
+    }
   }
 
   const handleCategoryChange = (category: string) => {
@@ -592,7 +609,12 @@ function ProductManage() {
         >
           {saving ? '저장 중...' : '저장'}
         </Button>
-        <Button type="button" variant="secondary" size="small" onClick={() => setShowForm(false)}>
+        <Button
+          type="button"
+          variant="secondary"
+          size="small"
+          onClick={() => requestFormClose(() => setShowForm(false))}
+        >
           취소
         </Button>
       </div>
@@ -606,7 +628,7 @@ function ProductManage() {
       </Helmet>
       <div className="flex items-center justify-between">
         <h1 className="text-h1">상품관리</h1>
-        <Button size="small" onClick={openCreateForm}>
+        <Button size="small" onClick={() => requestFormClose(openCreateForm)}>
           상품 추가
         </Button>
       </div>
@@ -734,14 +756,14 @@ function ProductManage() {
                     <div className="flex gap-8">
                       <button
                         type="button"
-                        onClick={() => openEditForm(product)}
+                        onClick={() => requestFormClose(() => openEditForm(product))}
                         className="text-body-sm text-secondary hover:text-primary"
                       >
                         수정
                       </button>
                       <button
                         type="button"
-                        onClick={() => toggleReviewManage(product.id)}
+                        onClick={() => requestFormClose(() => toggleReviewManage(product.id))}
                         className="text-body-sm text-secondary hover:text-primary"
                       >
                         리뷰 관리 ({reviews.filter((review) => review.productId === product.id).length})
@@ -836,6 +858,19 @@ function ProductManage() {
           confirmLabel="삭제"
           onConfirm={confirmDelete}
           onCancel={() => setDeleteTargetId(null)}
+        />
+      )}
+
+      {discardConfirmAction && (
+        <ConfirmModal
+          message="저장하지 않은 변경사항이 있습니다. 나가시겠습니까?"
+          confirmLabel="나가기"
+          cancelLabel="계속 작성"
+          onConfirm={() => {
+            discardConfirmAction()
+            setDiscardConfirmAction(null)
+          }}
+          onCancel={() => setDiscardConfirmAction(null)}
         />
       )}
 

@@ -84,8 +84,9 @@ export function ReviewsProvider({ children }: { children: ReactNode }) {
   }
 
   const deleteReview = async (id: string) => {
-    const { error } = await supabase.from('reviews').delete().eq('id', id)
-    if (error) return false
+    // count를 안 받으면 RLS에 막혀 0행이 지워져도 error가 없어서 "성공"으로 오판한다.
+    const { error, count } = await supabase.from('reviews').delete({ count: 'exact' }).eq('id', id)
+    if (error || !count) return false
     setReviews((prev) => prev.filter((review) => review.id !== id))
     return true
   }

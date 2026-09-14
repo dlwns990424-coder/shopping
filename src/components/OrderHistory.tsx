@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ShoppingBag } from 'lucide-react'
 import type { CartItem, Order } from '../types'
@@ -30,6 +30,10 @@ const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
   { value: 'cancelled', label: '취소·반품' },
 ]
 
+// 주문이 쌓일수록 마이페이지 한 화면에 전부 나열하면 스크롤이 끝없이 길어지므로, 리뷰
+// 더보기와 동일한 패턴으로 처음엔 일부만 보여주고 "더보기"를 누를 때마다 더 쌓는다.
+const ORDERS_PAGE_SIZE = 5
+
 // 취소되었거나 반품이 진행 중/완료된 주문은 배송 상태가 뭐든(반품은 배송완료 상태에서 시작) "취소·반품"으로 묶는다.
 function statusFilterOf(order: Order): StatusFilter {
   if (order.shippingStatus === '취소' || order.returnStatus) return 'cancelled'
@@ -53,11 +57,17 @@ function OrderHistory() {
   const [reviewDeleteTargetId, setReviewDeleteTargetId] = useState<string | null>(null)
   const [deletingReview, setDeletingReview] = useState(false)
   const [showReviewDeleteToast, setShowReviewDeleteToast] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(ORDERS_PAGE_SIZE)
 
   // 최신순 정렬 — orders 자체가 이미 created_at desc로 내려오므로 그대로 필터만 적용한다.
   const myOrders = orders.filter((order) => order.userEmail === user?.email)
   const filteredOrders =
     statusFilter === 'all' ? myOrders : myOrders.filter((order) => statusFilterOf(order) === statusFilter)
+
+  // 필터를 바꾸면 처음부터 다시 보여준다(예: "배송완료"만 걸러보면 방금까지 펼쳐둔 개수가 의미 없어짐).
+  useEffect(() => {
+    setVisibleCount(ORDERS_PAGE_SIZE)
+  }, [statusFilter])
 
   const openCancelModal = (id: string) => {
     setCancelError(null)
@@ -152,7 +162,7 @@ function OrderHistory() {
         <p className="py-32 text-center text-body-sm text-secondary">해당하는 주문이 없습니다.</p>
       )}
 
-      {filteredOrders.map((order) => (
+      {filteredOrders.slice(0, visibleCount).map((order) => (
         <div key={order.id} className="rounded-sm border border-line px-24 py-16">
           <div className="border-b border-line pb-16">
             <div className="text-body-sm flex justify-between text-secondary">
@@ -264,6 +274,17 @@ function OrderHistory() {
             ))}
         </div>
       ))}
+
+      {visibleCount < filteredOrders.length && (
+        <Button
+          variant="secondary"
+          size="small"
+          className="w-full"
+          onClick={() => setVisibleCount((prev) => prev + ORDERS_PAGE_SIZE)}
+        >
+          주문 더보기 ({filteredOrders.length - visibleCount})
+        </Button>
+      )}
 
       {cancelTargetId && (
         <ConfirmModal

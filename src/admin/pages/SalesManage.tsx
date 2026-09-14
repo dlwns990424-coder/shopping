@@ -72,17 +72,24 @@ function SalesManage() {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, revenue]) => ({ date: date.slice(5), revenue }))
 
-  const productByName = new Map(products.map((product) => [product.name, product]))
-  const productStats = new Map<string, { quantity: number; revenue: number }>()
+  // 상품명이 아니라 productId 기준으로 집계 — 상품명을 나중에 바꾸거나 상품을 지워도
+  // 과거 매출이 이름 기준으로 쪼개지지 않고 하나로 유지된다. productId가 없는(예전) 주문만
+  // 이름으로 폴백한다.
+  const productById = new Map(products.map((product) => [product.id, product]))
+  const productStats = new Map<string, { name: string; quantity: number; revenue: number }>()
   const categoryStats = new Map<string, number>()
   for (const order of revenueOrders) {
     for (const item of order.items) {
-      const stat = productStats.get(item.name) ?? { quantity: 0, revenue: 0 }
+      const key = item.productId ?? `name:${item.name}`
+      const product = item.productId ? productById.get(item.productId) : undefined
+      const displayName = product?.name ?? item.name
+
+      const stat = productStats.get(key) ?? { name: displayName, quantity: 0, revenue: 0 }
+      stat.name = displayName
       stat.quantity += item.quantity
       stat.revenue += item.price * item.quantity
-      productStats.set(item.name, stat)
+      productStats.set(key, stat)
 
-      const product = productByName.get(item.name)
       const categoryLabel = product
         ? `${product.gender === 'men' ? 'MEN' : 'WOMEN'} · ${product.category}`
         : '기타'
@@ -202,9 +209,9 @@ function SalesManage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {bestSellers.map(([name, stat]) => (
-                    <tr key={name} className="text-body-sm border-b border-line">
-                      <td className="py-8 pr-16">{name}</td>
+                  {bestSellers.map(([key, stat]) => (
+                    <tr key={key} className="text-body-sm border-b border-line">
+                      <td className="py-8 pr-16">{stat.name}</td>
                       <td className="py-8 pr-16 text-right">{stat.quantity}개</td>
                       <td className="py-8 pl-16 text-right">{formatPrice(stat.revenue)}</td>
                     </tr>
