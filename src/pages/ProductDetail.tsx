@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { ChevronDown, Heart } from 'lucide-react'
@@ -77,9 +77,10 @@ function ProductDetail() {
   // 매번 실제로 보이는 쪽을 다시 찾는다 — 리사이즈로 breakpoint가 바뀌어도 안전하다.
   useEffect(() => {
     const getTargets = () => {
-      const infoCandidates = document.querySelectorAll<HTMLElement>('[data-anchor="info"]')
-      const infoEl = Array.from(infoCandidates).find((el) => el.offsetParent !== null)
-      const reviewEl = document.getElementById('review-section')
+      const findVisible = (selector: string) =>
+        Array.from(document.querySelectorAll<HTMLElement>(selector)).find((el) => el.offsetParent !== null)
+      const infoEl = findVisible('[data-anchor="info"]')
+      const reviewEl = findVisible('[data-anchor="review"]')
       const relatedEl = document.getElementById('related-section')
       const targets: Array<{ anchor: 'info' | 'review' | 'related'; el: HTMLElement }> = []
       if (infoEl) targets.push({ anchor: 'info', el: infoEl })
@@ -144,6 +145,26 @@ function ProductDetail() {
     setQuantity(1)
   }, [productId, user])
 
+  // 셔플이 들어가서(subCategory→category→gender 폴백 풀 안에서 매번 섞음) 렌더될 때마다 다시
+  // 계산하면 스크롤로 activeAnchor가 바뀔 때마다(리렌더 유발) 추천 상품이 계속 바뀌어 보이는
+  // 버그가 있었다. product가 바뀔 때만(=다른 상품 페이지로 이동할 때만) 재계산하도록 고정한다.
+  const relatedProducts = useMemo(() => {
+    if (!product) return []
+    const recentlyViewedIds = new Set(getRecentlyViewedIds())
+    const candidates = products.filter((item) => item.id !== product.id && item.gender === product.gender)
+    const freshCandidates = candidates.filter((item) => !recentlyViewedIds.has(item.id))
+    const relatedPools = [
+      freshCandidates.filter((item) => item.subCategory === product.subCategory),
+      freshCandidates.filter((item) => item.category === product.category),
+      freshCandidates,
+      // 같은 성별에 신상품이 4개가 안 될 만큼 적으면 "최근 본 상품"과 겹치더라도 채운다.
+      candidates.filter((item) => item.subCategory === product.subCategory),
+      candidates.filter((item) => item.category === product.category),
+      candidates,
+    ]
+    return pickRelatedProducts(relatedPools, 4)
+  }, [product, products])
+
   if (loading) {
     return (
       <div className="page-section">
@@ -160,19 +181,6 @@ function ProductDetail() {
     )
   }
 
-  const recentlyViewedIds = new Set(getRecentlyViewedIds())
-  const candidates = products.filter((item) => item.id !== product.id && item.gender === product.gender)
-  const freshCandidates = candidates.filter((item) => !recentlyViewedIds.has(item.id))
-  const relatedPools = [
-    freshCandidates.filter((item) => item.subCategory === product.subCategory),
-    freshCandidates.filter((item) => item.category === product.category),
-    freshCandidates,
-    // 같은 성별에 신상품이 4개가 안 될 만큼 적으면 "최근 본 상품"과 겹치더라도 채운다.
-    candidates.filter((item) => item.subCategory === product.subCategory),
-    candidates.filter((item) => item.category === product.category),
-    candidates,
-  ]
-  const relatedProducts = pickRelatedProducts(relatedPools, 4)
   const hasOtherRecentlyViewed = getRecentlyViewedIds().some((id) => id !== product.id)
 
   const handleSelectSize = (size: string) => {
@@ -204,14 +212,13 @@ function ProductDetail() {
   // 동일한 이유) 실제로 보이는 쪽을 찾아서 스크롤한다. "리뷰"/"추천 상품"은 중복 없이
   // 페이지 하단에 한 번만 있어서 id로 바로 찾는다.
   const scrollToAnchor = (anchor: 'info' | 'review' | 'related') => {
-    if (anchor === 'info') {
-      const sections = document.querySelectorAll<HTMLElement>('[data-anchor="info"]')
-      const visible = Array.from(sections).find((el) => el.offsetParent !== null)
-      visible?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (anchor === 'related') {
+      document.getElementById('related-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       return
     }
-    const id = anchor === 'review' ? 'review-section' : 'related-section'
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const sections = document.querySelectorAll<HTMLElement>(`[data-anchor="${anchor}"]`)
+    const visible = Array.from(sections).find((el) => el.offsetParent !== null)
+    visible?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   const handleAddToCart = () => {
@@ -257,9 +264,10 @@ function ProductDetail() {
     })
   }
 
-  // 상품명/가격/찜/컬러/사이즈 — 모바일 요약 블록과 데스크톱 정보 컬럼에서 공유(중복 작성 방지).
+  // 상품명/가격/찜/컬러/사이즈/수량 — 모바일 요약 블록과 데스크톱 정보 컬럼에서 공유(중복 작성 방지).
   // selectedSize 등은 이 컴포넌트 하나의 state라 두 군데 어디서 눌러도 항상 같이 갱신됨.
-  const purchaseEssentials = (
+  // 배송안내/구매버튼(shippingAndCta)과 분리해둔 이유: 모바일은 그 사이에 "제품 정보"를 끼워 넣어야 해서(아래).
+  const purchaseSelectors = (
     <>
       <div className="flex items-start justify-between gap-16">
         <div>
@@ -319,7 +327,11 @@ function ProductDetail() {
         <p className="text-body-lg">수량</p>
         <QuantityStepper value={quantity} onChange={setQuantity} />
       </div>
+    </>
+  )
 
+  const shippingAndCta = (
+    <>
       <InfoTooltip label="배송·반품 안내">
         배송비 {formatPrice(SHIPPING_FEE)} · 배송완료 후 {RETURN_WINDOW_DAYS}일 이내 반품 신청이 가능합니다.
       </InfoTooltip>
@@ -330,6 +342,14 @@ function ProductDetail() {
       </Button>
 
       {!user && <p className="text-caption text-secondary">로그인 후 담기·구매가 가능합니다.</p>}
+    </>
+  )
+
+  // 데스크톱은 기존 그대로 "선택 UI 다음에 바로 배송안내" 순서를 유지(변경 없음).
+  const purchaseEssentials = (
+    <>
+      {purchaseSelectors}
+      {shippingAndCta}
     </>
   )
 
@@ -399,7 +419,11 @@ function ProductDetail() {
           style={{ backgroundImage: `url(${product.image})` }}
         />
 
-        {purchaseEssentials}
+        {purchaseSelectors}
+
+        {descriptionBlock}
+
+        {shippingAndCta}
 
         {product.detailImages.length > 0 && (
           <div className="flex flex-col gap-4">
@@ -412,15 +436,13 @@ function ProductDetail() {
             ))}
           </div>
         )}
-
-        {descriptionBlock}
       </div>
 
       {/* 데스크톱 전용 탭바: 그리드 안쪽 sticky는 그리드 영역을 벗어나면(리뷰/추천 지나서) 같이 사라지는 문제가 있어서,
           그리드 밖으로 꺼내 페이지 전체 기준 fixed로 바꿈 — 맨 아래로 스크롤해도 항상 보임.
-          그리드와 동일한 mx-auto/max-w-1920/grid-cols-[11fr_9fr]를 그대로 복제해서 버튼 위치를 이미지 칼럼과 맞춤 */}
-      <nav className="fixed inset-x-0 top-64 z-fixed-bar hidden bg-surface-muted text-body text-secondary lg:block">
-        <div className="mx-auto grid max-w-1920 grid-cols-[11fr_9fr] gap-64">
+          그리드와 동일한 mx-auto/max-w-1920/grid-cols-[13fr_7fr]를 그대로 복제해서 버튼 위치를 이미지 칼럼과 맞춤 */}
+      <nav className="fixed inset-x-0 top-64 z-fixed-bar hidden h-56 bg-surface-muted text-body text-secondary lg:block">
+        <div className="mx-auto grid h-full max-w-1920 grid-cols-[13fr_7fr] items-center gap-64">
           <div className="flex justify-center gap-80 px-20">
             <button
               type="button"
@@ -453,11 +475,11 @@ function ProductDetail() {
         </div>
       </nav>
 
-      {/* 데스크톱 전용: 좌(이미지 1열)/우(정보, sticky) 5.5:4.5 비율, 1600px에서 폭 제한. 회색 캔버스 위에 흰색 패널 2개.
-          위 fixed 탭바가 실제 공간을 안 차지하니(fixed는 흐름에서 빠짐) pt-56으로 탭바 높이만큼 띄워줌 */}
-      <div className="hidden lg:mx-auto lg:grid lg:max-w-1920 lg:grid-cols-[11fr_9fr] lg:gap-x-64 lg:pt-56">
+      {/* 데스크톱 전용: 좌(이미지 2열+리뷰)/우(정보, sticky) 65:35 비율, 1600px에서 폭 제한. 회색 캔버스 위에 흰색 패널 2개.
+          위 fixed 탭바가 실제 공간을 안 차지하니(fixed는 흐름에서 빠짐) pt-56으로 띄워줌 — 탭바를 h-56으로 고정해서 정확히 맞물리게 함 */}
+      <div className="hidden lg:mx-auto lg:grid lg:max-w-1920 lg:grid-cols-[13fr_7fr] lg:gap-x-64 lg:pt-56">
         <div className="bg-surface">
-          <div data-anchor="info" className="grid scroll-mt-112 grid-cols-1 gap-4 px-40 py-40">
+          <div data-anchor="info" className="grid scroll-mt-112 grid-cols-2 gap-4 px-40 py-40">
             {[product.image, ...product.detailImages].map((src, index) => (
               <div
                 key={index}
@@ -465,6 +487,14 @@ function ProductDetail() {
                 style={{ backgroundImage: `url(${src})` }}
               />
             ))}
+          </div>
+
+          {/* 오른쪽 구매 칸(sticky)이 리뷰까지 따라 내려오도록, 좌측 칼럼 안에 리뷰를 포함시켜서 칼럼 높이를 늘린다 */}
+          <div data-anchor="review" className="scroll-mt-112 border-t border-line px-40 py-40">
+            <div className="page-section__header">
+              <h2 className="text-xl font-bold lg:text-2xl">리뷰</h2>
+            </div>
+            <ReviewSection productId={product.id} />
           </div>
         </div>
 
@@ -493,7 +523,8 @@ function ProductDetail() {
         </Button>
       </div>
 
-      <section id="review-section" className="page-section scroll-mt-96 md:scroll-mt-112">
+      {/* 모바일 전용: 데스크톱은 좌측 이미지 칼럼 안(위)으로 옮겨서 sticky 구매 칸이 리뷰까지 따라 내려오게 함 */}
+      <section data-anchor="review" className="page-section scroll-mt-96 md:scroll-mt-112 lg:hidden">
         <div className="page-section__header">
           <h2 className="text-xl font-bold lg:text-2xl">리뷰</h2>
         </div>
