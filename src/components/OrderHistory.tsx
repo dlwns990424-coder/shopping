@@ -42,7 +42,7 @@ function OrderHistory() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { orders, loading, error, updateShippingStatuses, requestReturn } = useOrderHistory()
-  const { reviews, addReview } = useReviews()
+  const { reviews, addReview, deleteReview } = useReviews()
   const [cancelTargetId, setCancelTargetId] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
@@ -50,6 +50,9 @@ function OrderHistory() {
   const [reviewTarget, setReviewTarget] = useState<CartItem | null>(null)
   const [showReviewToast, setShowReviewToast] = useState(false)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [reviewDeleteTargetId, setReviewDeleteTargetId] = useState<string | null>(null)
+  const [deletingReview, setDeletingReview] = useState(false)
+  const [showReviewDeleteToast, setShowReviewDeleteToast] = useState(false)
 
   // 최신순 정렬 — orders 자체가 이미 created_at desc로 내려오므로 그대로 필터만 적용한다.
   const myOrders = orders.filter((order) => order.userEmail === user?.email)
@@ -94,6 +97,15 @@ function OrderHistory() {
       setShowReviewToast(true)
     }
     return result
+  }
+
+  const confirmDeleteReview = async () => {
+    if (!reviewDeleteTargetId) return
+    setDeletingReview(true)
+    const success = await deleteReview(reviewDeleteTargetId)
+    setDeletingReview(false)
+    setReviewDeleteTargetId(null)
+    if (success) setShowReviewDeleteToast(true)
   }
 
   if (loading) {
@@ -167,7 +179,7 @@ function OrderHistory() {
             {order.deliveryRequest && <p>배송 요청: {order.deliveryRequest}</p>}
           </div>
           {order.items.map((item, index) => {
-            const alreadyReviewed = reviews.some(
+            const myReview = reviews.find(
               (review) => review.productId === item.productId && review.userId === user?.id,
             )
             return (
@@ -176,10 +188,21 @@ function OrderHistory() {
                 className="[&:not(:last-of-type)]:border-b [&:not(:last-of-type)]:border-line"
               >
                 <OrderItemRow item={{ ...item, price: formatPrice(item.price) }} linkToProduct />
+                {/* 반품이 조금이라도 연관된(요청/접수/완료) 주문은 리뷰 작성 불가 — RLS에서도 동일하게 막힘 */}
                 {order.shippingStatus === '배송완료' &&
+                  !order.returnStatus &&
                   item.productId &&
-                  (alreadyReviewed ? (
-                    <p className="pb-16 text-caption text-secondary">리뷰 작성 완료</p>
+                  (myReview ? (
+                    <div className="flex items-center gap-8 pb-16">
+                      <p className="text-caption text-secondary">리뷰 작성 완료</p>
+                      <button
+                        type="button"
+                        onClick={() => setReviewDeleteTargetId(myReview.id)}
+                        className="cursor-pointer border-none bg-transparent p-0 text-caption text-secondary underline hover:text-primary"
+                      >
+                        삭제
+                      </button>
+                    </div>
                   ) : (
                     <Button
                       size="small"
@@ -264,7 +287,22 @@ function OrderHistory() {
         />
       )}
 
+      {reviewDeleteTargetId && (
+        <ConfirmModal
+          message="리뷰를 삭제하시겠습니까?"
+          confirmLabel="삭제"
+          confirming={deletingReview}
+          onConfirm={confirmDeleteReview}
+          onCancel={() => setReviewDeleteTargetId(null)}
+        />
+      )}
+
       <Toast message="리뷰가 등록되었습니다." show={showReviewToast} onClose={() => setShowReviewToast(false)} />
+      <Toast
+        message="리뷰가 삭제되었습니다."
+        show={showReviewDeleteToast}
+        onClose={() => setShowReviewDeleteToast(false)}
+      />
     </div>
   )
 }

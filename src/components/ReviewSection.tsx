@@ -4,6 +4,7 @@ import StarRating from './StarRating'
 import Button from './Button'
 import ReviewFormModal from './ReviewFormModal'
 import ConfirmModal from './ConfirmModal'
+import Toast from './Toast'
 import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 import { useOrderHistory } from '../context/OrderHistoryContext'
@@ -37,6 +38,7 @@ function ReviewSection({ productId }: ReviewSectionProps) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest')
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [showDeleteToast, setShowDeleteToast] = useState(false)
 
   // 다른 상품 페이지로 이동해도 이 컴포넌트는 재마운트되지 않으므로, productId가 바뀌면 펼친 개수/정렬을 초기화한다.
   useEffect(() => {
@@ -88,6 +90,7 @@ function ReviewSection({ productId }: ReviewSectionProps) {
       (order) =>
         order.userEmail === user!.email &&
         order.shippingStatus === '배송완료' &&
+        !order.returnStatus &&
         order.items.some((item) => item.productId === productId),
     )
 
@@ -108,9 +111,10 @@ function ReviewSection({ productId }: ReviewSectionProps) {
   const handleConfirmDelete = async () => {
     if (!deleteTargetId) return
     setDeleting(true)
-    await deleteReview(deleteTargetId)
+    const success = await deleteReview(deleteTargetId)
     setDeleting(false)
     setDeleteTargetId(null)
+    if (success) setShowDeleteToast(true)
   }
 
   return (
@@ -222,6 +226,8 @@ function ReviewSection({ productId }: ReviewSectionProps) {
           onCancel={() => setDeleteTargetId(null)}
         />
       )}
+
+      <Toast message="리뷰가 삭제되었습니다." show={showDeleteToast} onClose={() => setShowDeleteToast(false)} />
     </>
   )
 }

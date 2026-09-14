@@ -207,7 +207,7 @@ function Order() {
       </div>
 
       <div className="flex flex-col gap-32 px-20 pb-32 md:px-32 lg:flex-row lg:items-start lg:gap-64 lg:px-40 lg:pb-80">
-        <div className="flex min-w-0 flex-1 flex-col gap-48">
+        <div className="flex min-w-0 flex-1 flex-col gap-48 lg:max-w-720">
           <div className="flex flex-col gap-16">
             <div className="flex items-center justify-between">
               <p className="text-body-lg font-bold text-primary">배송지</p>
