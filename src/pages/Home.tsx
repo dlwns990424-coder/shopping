@@ -62,11 +62,16 @@ function Home() {
             <div className="bg-line" />
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
-        <div className="relative z-10 px-20 py-32 text-surface lg:p-64">
-          <h1 className="text-h1 text-[32px] font-medium text-[#fff] drop-shadow-md lg:text-[40px]">
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/35 to-transparent" />
+        {/* bottom-[25%]: 완전 중앙정렬 대신 바닥에서 살짝 띄운 위치 — 어떤 히어로 사진이 올라와도
+            안전한 하단 그라디언트 스크림은 유지하면서, 텍스트가 가장자리에 눌려있는 느낌만 해소 */}
+        <div className="absolute inset-x-0 bottom-[25%] z-10 px-20 text-surface lg:px-64">
+          <h1 className="text-[52px] font-medium leading-[1.2] text-[#fff] drop-shadow-md">
             {content['home.hero.title'] ?? '계절을 입다, 데일리를 완성하다'}
           </h1>
+          <p className="mt-12 text-body-lg text-[#fff] drop-shadow-md">
+            {content['home.hero.subtitle'] || '지금, NOVERA에서 새로운 시즌을 시작하세요'}
+          </p>
         </div>
       </section>
 

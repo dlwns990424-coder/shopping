@@ -7,6 +7,7 @@ import ImageCropModal from '../../components/ImageCropModal'
 import { uploadImage } from '../../utils/uploadImage'
 import FeaturedCarouselManager from '../components/FeaturedCarouselManager'
 import EventBannerManager from '../components/EventBannerManager'
+import EditorialBannerManager from '../components/EditorialBannerManager'
 
 interface ContentRow {
   key: string
@@ -30,6 +31,7 @@ const SECTION_LABELS: Record<string, string> = {
   category_outer: '카테고리 - 아우터',
   category_top: '카테고리 - 상의',
   category_bottom: '카테고리 - 하의',
+  editorial: '에디토리얼 메인',
 }
 
 // key는 "page.section.나머지" 형태(예: home.event_banner.men-outer.label) — 두 번째 조각을 섹션으로 취급
@@ -191,9 +193,9 @@ function ContentManage() {
     loadRows()
   }
 
-  // event_banner는 EventBannerManager가 전담(순서/이미지/라벨/필터를 카드 하나로 관리)하므로 범용 렌더링에서 제외
+  // event_banner/editorial_sub_banner는 각각 전용 매니저가 전담(순서/이미지/텍스트/링크를 카드 하나로 관리)하므로 범용 렌더링에서 제외
   const groupedByPage = rows
-    .filter((row) => sectionOf(row.key) !== 'event_banner')
+    .filter((row) => sectionOf(row.key) !== 'event_banner' && sectionOf(row.key) !== 'editorial_sub_banner')
     .reduce<Record<string, Record<string, ContentRow[]>>>((pages, row) => {
       const section = sectionOf(row.key)
       const page = (pages[row.page] ??= {})
@@ -220,6 +222,14 @@ function ContentManage() {
       <div className="flex flex-col gap-16">
         <h2 className="text-h3 border-b border-line pb-8 font-bold">홈 이벤트 배너</h2>
         <EventBannerManager />
+      </div>
+
+      <div className="flex flex-col gap-16">
+        <h2 className="text-h3 border-b border-line pb-8 font-bold">에디토리얼 서브 배너</h2>
+        <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
+          <EditorialBannerManager page="men" label="MEN" />
+          <EditorialBannerManager page="women" label="WOMEN" />
+        </div>
       </div>
 
       {error && <p className="text-body-sm text-point">{error}</p>}
