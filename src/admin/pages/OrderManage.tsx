@@ -48,10 +48,16 @@ function OrderManage() {
     return true
   })
 
-  const allSelected = filteredOrders.length > 0 && filteredOrders.every((order) => selectedIds.has(order.id))
+  // 취소되었거나 반품이 조금이라도 진행된(요청/접수/완료) 주문은 배송상태를 더 바꿀 이유가 없는
+  // 최종/예외 상태라, 일괄변경 체크박스 자체를 막아서 실수로 상태를 되돌리는 걸 사전에 방지한다.
+  const isBulkSelectable = (order: (typeof orders)[number]) =>
+    order.shippingStatus !== '취소' && !order.returnStatus
+  const selectableOrders = filteredOrders.filter(isBulkSelectable)
+
+  const allSelected = selectableOrders.length > 0 && selectableOrders.every((order) => selectedIds.has(order.id))
 
   const toggleSelectAll = () => {
-    setSelectedIds(allSelected ? new Set() : new Set(filteredOrders.map((order) => order.id)))
+    setSelectedIds(allSelected ? new Set() : new Set(selectableOrders.map((order) => order.id)))
   }
 
   const toggleSelectOne = (id: string) => {
@@ -200,6 +206,9 @@ function OrderManage() {
                         type="checkbox"
                         checked={selectedIds.has(order.id)}
                         onChange={() => toggleSelectOne(order.id)}
+                        disabled={!isBulkSelectable(order)}
+                        title={!isBulkSelectable(order) ? '취소·반품된 주문은 배송상태를 일괄변경할 수 없습니다' : undefined}
+                        className="disabled:cursor-not-allowed disabled:opacity-30"
                       />
                     </td>
                     <td className="py-8 pr-16">{order.id}</td>

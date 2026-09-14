@@ -39,7 +39,10 @@ function Home() {
         <title>NOVERA</title>
       </Helmet>
 
-      <section className="relative -mt-48 flex aspect-[3/4] items-end overflow-hidden md:-mt-64 md:aspect-square lg:aspect-auto lg:h-screen">
+      <Link
+        to="/campaign/home"
+        className="relative -mt-48 flex aspect-[3/4] items-end overflow-hidden text-inherit no-underline md:-mt-64 md:aspect-square lg:aspect-auto lg:h-screen"
+      >
         {heroDesktop || heroTablet || heroMobile ? (
           <>
             <div
@@ -66,14 +69,14 @@ function Home() {
         {/* bottom-[20%]: 완전 중앙정렬 대신 바닥에서 살짝 띄운 위치 — 어떤 히어로 사진이 올라와도
             안전한 하단 그라디언트 스크림은 유지하면서, 텍스트가 가장자리에 눌려있는 느낌만 해소 */}
         <div className="absolute inset-x-0 bottom-[20%] z-10 px-20 text-surface lg:px-64">
-          <h1 className="text-[52px] font-medium leading-[1.2] text-[#fff] drop-shadow-md">
+          <h1 className="text-[52px] font-medium leading-[1.2] tracking-[-0.02em] text-[#fff] drop-shadow-md">
             {content['home.hero.title'] ?? '계절을 입다, 데일리를 완성하다'}
           </h1>
           <p className="mt-12 text-[18px] text-[#fff] drop-shadow-md">
             {content['home.hero.subtitle'] || '지금, NOVERA에서 새로운 시즌을 시작하세요'}
           </p>
         </div>
-      </section>
+      </Link>
 
       <section className="mt-32 md:mt-48 lg:mt-64">
         <div className="grid grid-cols-1 gap-0 md:grid-cols-2">
@@ -92,7 +95,7 @@ function Home() {
             <div className="relative z-10 w-full lg:sticky lg:bottom-0">
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
               <div className="relative px-20 pt-32 pb-48 text-surface md:px-32 lg:px-40">
-                <h2 className="mb-8 text-2xl font-medium leading-[1.3] text-surface lg:text-3xl">MEN</h2>
+                <h2 className="mb-8 text-2xl font-medium leading-[1.3] tracking-[-0.02em] text-surface lg:text-3xl">MEN</h2>
                 <p className="text-body-sm mb-16 text-surface">
                   {content['home.men_banner.copy'] ?? '댄디하고 심플한 무드의 새 시즌 컬렉션'}
                 </p>
@@ -117,7 +120,7 @@ function Home() {
             <div className="relative z-10 w-full lg:sticky lg:bottom-0">
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
               <div className="relative px-20 pt-32 pb-48 text-surface md:px-32 lg:px-40">
-                <h2 className="mb-8 text-2xl font-medium leading-[1.3] text-surface lg:text-3xl">WOMEN</h2>
+                <h2 className="mb-8 text-2xl font-medium leading-[1.3] tracking-[-0.02em] text-surface lg:text-3xl">WOMEN</h2>
                 <p className="text-body-sm mb-16 text-surface">
                   {content['home.women_banner.copy'] ?? '세련되고 감각적인 무드의 새 시즌 컬렉션'}
                 </p>

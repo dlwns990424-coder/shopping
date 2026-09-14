@@ -13,12 +13,23 @@ export interface EditorialSubBanner {
 
 interface EditorialSubBannersProps {
   banners: EditorialSubBanner[]
+  // 데스크톱 카드 폭(flex-basis). Men/Women은 그리드 절반 컬럼 안에서 쓰여서 45%가 맞지만,
+  // 전체 폭 컨테이너에서 쓰는 곳(예: 캠페인 페이지)은 같은 절대 크기를 내려면 더 작은 값이 필요하다.
+  desktopBasis?: string
+  // 카드 안 제목/부제목 폰트 크기 오버라이드(예: 캠페인 페이지는 카드가 커서 기본값이 작아 보임).
+  titleClassName?: string
+  subtitleClassName?: string
 }
 
 // 데스크톱: 2.2개씩 보이고(다음 카드가 살짝 걸쳐서 더 있다는 걸 알 수 있게) 화살표로 한 개씩 이동.
 // 모바일: 1.3개씩 보이게 폭을 잡아서
 // 다음 카드가 살짝 걸치게 하고, 화살표 없이 터치 드래그로만 넘긴다(ProductCarousel과 동일한 Embla 설정).
-function EditorialSubBanners({ banners }: EditorialSubBannersProps) {
+function EditorialSubBanners({
+  banners,
+  desktopBasis = '45%',
+  titleClassName = 'text-body-lg font-medium',
+  subtitleClassName = 'text-caption text-surface/80',
+}: EditorialSubBannersProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'start',
     slidesToScroll: 1,
@@ -49,7 +60,11 @@ function EditorialSubBanners({ banners }: EditorialSubBannersProps) {
       <div className="overflow-hidden touch-pan-y" ref={emblaRef}>
         <div className="-ml-12 flex">
           {banners.map((banner) => (
-            <div key={banner.id} className="min-w-0 flex-[0_0_77%] pl-12 lg:flex-[0_0_45%]">
+            <div
+              key={banner.id}
+              className="min-w-0 flex-[0_0_77%] pl-12 lg:flex-[0_0_var(--desktop-basis)]"
+              style={{ '--desktop-basis': desktopBasis } as React.CSSProperties}
+            >
               <Link
                 to={banner.to}
                 className="group relative flex aspect-[4/5] items-end overflow-hidden rounded-sm bg-secondary bg-cover bg-center"
@@ -57,8 +72,8 @@ function EditorialSubBanners({ banners }: EditorialSubBannersProps) {
               >
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/50 to-transparent" />
                 <div className="relative z-10 flex flex-col gap-4 p-16 text-surface">
-                  <p className="text-body-lg font-medium">{banner.title}</p>
-                  <p className="text-caption text-surface/80">{banner.subtitle}</p>
+                  <p className={titleClassName}>{banner.title}</p>
+                  <p className={subtitleClassName}>{banner.subtitle}</p>
                 </div>
               </Link>
             </div>

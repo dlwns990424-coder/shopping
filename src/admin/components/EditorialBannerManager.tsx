@@ -11,9 +11,22 @@ import { CATEGORY_TABS, SUB_CATEGORIES } from '../../constants/categoryFilters'
 // subtitle 필드가 추가로 있다. 화면 크기와 무관하게 고정 비율 1장(세로로 좁은 카드).
 const BANNER_ASPECT = 4 / 5
 
+// 메인 배너는 예전엔 ContentManage.tsx의 범용 렌더러가 다른 수십 개 콘텐츠 항목과 섞어서
+// 처리해서, 관리자가 메인/서브 배너를 서로 다른 위치에서 따로 관리해야 했다(피드백으로 지적됨).
+// 이 컴포넌트 하나에서 메인+서브를 다 관리하도록 합쳐서, men/women 카드 하나면 충분하게 만든다.
+// 비율은 ContentManage.tsx가 쓰던 FIXED_ASPECT(2/3)를 그대로 유지 — 바꾸면 기존에 올려둔
+// 메인 이미지 크롭이 다 틀어진다.
+const MAIN_ASPECT = 2 / 3
+
 interface EditorialBannerManagerProps {
   page: 'men' | 'women'
   label: string
+}
+
+interface MainBannerData {
+  title: string
+  subtitle: string
+  image: string
 }
 
 interface BannerData {
@@ -39,6 +52,8 @@ interface RawBanner {
 function EditorialBannerManager({ page, label }: EditorialBannerManagerProps) {
   const keyPrefix = `${page}.editorial_sub_banner`
   const keyFor = (id: string, field: string) => `${keyPrefix}.${id}.${field}`
+  const mainKeyPrefix = `${page}.editorial`
+  const mainKeyFor = (field: 'title' | 'subtitle' | 'image') => `${mainKeyPrefix}.${field}`
 
   const [banners, setBanners] = useState<BannerData[]>([])
   const [order, setOrder] = useState<string[]>([])
@@ -52,18 +67,38 @@ function EditorialBannerManager({ page, label }: EditorialBannerManagerProps) {
   const [uploadingId, setUploadingId] = useState<string | null>(null)
   const [cropTarget, setCropTarget] = useState<{ id: string; file: File } | null>(null)
 
-  const load = useCallback(async () => {
-    const { data, error } = await supabase.from('site_content').select('key, value').like('key', `${keyPrefix}.%`)
+  const [mainBanner, setMainBanner] = useState<MainBannerData>({ title: '', subtitle: '', image: '' })
+  const [editingMain, setEditingMain] = useState(false)
+  const [mainDraftTitle, setMainDraftTitle] = useState('')
+  const [mainDraftSubtitle, setMainDraftSubtitle] = useState('')
+  const [uploadingMain, setUploadingMain] = useState(false)
+  const [mainCropFile, setMainCropFile] = useState<File | null>(null)
 
-    if (error) {
-      setError(error.message)
+  const load = useCallback(async () => {
+    const [subResult, mainResult] = await Promise.all([
+      supabase.from('site_content').select('key, value').like('key', `${keyPrefix}.%`),
+      // "editorial.%"로 하면 "editorial_sub_banner.%"까지 같이 걸려서, 정확히 "editorial." 다음이
+      // title/subtitle/image인 것만 오게 세 키를 직접 지정해서 가져온다.
+      supabase
+        .from('site_content')
+        .select('key, value')
+        .in('key', [mainKeyFor('title'), mainKeyFor('subtitle'), mainKeyFor('image')]),
+    ])
+
+    if (subResult.error) {
+      setError(subResult.error.message)
+      setLoading(false)
+      return
+    }
+    if (mainResult.error) {
+      setError(mainResult.error.message)
       setLoading(false)
       return
     }
 
     const byId = new Map<string, RawBanner>()
 
-    for (const row of data ?? []) {
+    for (const row of subResult.data ?? []) {
       const parts = row.key.split('.')
       const id = parts[2]
       const field = parts[3]
@@ -91,12 +126,70 @@ function EditorialBannerManager({ page, label }: EditorialBannerManagerProps) {
 
     setBanners(list)
     setOrder([...list].sort((a, b) => a.order - b.order).map((banner) => banner.id))
+
+    const nextMain: MainBannerData = { title: '', subtitle: '', image: '' }
+    for (const row of mainResult.data ?? []) {
+      const field = row.key.split('.')[2]
+      if (field === 'title') nextMain.title = row.value
+      else if (field === 'subtitle') nextMain.subtitle = row.value
+      else if (field === 'image') nextMain.image = row.value
+    }
+    setMainBanner(nextMain)
+
     setLoading(false)
-  }, [keyPrefix])
+  }, [keyPrefix, mainKeyPrefix])
 
   useEffect(() => {
     load()
   }, [load])
+
+  const startEditMain = () => {
+    setEditingMain(true)
+    setMainDraftTitle(mainBanner.title)
+    setMainDraftSubtitle(mainBanner.subtitle)
+  }
+
+  const saveMainText = async () => {
+    const { error: titleError } = await supabase
+      .from('site_content')
+      .update({ value: mainDraftTitle })
+      .eq('key', mainKeyFor('title'))
+    const { error: subtitleError } = await supabase
+      .from('site_content')
+      .update({ value: mainDraftSubtitle })
+      .eq('key', mainKeyFor('subtitle'))
+    if (titleError || subtitleError) {
+      setError((titleError ?? subtitleError)!.message)
+      return
+    }
+    setMainBanner((prev) => ({ ...prev, title: mainDraftTitle, subtitle: mainDraftSubtitle }))
+    setEditingMain(false)
+  }
+
+  const handleMainImageSelect = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setMainCropFile(file)
+  }
+
+  const handleMainCropConfirm = async (blob: Blob) => {
+    setMainCropFile(null)
+    setUploadingMain(true)
+    setError(null)
+
+    try {
+      const croppedFile = new File([blob], `${page}-editorial-main.jpg`, { type: blob.type })
+      const url = await uploadImage(croppedFile, 'content')
+      const { error } = await supabase.from('site_content').update({ value: url }).eq('key', mainKeyFor('image'))
+      if (error) throw error
+      setMainBanner((prev) => ({ ...prev, image: url }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.')
+    } finally {
+      setUploadingMain(false)
+    }
+  }
 
   const byId = new Map(banners.map((banner) => [banner.id, banner]))
   const sorted = order.map((id) => byId.get(id)).filter((banner): banner is BannerData => !!banner)
@@ -220,9 +313,88 @@ function EditorialBannerManager({ page, label }: EditorialBannerManagerProps) {
 
   return (
     <div className="flex flex-col gap-16 rounded-md border border-line p-16">
-      <h3 className="text-body-lg font-bold">{label} 에디토리얼 서브 배너</h3>
-      <p className="text-caption text-secondary">행을 드래그하면 노출되는 순서를 바꿀 수 있습니다</p>
+      <h3 className="text-body-lg font-bold">{label} 에디토리얼 배너</h3>
       {error && <p className="text-body-sm text-point">{error}</p>}
+
+      <div className="flex flex-col gap-8 border-b border-line pb-16">
+        <p className="text-caption font-bold text-secondary">메인 배너</p>
+        <div className="flex flex-col gap-12 rounded-sm border border-line p-12 md:flex-row md:items-start">
+          {mainBanner.image ? (
+            <img
+              src={mainBanner.image}
+              alt={mainBanner.title}
+              className="h-80 w-64 rounded-sm border border-line object-cover"
+            />
+          ) : (
+            <div className="flex h-80 w-64 shrink-0 items-center justify-center rounded-sm border border-dashed border-line">
+              <span className="text-caption text-secondary">없음</span>
+            </div>
+          )}
+
+          <div className="flex flex-1 flex-col gap-8">
+            {editingMain ? (
+              <div className="flex flex-col gap-8">
+                <input
+                  value={mainDraftTitle}
+                  onChange={(e) => setMainDraftTitle(e.target.value)}
+                  placeholder="타이틀"
+                  className="text-body-sm rounded-sm border border-line px-8 py-4"
+                />
+                <input
+                  value={mainDraftSubtitle}
+                  onChange={(e) => setMainDraftSubtitle(e.target.value)}
+                  placeholder="서브타이틀"
+                  className="text-body-sm rounded-sm border border-line px-8 py-4"
+                />
+                <div className="flex gap-8">
+                  <Button size="small" onClick={saveMainText}>
+                    저장
+                  </Button>
+                  <Button size="small" variant="secondary" onClick={() => setEditingMain(false)}>
+                    취소
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-8">
+                <div className="flex-1">
+                  <p className="text-body-sm font-medium">{mainBanner.title || '(타이틀 없음)'}</p>
+                  <p className="text-caption text-secondary">{mainBanner.subtitle || '(서브타이틀 없음)'}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={startEditMain}
+                  className="text-body-sm text-secondary hover:text-point"
+                >
+                  수정
+                </button>
+              </div>
+            )}
+
+            <Button
+              as="label"
+              variant="secondary"
+              size="small"
+              className="w-fit cursor-pointer"
+              aria-disabled={uploadingMain}
+            >
+              {uploadingMain ? '업로드 중...' : '이미지 변경'}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleMainImageSelect}
+                disabled={uploadingMain}
+              />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-8">
+        <p className="text-caption font-bold text-secondary">서브 배너</p>
+        <p className="text-caption text-secondary">행을 드래그하면 노출되는 순서를 바꿀 수 있습니다</p>
+      </div>
 
       <div className="flex flex-col gap-8">
         {sorted.map((banner) => {
@@ -371,6 +543,15 @@ function EditorialBannerManager({ page, label }: EditorialBannerManagerProps) {
           aspect={BANNER_ASPECT}
           onCancel={() => setCropTarget(null)}
           onConfirm={handleCropConfirm}
+        />
+      )}
+
+      {mainCropFile && (
+        <ImageCropModal
+          file={mainCropFile}
+          aspect={MAIN_ASPECT}
+          onCancel={() => setMainCropFile(null)}
+          onConfirm={handleMainCropConfirm}
         />
       )}
     </div>

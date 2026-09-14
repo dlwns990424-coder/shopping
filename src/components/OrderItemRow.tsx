@@ -30,7 +30,7 @@ function OrderItemRow({ item, onQuantityChange, onRemove, linkToProduct = false 
   const info = (
     <div className="flex flex-1 flex-col gap-8">
       <p className="text-body-lg">{item.name}</p>
-      <p className="text-body-sm text-secondary">{item.option}</p>
+      <p className="text-base text-secondary">{item.option}</p>
       <p className="text-price">{item.price}</p>
     </div>
   )

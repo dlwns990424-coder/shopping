@@ -27,9 +27,9 @@ function MyPage() {
       <Helmet>
         <title>NOVERA | 마이페이지</title>
       </Helmet>
-      <h1 className="text-h1">마이페이지</h1>
+      <h1 className="text-h1 max-w-1000">마이페이지</h1>
 
-      <div className="grid grid-cols-1 gap-32 md:grid-cols-[200px_1fr] md:gap-48 lg:gap-64">
+      <div className="grid max-w-1000 grid-cols-1 gap-32 md:grid-cols-[200px_1fr] md:gap-48 lg:gap-64">
         <MyPageNav activeTab={activeTab} onLogout={() => setShowLogoutConfirm(true)} />
 
         <div className="min-h-0 md:min-h-600">

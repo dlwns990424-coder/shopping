@@ -18,6 +18,7 @@ import UserLayout from './layouts/UserLayout'
 import AdminLayout from './layouts/AdminLayout'
 
 import Home from './pages/Home'
+import CampaignHome from './pages/CampaignHome'
 import Men from './pages/Men'
 import Women from './pages/Women'
 import ProductDetail from './pages/ProductDetail'
@@ -53,6 +54,7 @@ function App() {
                         <Routes>
                           <Route element={<UserLayout />}>
                             <Route path="/" element={<Home />} />
+                            <Route path="/campaign/home" element={<CampaignHome />} />
                             <Route path="/men" element={<Men />} />
                             <Route path="/women" element={<Women />} />
                             <Route path="/products/:productId" element={<ProductDetail />} />

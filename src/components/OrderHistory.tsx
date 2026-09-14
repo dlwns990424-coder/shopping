@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ShoppingBag } from 'lucide-react'
+import { ShoppingBag, X } from 'lucide-react'
 import type { CartItem, Order } from '../types'
 import Button from './Button'
 import ConfirmModal from './ConfirmModal'
@@ -140,14 +140,14 @@ function OrderHistory() {
   }
 
   return (
-    <div className="flex max-w-1200 flex-col gap-16">
+    <div className="flex max-w-900 flex-col gap-16">
       <div className="flex flex-wrap gap-8">
         {STATUS_FILTERS.map((filter) => (
           <button
             key={filter.value}
             type="button"
             onClick={() => setStatusFilter(filter.value)}
-            className={`rounded-full border px-16 py-6 text-body-sm transition-colors active:scale-95 ${
+            className={`rounded-full border px-16 py-6 text-body transition-colors active:scale-95 ${
               statusFilter === filter.value
                 ? 'border-primary bg-primary text-surface'
                 : 'border-line text-secondary hover:border-primary hover:text-primary'
@@ -159,27 +159,25 @@ function OrderHistory() {
       </div>
 
       {filteredOrders.length === 0 && (
-        <p className="py-32 text-center text-body-sm text-secondary">해당하는 주문이 없습니다.</p>
+        <p className="py-32 text-center text-base text-secondary">해당하는 주문이 없습니다.</p>
       )}
 
       {filteredOrders.slice(0, visibleCount).map((order) => (
         <div key={order.id} className="rounded-sm border border-line px-24 py-16">
-          <div className="border-b border-line pb-16">
-            <div className="text-body-sm flex justify-between text-secondary">
-              <span>{order.date}</span>
-              <span className="text-primary">
-                {order.shippingStatus}
-                {order.returnStatus && ` · ${order.returnStatus}`}
-              </span>
-            </div>
-            <div className="mt-8 flex items-baseline justify-between">
-              <span className="text-caption text-secondary">
+          <div className="flex items-start justify-between gap-16 border-b border-line pb-16">
+            <div className="flex flex-col gap-8">
+              <span className="text-body text-secondary">{order.date}</span>
+              <span className="text-price">{formatPrice(orderTotal(order))}</span>
+              <span className="text-body text-secondary">
                 상품금액 {formatPrice(orderItemsTotal(order))} + 배송비 {formatPrice(order.shippingFee ?? 0)}
               </span>
-              <span className="text-price">{formatPrice(orderTotal(order))}</span>
             </div>
+            <span className="text-base shrink-0 text-primary">
+              {order.shippingStatus}
+              {order.returnStatus && ` · ${order.returnStatus}`}
+            </span>
           </div>
-          <div className="text-body-sm flex flex-col gap-2 border-b border-line py-16 text-secondary">
+          <div className="text-body flex flex-col gap-8 border-b border-line py-16 text-secondary">
             <p>
               {order.shippingName} · {order.shippingPhone}
             </p>
@@ -192,42 +190,64 @@ function OrderHistory() {
             const myReview = reviews.find(
               (review) => review.productId === item.productId && review.userId === user?.id,
             )
+            const isLastItem = index === order.items.length - 1
+            // 반품이 조금이라도 연관된(요청/접수/완료) 주문은 리뷰 작성 불가 — RLS에서도 동일하게 막힘
+            const showReviewAction = order.shippingStatus === '배송완료' && !order.returnStatus && item.productId
+            // 반품신청은 상품이 아니라 주문 전체 단위 액션이라 마지막 상품 줄에서만 한 번 노출
+            const showReturnAction = isLastItem && order.shippingStatus === '배송완료' && !order.returnStatus
+
             return (
               <div
                 key={`${order.id}-${index}`}
                 className="[&:not(:last-of-type)]:border-b [&:not(:last-of-type)]:border-line"
               >
                 <OrderItemRow item={{ ...item, price: formatPrice(item.price) }} linkToProduct />
-                {/* 반품이 조금이라도 연관된(요청/접수/완료) 주문은 리뷰 작성 불가 — RLS에서도 동일하게 막힘 */}
-                {order.shippingStatus === '배송완료' &&
-                  !order.returnStatus &&
-                  item.productId &&
-                  (myReview ? (
-                    <div className="flex items-center gap-8 pb-16">
-                      <p className="text-caption text-secondary">리뷰 작성 완료</p>
-                      <button
-                        type="button"
-                        onClick={() => setReviewDeleteTargetId(myReview.id)}
-                        className="cursor-pointer border-none bg-transparent p-0 text-caption text-secondary underline hover:text-primary"
-                      >
-                        삭제
-                      </button>
+                {(showReviewAction || showReturnAction) && (
+                  <div className="flex items-center justify-between gap-16 pb-16">
+                    <div>
+                      {showReviewAction &&
+                        (myReview ? (
+                          <div className="flex items-center gap-16">
+                            <p className="text-base text-secondary">리뷰 작성 완료</p>
+                            <button
+                              type="button"
+                              onClick={() => setReviewDeleteTargetId(myReview.id)}
+                              className="flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 text-secondary hover:text-primary"
+                              aria-label="리뷰 삭제"
+                            >
+                              <X size={16} strokeWidth={1.5} />
+                            </button>
+                          </div>
+                        ) : (
+                          <Button size="small" variant="secondary" onClick={() => setReviewTarget(item)}>
+                            리뷰 작성
+                          </Button>
+                        ))}
                     </div>
-                  ) : (
-                    <Button
-                      size="small"
-                      variant="secondary"
-                      className="mb-16"
-                      onClick={() => setReviewTarget(item)}
-                    >
-                      리뷰 작성
-                    </Button>
-                  ))}
+                    {showReturnAction &&
+                      (isReturnWindowOpen(order) ? (
+                        <button
+                          type="button"
+                          onClick={() => setReturnTargetId(order.id)}
+                          className="cursor-pointer border-none bg-transparent p-0 text-base text-secondary hover:text-primary"
+                        >
+                          반품 신청
+                        </button>
+                      ) : (
+                        <div className="flex flex-col items-end gap-4">
+                          <span className="text-base text-disabled">반품 신청</span>
+                          <p className="text-base text-secondary">
+                            반품 가능 기간({RETURN_WINDOW_DAYS}일)이 지났습니다.
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
             )
           })}
           {order.returnStatus && (
-            <div className="text-body-sm mt-16 flex flex-col gap-8 rounded-sm bg-surface-muted p-12 text-secondary">
+            <div className="text-body mt-16 flex flex-col gap-8 rounded-sm bg-surface-muted p-12 text-secondary">
               <p>
                 반품 사유: <span className="text-primary">{order.returnReason}</span>
               </p>
@@ -242,36 +262,16 @@ function OrderHistory() {
             </div>
           )}
           {CANCELABLE_SHIPPING_STATUSES.has(order.shippingStatus) && (
-            <Button
-              size="small"
-              variant="secondary"
-              className="mt-16"
-              onClick={() => openCancelModal(order.id)}
-            >
-              주문취소
-            </Button>
-          )}
-          {order.shippingStatus === '배송완료' &&
-            !order.returnStatus &&
-            (isReturnWindowOpen(order) ? (
-              <Button
-                size="small"
-                variant="secondary"
-                className="mt-16"
-                onClick={() => setReturnTargetId(order.id)}
+            <div className="mt-16 flex justify-end">
+              <button
+                type="button"
+                onClick={() => openCancelModal(order.id)}
+                className="cursor-pointer border-none bg-transparent p-0 text-base text-secondary hover:text-primary"
               >
-                반품 신청
-              </Button>
-            ) : (
-              <div className="mt-16 flex flex-col items-start gap-4">
-                <Button size="small" variant="secondary" disabled>
-                  반품 신청
-                </Button>
-                <p className="text-caption text-secondary">
-                  반품 가능 기간({RETURN_WINDOW_DAYS}일)이 지났습니다.
-                </p>
-              </div>
-            ))}
+                주문취소
+              </button>
+            </div>
+          )}
         </div>
       ))}
 

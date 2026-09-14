@@ -31,7 +31,6 @@ const SECTION_LABELS: Record<string, string> = {
   category_outer: '카테고리 - 아우터',
   category_top: '카테고리 - 상의',
   category_bottom: '카테고리 - 하의',
-  editorial: '에디토리얼 메인',
 }
 
 // key는 "page.section.나머지" 형태(예: home.event_banner.men-outer.label) — 두 번째 조각을 섹션으로 취급
@@ -193,9 +192,16 @@ function ContentManage() {
     loadRows()
   }
 
-  // event_banner/editorial_sub_banner는 각각 전용 매니저가 전담(순서/이미지/텍스트/링크를 카드 하나로 관리)하므로 범용 렌더링에서 제외
+  // event_banner/editorial(+editorial_sub_banner)는 각각 전용 매니저가 전담(순서/이미지/텍스트/링크를
+  // 카드 하나로 관리)하므로 범용 렌더링에서 제외 — 에디토리얼은 메인+서브를 EditorialBannerManager
+  // 하나가 같이 관리하도록 합쳐서, 관리자가 메인/서브를 서로 다른 위치에서 따로 손볼 필요가 없게 했다.
   const groupedByPage = rows
-    .filter((row) => sectionOf(row.key) !== 'event_banner' && sectionOf(row.key) !== 'editorial_sub_banner')
+    .filter(
+      (row) =>
+        sectionOf(row.key) !== 'event_banner' &&
+        sectionOf(row.key) !== 'editorial_sub_banner' &&
+        sectionOf(row.key) !== 'editorial',
+    )
     .reduce<Record<string, Record<string, ContentRow[]>>>((pages, row) => {
       const section = sectionOf(row.key)
       const page = (pages[row.page] ??= {})
@@ -225,7 +231,7 @@ function ContentManage() {
       </div>
 
       <div className="flex flex-col gap-16">
-        <h2 className="text-h3 border-b border-line pb-8 font-bold">에디토리얼 서브 배너</h2>
+        <h2 className="text-h3 border-b border-line pb-8 font-bold">에디토리얼 배너</h2>
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
           <EditorialBannerManager page="men" label="MEN" />
           <EditorialBannerManager page="women" label="WOMEN" />

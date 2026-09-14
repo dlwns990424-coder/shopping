@@ -1,3 +1,3 @@
 export function formatPrice(amount: number) {
-  return `₩${amount.toLocaleString('ko-KR')}`
+  return `${amount.toLocaleString('ko-KR')}원`
 }

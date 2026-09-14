@@ -92,7 +92,7 @@ function Men() {
         {/* bottom-[20%]: 완전 중앙정렬 대신 바닥에서 살짝 띄운 위치 — 어떤 히어로 사진이 올라와도
             안전한 하단 그라디언트 스크림은 유지하면서, 텍스트가 가장자리에 눌려있는 느낌만 해소 */}
         <div className="absolute inset-x-0 bottom-[20%] z-10 px-20 text-surface md:px-32 lg:px-40">
-          <h1 className="text-[52px] font-medium leading-[1.2] text-surface drop-shadow-md">
+          <h1 className="text-[52px] font-medium leading-[1.2] tracking-[-0.02em] text-surface drop-shadow-md">
             {content['men.hero.title'] ?? '댄디하고 심플한 무드의 새 시즌 컬렉션'}
           </h1>
           <p className="mt-12 text-[18px] text-surface drop-shadow-md">
@@ -120,7 +120,7 @@ function Men() {
 
       {/* 모바일/태블릿 전용: 타이틀 → 메인 이미지 → 서브배너 순서(데스크톱은 아래 별도 블록) */}
       <section className="mt-32 bg-surface-muted px-20 pb-32 pt-32 md:mt-48 md:px-32 md:pb-48 md:pt-48 lg:hidden">
-        <h2 className="text-[40px] font-bold leading-[1.2]">{editorialTitle}</h2>
+        <h2 className="text-[40px] font-bold leading-[1.2] tracking-[-0.02em]">{editorialTitle}</h2>
         <p className="mt-8 text-body-sm text-secondary">{editorialSubtitle}</p>
         <div
           className="mt-16 aspect-[3/4] bg-surface bg-cover bg-center"
@@ -142,7 +142,7 @@ function Men() {
           <div className="flex h-full flex-col">
             {/* 타이틀을 맨 위(이미지 경계선)에 붙이지 않고, 이 위쪽 빈 공간(경계선~서브배너) 안에서 세로 중앙에 오도록 */}
             <div className="flex flex-1 flex-col justify-center">
-              <h2 className="text-[40px] font-bold leading-[1.2]">{editorialTitle}</h2>
+              <h2 className="text-[40px] font-bold leading-[1.2] tracking-[-0.02em]">{editorialTitle}</h2>
               <p className="mt-8 text-body-sm text-secondary">{editorialSubtitle}</p>
             </div>
             <EditorialSubBanners banners={editorialSubBanners} />
