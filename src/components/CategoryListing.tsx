@@ -27,9 +27,18 @@ interface CategoryListingProps {
   products: Product[]
   defaultGender: Gender
   categoryParam: string
+  heroImageMobile?: string
+  heroImageDesktop?: string
 }
 
-function CategoryListing({ basePath, products, defaultGender, categoryParam }: CategoryListingProps) {
+function CategoryListing({
+  basePath,
+  products,
+  defaultGender,
+  categoryParam,
+  heroImageMobile,
+  heroImageDesktop,
+}: CategoryListingProps) {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const subParam = searchParams.get('sub') ?? 'all'
@@ -112,10 +121,29 @@ function CategoryListing({ basePath, products, defaultGender, categoryParam }: C
     }`
 
   return (
-    <div className="px-20 pb-32 pt-32 md:px-32 md:pt-48 lg:px-40 lg:pb-64">
+    <div className="pb-32 md:pb-48 lg:pb-64">
       <Helmet>
         <title>{`NOVERA | ${genderLabel} | ${title}`}</title>
       </Helmet>
+
+      {(heroImageMobile || heroImageDesktop) && (
+        <div className="relative mb-24 h-[50vh] overflow-hidden bg-secondary md:mb-32">
+          <div
+            className="absolute inset-0 hidden bg-cover bg-center lg:block"
+            style={heroImageDesktop ? { backgroundImage: `url(${heroImageDesktop})` } : undefined}
+          />
+          <div
+            className="absolute inset-0 bg-cover bg-center lg:hidden"
+            style={
+              heroImageMobile || heroImageDesktop
+                ? { backgroundImage: `url(${heroImageMobile || heroImageDesktop})` }
+                : undefined
+            }
+          />
+        </div>
+      )}
+
+      <div className="px-20 pt-32 md:px-32 md:pt-48 lg:px-40">
       <div className="mb-24">
         <p className="text-caption mb-8 tracking-[0.08em] text-secondary">NOVERA | {genderLabel}</p>
         <h1 className="text-h1">{title}</h1>
@@ -240,6 +268,7 @@ function CategoryListing({ basePath, products, defaultGender, categoryParam }: C
       ) : (
         <p className="text-body-sm">해당 조건에 맞는 상품이 없습니다.</p>
       )}
+      </div>
     </div>
   )
 }

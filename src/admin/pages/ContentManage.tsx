@@ -6,7 +6,9 @@ import ConfirmModal from '../../components/ConfirmModal'
 import ImageCropModal from '../../components/ImageCropModal'
 import { uploadImage } from '../../utils/uploadImage'
 import FeaturedCarouselManager from '../components/FeaturedCarouselManager'
+import HeroLayeredManager from '../components/HeroLayeredManager'
 import EventBannerManager from '../components/EventBannerManager'
+import ImpactBannerManager from '../components/ImpactBannerManager'
 import EditorialBannerManager from '../components/EditorialBannerManager'
 
 interface ContentRow {
@@ -199,6 +201,8 @@ function ContentManage() {
     .filter(
       (row) =>
         sectionOf(row.key) !== 'event_banner' &&
+        sectionOf(row.key) !== 'impact_banner' &&
+        sectionOf(row.key) !== 'hero_layered' &&
         sectionOf(row.key) !== 'editorial_sub_banner' &&
         sectionOf(row.key) !== 'editorial',
     )
@@ -209,6 +213,117 @@ function ContentManage() {
       return pages
     }, {})
 
+  // 페이지(홈/MEN/WOMEN) 블록 안에서 원하는 섹션만, 원하는 순서로 뽑아서 렌더링하기 위한 헬퍼.
+  // groupedByPage에 없는 섹션(아직 로딩 전이거나 해당 페이지에 없는 경우)은 조용히 건너뜀.
+  const renderSections = (page: string, sectionNames: string[]) =>
+    sectionNames.map((section) => {
+      const sectionRows = groupedByPage[page]?.[section]
+      if (!sectionRows) return null
+
+      return (
+        <div key={section} className="flex flex-col gap-12">
+          <h3 className="text-body-sm font-bold text-secondary">{SECTION_LABELS[section] ?? section}</h3>
+          <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-3">
+            {sectionRows.map((row) => {
+              const isImage = /\.image(_mobile|_tablet|_desktop)?$/.test(row.key)
+
+              if (isImage) {
+                const aspect = aspectForKey(row.key)
+
+                return (
+                  <div key={row.key} className="flex flex-col gap-12 rounded-md border border-line p-16">
+                    <p className="text-caption text-secondary">{row.label}</p>
+
+                    {aspect === null && (
+                      <p className="text-caption text-point">
+                        이 섹션은 모바일/데스크톱 이미지로 나뉘어야 합니다. SQL 마이그레이션이 실행됐는지 확인해주세요.
+                      </p>
+                    )}
+
+                    {row.value ? (
+                      <button
+                        type="button"
+                        onClick={() => setLightboxUrl(row.value)}
+                        className="block h-120 w-full cursor-zoom-in overflow-hidden rounded-sm border border-line bg-transparent p-0"
+                      >
+                        <img src={row.value} alt={row.label} className="h-full w-full object-cover" />
+                      </button>
+                    ) : (
+                      <div className="flex h-120 w-full items-center justify-center rounded-sm border border-dashed border-line">
+                        <span className="text-caption text-secondary">이미지 없음</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-12">
+                      {aspect !== null && (
+                        <Button
+                          as="label"
+                          variant="secondary"
+                          size="small"
+                          className="cursor-pointer"
+                          aria-disabled={uploadingKey === row.key}
+                        >
+                          {uploadingKey === row.key ? '업로드 중...' : '이미지 변경'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleImageSelect(row.key, e)}
+                            disabled={uploadingKey === row.key}
+                          />
+                        </Button>
+                      )}
+                      {row.value && (
+                        <button
+                          type="button"
+                          onClick={() => setResetTargetKey(row.key)}
+                          className="text-body-sm text-secondary hover:text-point"
+                        >
+                          제거
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              }
+
+              return (
+                <div key={row.key} className="flex flex-col gap-12 rounded-md border border-line p-16">
+                  <p className="text-caption text-secondary">{row.label}</p>
+
+                  {editingKey === row.key ? (
+                    <textarea
+                      value={draftValue}
+                      onChange={(e) => setDraftValue(e.target.value)}
+                      rows={3}
+                      className="text-body-sm w-full flex-1 rounded-sm border border-line px-12 py-8"
+                    />
+                  ) : (
+                    <p className="text-body-sm flex-1">{row.value}</p>
+                  )}
+
+                  {editingKey === row.key ? (
+                    <div className="flex gap-8">
+                      <Button size="small" onClick={() => saveEdit(row.key)} disabled={saving}>
+                        {saving ? '저장 중...' : '저장'}
+                      </Button>
+                      <Button size="small" variant="secondary" onClick={cancelEdit}>
+                        취소
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button size="small" variant="secondary" onClick={() => startEdit(row)} className="self-start">
+                      수정
+                    </Button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )
+    })
+
   return (
     <div className="flex flex-col gap-32">
       <Helmet>
@@ -217,139 +332,67 @@ function ContentManage() {
 
       <h1 className="text-h1">콘텐츠 관리</h1>
 
-      <div className="flex flex-col gap-16">
-        <h2 className="text-h3 border-b border-line pb-8 font-bold">메인 캐러셀 상품</h2>
-        <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
-          <FeaturedCarouselManager gender="men" label="MEN" />
-          <FeaturedCarouselManager gender="women" label="WOMEN" />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-16">
-        <h2 className="text-h3 border-b border-line pb-8 font-bold">홈 이벤트 배너</h2>
-        <EventBannerManager />
-      </div>
-
-      <div className="flex flex-col gap-16">
-        <h2 className="text-h3 border-b border-line pb-8 font-bold">에디토리얼 배너</h2>
-        <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
-          <EditorialBannerManager page="men" label="MEN" />
-          <EditorialBannerManager page="women" label="WOMEN" />
-        </div>
-      </div>
-
       {error && <p className="text-body-sm text-point">{error}</p>}
 
       {loading ? (
         <p className="text-body-sm text-secondary">불러오는 중...</p>
       ) : (
-        Object.entries(groupedByPage).map(([page, sections]) => (
-          <div key={page} className="flex flex-col gap-24">
-            <h2 className="text-h3 border-b border-line pb-8 font-bold">{PAGE_LABELS[page] ?? page}</h2>
-            {Object.entries(sections).map(([section, sectionRows]) => (
-              <div key={section} className="flex flex-col gap-12">
-                <h3 className="text-body-sm font-bold text-secondary">{SECTION_LABELS[section] ?? section}</h3>
-                <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-3">
-                  {sectionRows.map((row) => {
-                const isImage = /\.image(_mobile|_tablet|_desktop)?$/.test(row.key)
+        <>
+          <div className="flex flex-col gap-24">
+            <h2 className="text-h3 border-b border-line pb-8 font-bold">{PAGE_LABELS.home}</h2>
 
-                if (isImage) {
-                  const aspect = aspectForKey(row.key)
+            <div className="flex flex-col gap-16">
+              <h3 className="text-body-sm font-bold text-secondary">홈 히어로 (태블릿·데스크톱)</h3>
+              <HeroLayeredManager />
+            </div>
 
-                  return (
-                    <div key={row.key} className="flex flex-col gap-12 rounded-md border border-line p-16">
-                      <p className="text-caption text-secondary">{row.label}</p>
+            {renderSections('home', ['hero'])}
 
-                      {aspect === null && (
-                        <p className="text-caption text-point">
-                          이 섹션은 모바일/데스크톱 이미지로 나뉘어야 합니다. SQL 마이그레이션이 실행됐는지 확인해주세요.
-                        </p>
-                      )}
+            <div className="flex flex-col gap-16">
+              <h3 className="text-body-sm font-bold text-secondary">홈 임팩트 이벤트 배너</h3>
+              <ImpactBannerManager />
+            </div>
 
-                      {row.value ? (
-                        <button
-                          type="button"
-                          onClick={() => setLightboxUrl(row.value)}
-                          className="block h-120 w-full cursor-zoom-in overflow-hidden rounded-sm border border-line bg-transparent p-0"
-                        >
-                          <img src={row.value} alt={row.label} className="h-full w-full object-cover" />
-                        </button>
-                      ) : (
-                        <div className="flex h-120 w-full items-center justify-center rounded-sm border border-dashed border-line">
-                          <span className="text-caption text-secondary">이미지 없음</span>
-                        </div>
-                      )}
+            <div className="flex flex-col gap-16">
+              <h3 className="text-body-sm font-bold text-secondary">홈 이벤트 배너</h3>
+              <EventBannerManager />
+            </div>
 
-                      <div className="flex items-center gap-12">
-                        {aspect !== null && (
-                          <Button
-                            as="label"
-                            variant="secondary"
-                            size="small"
-                            className="cursor-pointer"
-                            aria-disabled={uploadingKey === row.key}
-                          >
-                            {uploadingKey === row.key ? '업로드 중...' : '이미지 변경'}
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => handleImageSelect(row.key, e)}
-                              disabled={uploadingKey === row.key}
-                            />
-                          </Button>
-                        )}
-                        {row.value && (
-                          <button
-                            type="button"
-                            onClick={() => setResetTargetKey(row.key)}
-                            className="text-body-sm text-secondary hover:text-point"
-                          >
-                            제거
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )
-                }
-
-                return (
-                  <div key={row.key} className="flex flex-col gap-12 rounded-md border border-line p-16">
-                    <p className="text-caption text-secondary">{row.label}</p>
-
-                    {editingKey === row.key ? (
-                      <textarea
-                        value={draftValue}
-                        onChange={(e) => setDraftValue(e.target.value)}
-                        rows={3}
-                        className="text-body-sm w-full flex-1 rounded-sm border border-line px-12 py-8"
-                      />
-                    ) : (
-                      <p className="text-body-sm flex-1">{row.value}</p>
-                    )}
-
-                    {editingKey === row.key ? (
-                      <div className="flex gap-8">
-                        <Button size="small" onClick={() => saveEdit(row.key)} disabled={saving}>
-                          {saving ? '저장 중...' : '저장'}
-                        </Button>
-                        <Button size="small" variant="secondary" onClick={cancelEdit}>
-                          취소
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button size="small" variant="secondary" onClick={() => startEdit(row)} className="self-start">
-                        수정
-                      </Button>
-                    )}
-                  </div>
-                )
-                  })}
-                </div>
-              </div>
-            ))}
+            {renderSections('home', ['men_banner', 'women_banner'])}
           </div>
-        ))
+
+          <div className="flex flex-col gap-24">
+            <h2 className="text-h3 border-b border-line pb-8 font-bold">{PAGE_LABELS.men}</h2>
+
+            <div className="flex flex-col gap-16">
+              <h3 className="text-body-sm font-bold text-secondary">메인 캐러셀 상품</h3>
+              <FeaturedCarouselManager gender="men" label="MEN" />
+            </div>
+
+            {renderSections('men', ['hero', 'category_all', 'category_outer', 'category_top', 'category_bottom'])}
+
+            <div className="flex flex-col gap-16">
+              <h3 className="text-body-sm font-bold text-secondary">MEN 에디토리얼 배너</h3>
+              <EditorialBannerManager page="men" label="MEN" />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-24">
+            <h2 className="text-h3 border-b border-line pb-8 font-bold">{PAGE_LABELS.women}</h2>
+
+            <div className="flex flex-col gap-16">
+              <h3 className="text-body-sm font-bold text-secondary">메인 캐러셀 상품</h3>
+              <FeaturedCarouselManager gender="women" label="WOMEN" />
+            </div>
+
+            {renderSections('women', ['hero', 'category_all', 'category_outer', 'category_top', 'category_bottom'])}
+
+            <div className="flex flex-col gap-16">
+              <h3 className="text-body-sm font-bold text-secondary">WOMEN 에디토리얼 배너</h3>
+              <EditorialBannerManager page="women" label="WOMEN" />
+            </div>
+          </div>
+        </>
       )}
 
       {resetTargetKey && (

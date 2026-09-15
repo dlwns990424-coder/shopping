@@ -22,12 +22,16 @@ function Women() {
   const categoryParam = searchParams.get('category')
 
   if (categoryParam) {
+    const isImpactBanner = searchParams.get('banner') === 'impact'
+
     return (
       <CategoryListing
         basePath="/women"
         products={products}
         defaultGender="women"
         categoryParam={categoryParam}
+        heroImageMobile={isImpactBanner ? content['home.impact_banner.image_mobile'] : undefined}
+        heroImageDesktop={isImpactBanner ? content['home.impact_banner.image_desktop'] : undefined}
       />
     )
   }

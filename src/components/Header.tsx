@@ -46,9 +46,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconB
       {Boolean(badgeCount) && (
         <span
           aria-hidden
-          className={`absolute right-2 top-2 flex h-16 w-16 items-center justify-center rounded-full bg-point text-[10px] font-semibold leading-none ${
-            light ? 'text-primary' : 'text-surface'
-          }`}
+          className="absolute right-2 top-2 flex h-16 w-16 items-center justify-center rounded-full bg-point text-[10px] font-semibold leading-none text-surface"
         >
           {badgeCount! > 9 ? '9+' : badgeCount}
         </span>

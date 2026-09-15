@@ -10,11 +10,14 @@ interface ImageCropModalProps {
   // 히어로 섹션처럼 고정 헤더가 이미지 위에 겹쳐지는 경우, 상단 중 헤더가 항상 가리는
   // 비율(크롭 높이 대비)을 넘기면 그 영역을 별도로 표시한다. 안 넘기면 표시 안 함.
   topDangerZoneRatio?: number
+  // 기본은 JPEG(대부분의 배너/히어로 이미지). 배경이 투명한 누끼 이미지처럼 투명도를
+  // 보존해야 하면 'image/png'로 넘긴다 — JPEG는 알파 채널이 없어 투명 영역이 사라진다.
+  outputType?: 'image/jpeg' | 'image/png'
   onCancel: () => void
   onConfirm: (blob: Blob) => void
 }
 
-function ImageCropModal({ file, aspect, topDangerZoneRatio, onCancel, onConfirm }: ImageCropModalProps) {
+function ImageCropModal({ file, aspect, topDangerZoneRatio, outputType, onCancel, onConfirm }: ImageCropModalProps) {
   // zoom이 정확히 1이면 라이브러리가 이미지를 크롭 박스에 딱 맞는 최소 크기로 놓는데,
   // 이 경우 가로/세로 중 한 축은 이미지 경계와 완전히 일치해서 그 방향으로는 드래그해도
   // 전혀 움직이지 않는다(사용자에게는 "크롭이 고정돼서 안 움직인다"는 버그처럼 보임).
@@ -46,7 +49,7 @@ function ImageCropModal({ file, aspect, topDangerZoneRatio, onCancel, onConfirm 
     if (!imageUrl || !croppedAreaPixels) return
     setProcessing(true)
     try {
-      const blob = await getCroppedImageBlob(imageUrl, croppedAreaPixels)
+      const blob = await getCroppedImageBlob(imageUrl, croppedAreaPixels, outputType)
       onConfirm(blob)
     } finally {
       setProcessing(false)
