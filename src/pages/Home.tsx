@@ -159,8 +159,8 @@ function Home() {
             <div className="relative z-10 w-full lg:sticky lg:bottom-0">
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
               <div className="relative px-20 pt-64 pb-48 text-surface md:px-32 lg:px-40">
-                <h2 className="mb-16 text-[48px] font-medium leading-[1.3] tracking-[-0.02em] text-surface">MEN</h2>
-                <span className="text-base font-medium text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:group-hover:text-surface/70">
+                <h2 className="mb-16 text-[48px] font-normal leading-[1.3] tracking-[-0.02em] text-surface">MEN</h2>
+                <span className="text-base font-normal text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:group-hover:text-surface/70">
                   SHOP MEN&apos;S
                 </span>
               </div>
@@ -181,8 +181,8 @@ function Home() {
             <div className="relative z-10 w-full lg:sticky lg:bottom-0">
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
               <div className="relative px-20 pt-64 pb-48 text-surface md:px-32 lg:px-40">
-                <h2 className="mb-16 text-[48px] font-medium leading-[1.3] tracking-[-0.02em] text-surface">WOMEN</h2>
-                <span className="text-base font-medium text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:group-hover:text-surface/70">
+                <h2 className="mb-16 text-[48px] font-normal leading-[1.3] tracking-[-0.02em] text-surface">WOMEN</h2>
+                <span className="text-base font-normal text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:group-hover:text-surface/70">
                   SHOP WOMEN&apos;S
                 </span>
               </div>
@@ -207,11 +207,11 @@ function Home() {
           <div className="relative z-10 w-full lg:sticky lg:bottom-0">
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
             <div className="relative px-20 pb-32 pt-64 text-surface md:px-32 lg:px-40 lg:pb-48">
-              <h2 className="text-4xl font-medium leading-[1.3] tracking-[-0.02em] text-surface lg:text-5xl">
+              <h2 className="text-4xl font-normal leading-[1.3] tracking-[-0.02em] text-surface lg:text-5xl">
                 {impactTitle}
               </h2>
-              <p className="mb-16 mt-8 text-base text-surface lg:text-lg">{impactDescription}</p>
-              <span className="text-base font-medium text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:group-hover:text-surface/70">
+              <p className="mb-16 mt-8 text-[24px] text-surface">{impactDescription}</p>
+              <span className="text-base font-normal text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:group-hover:text-surface/70">
                 SHOP NOW
               </span>
             </div>
@@ -231,7 +231,7 @@ function Home() {
               <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
               <div className="relative z-10 flex flex-col gap-8 px-16 pt-16 pb-20 text-surface md:px-32 md:pt-32 md:pb-48 lg:px-40">
                 <p className="text-[28px] font-medium leading-[1.3] text-surface">{banner.label}</p>
-                <span className="w-fit text-sm font-medium text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:text-base lg:group-hover:text-surface/70">
+                <span className="w-fit text-sm font-normal text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:text-base lg:group-hover:text-surface/70">
                   SHOP NOW
                 </span>
               </div>
