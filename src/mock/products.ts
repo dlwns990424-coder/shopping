@@ -13,7 +13,7 @@ function modelImg(gender: Gender, folder: string, file: string, index: number, s
 
 const rawProducts: (Omit<
   Product,
-  'salePrice' | 'sizes' | 'featured' | 'featuredOrder' | 'detailImages' | 'hoverImage'
+  'salePrice' | 'sizes' | 'featured' | 'featuredOrder' | 'detailImages' | 'hoverImage' | 'createdAt'
 > & { hoverImage?: string })[] = [
   // ── MEN · 아우터 · 코트 ──
   {
@@ -356,4 +356,5 @@ export const products: Product[] = rawProducts.map((product) => ({
   sizes: [...sizeOptions],
   featured: false,
   featuredOrder: null,
+  createdAt: new Date().toISOString(),
 }))

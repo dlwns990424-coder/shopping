@@ -7,9 +7,8 @@ import ImageCropModal from '../../components/ImageCropModal'
 import { uploadImage } from '../../utils/uploadImage'
 import FeaturedCarouselManager from '../components/FeaturedCarouselManager'
 import HeroLayeredManager from '../components/HeroLayeredManager'
-import EventBannerManager from '../components/EventBannerManager'
-import ImpactBannerManager from '../components/ImpactBannerManager'
-import EditorialBannerManager from '../components/EditorialBannerManager'
+import BestsellerManager from '../components/BestsellerManager'
+import HomeBannerManager from '../components/HomeBannerManager'
 
 interface ContentRow {
   key: string
@@ -27,8 +26,6 @@ const PAGE_LABELS: Record<string, string> = {
 
 const SECTION_LABELS: Record<string, string> = {
   hero: '히어로',
-  men_banner: 'MEN 배너',
-  women_banner: 'WOMEN 배너',
   category_all: '카테고리 - 모두 보기',
   category_outer: '카테고리 - 아우터',
   category_top: '카테고리 - 상의',
@@ -40,25 +37,16 @@ function sectionOf(key: string) {
   return key.split('.')[1] ?? ''
 }
 
-// hero/men_banner/women_banner는 화면 크기에 따라 실제로 잘리는 비율이 크게 달라서
-// 모바일용/데스크톱용 이미지를 따로 받는다(_mobile/_desktop 접미사). event_banner와
-// 카테고리 카드는 화면 크기와 무관하게 이미지 1장만 받는다(CategoryCard가 전 구간에서
-// 동일하게 3:4를 쓰도록 통일했으므로, 이 비율 그대로 크롭한 이미지가 어느 화면에서도
-// 잘리는 부분 없이 그대로 표시된다).
-// 모바일/태블릿 히어로·배너가 h-screen(풀스크린)에서 aspect-ratio 기반으로 바뀌면서
-// (Home/Men/Women 히어로 aspect-[3/4], 홈 젠더배너 aspect-[4/5]) 이 비율도 그에 맞게 갱신함.
-// 데스크톱(`lg:`)은 여전히 h-screen이라 실제 비율은 방문자 화면 크기에 따라 달라지는 근사값일
-// 뿐이지만, 가장 흔한 모니터 비율(16:9)을 기준으로 잡는다. 히어로는 화면 폭을 그대로 다 쓰니
-// 화면 비율 그 자체(16:9)이고, 젠더배너는 2열로 반씩 나눠 쓰니 그 절반(16:9 ÷ 2)이다 — 고정
-// 소수값을 박아두지 않고 이 관계식 그대로 둬서, 기준 화면비를 바꿔도 자동으로 같이 바뀌게 한다.
+// 히어로는 화면 크기에 따라 실제로 잘리는 비율이 크게 달라서 모바일용/데스크톱용 이미지를
+// 따로 받는다(_mobile/_desktop 접미사). 카테고리 카드는 화면 크기와 무관하게 이미지 1장만
+// 받는다(CategoryCard가 전 구간에서 동일하게 3:4를 쓰도록 통일했으므로, 이 비율 그대로 크롭한
+// 이미지가 어느 화면에서도 잘리는 부분 없이 그대로 표시된다).
+// 데스크톱(`lg:`)은 h-screen이라 실제 비율은 방문자 화면 크기에 따라 달라지는 근사값일 뿐이지만,
+// 가장 흔한 모니터 비율(16:9)을 기준으로 잡는다.
 const DESKTOP_SCREEN_ASPECT = 16 / 9
 // 히어로는 태블릿 구간(md~lg)에서 정사각형(aspect-square)을 쓰므로 별도 크롭이 필요하다.
-// MEN/WOMEN 배너는 태블릿에서 컬럼 수만 늘어날 뿐 개별 비율(4:5)은 그대로라 모바일 크롭을
-// 그대로 재사용해도 되어서 tablet 항목이 없음 — aspectForKey가 null을 돌려주면(아래) 없는 것.
 const RESPONSIVE_ASPECT: Record<string, { mobile: number; desktop: number; tablet?: number }> = {
   hero: { mobile: 3 / 4, desktop: DESKTOP_SCREEN_ASPECT, tablet: 1 },
-  men_banner: { mobile: 4 / 5, desktop: DESKTOP_SCREEN_ASPECT / 2 },
-  women_banner: { mobile: 4 / 5, desktop: DESKTOP_SCREEN_ASPECT / 2 },
 }
 const FIXED_ASPECT = 2 / 3
 const RESPONSIVE_SECTIONS = new Set(Object.keys(RESPONSIVE_ASPECT))
@@ -194,17 +182,14 @@ function ContentManage() {
     loadRows()
   }
 
-  // event_banner/editorial(+editorial_sub_banner)는 각각 전용 매니저가 전담(순서/이미지/텍스트/링크를
-  // 카드 하나로 관리)하므로 범용 렌더링에서 제외 — 에디토리얼은 메인+서브를 EditorialBannerManager
-  // 하나가 같이 관리하도록 합쳐서, 관리자가 메인/서브를 서로 다른 위치에서 따로 손볼 필요가 없게 했다.
+  // hero_layered/new_banner/sale_banner는 각각 전용 매니저(HeroLayeredManager/HomeBannerManager)가
+  // 전담하므로 범용 렌더링에서 제외.
   const groupedByPage = rows
     .filter(
       (row) =>
-        sectionOf(row.key) !== 'event_banner' &&
-        sectionOf(row.key) !== 'impact_banner' &&
         sectionOf(row.key) !== 'hero_layered' &&
-        sectionOf(row.key) !== 'editorial_sub_banner' &&
-        sectionOf(row.key) !== 'editorial',
+        sectionOf(row.key) !== 'new_banner' &&
+        sectionOf(row.key) !== 'sale_banner',
     )
     .reduce<Record<string, Record<string, ContentRow[]>>>((pages, row) => {
       const section = sectionOf(row.key)
@@ -349,16 +334,14 @@ function ContentManage() {
             {renderSections('home', ['hero'])}
 
             <div className="flex flex-col gap-16">
-              <h3 className="text-body-sm font-bold text-secondary">홈 임팩트 이벤트 배너</h3>
-              <ImpactBannerManager />
+              <h3 className="text-body-sm font-bold text-secondary">베스트 상품</h3>
+              <BestsellerManager />
             </div>
 
             <div className="flex flex-col gap-16">
-              <h3 className="text-body-sm font-bold text-secondary">홈 이벤트 배너</h3>
-              <EventBannerManager />
+              <h3 className="text-body-sm font-bold text-secondary">홈 신상품·세일 배너</h3>
+              <HomeBannerManager />
             </div>
-
-            {renderSections('home', ['men_banner', 'women_banner'])}
           </div>
 
           <div className="flex flex-col gap-24">
@@ -370,11 +353,6 @@ function ContentManage() {
             </div>
 
             {renderSections('men', ['hero', 'category_all', 'category_outer', 'category_top', 'category_bottom'])}
-
-            <div className="flex flex-col gap-16">
-              <h3 className="text-body-sm font-bold text-secondary">MEN 에디토리얼 배너</h3>
-              <EditorialBannerManager page="men" label="MEN" />
-            </div>
           </div>
 
           <div className="flex flex-col gap-24">
@@ -386,11 +364,6 @@ function ContentManage() {
             </div>
 
             {renderSections('women', ['hero', 'category_all', 'category_outer', 'category_top', 'category_bottom'])}
-
-            <div className="flex flex-col gap-16">
-              <h3 className="text-body-sm font-bold text-secondary">WOMEN 에디토리얼 배너</h3>
-              <EditorialBannerManager page="women" label="WOMEN" />
-            </div>
           </div>
         </>
       )}

@@ -140,7 +140,7 @@ function OrderHistory() {
   }
 
   return (
-    <div className="flex max-w-900 flex-col gap-16">
+    <div className="mx-auto flex max-w-900 flex-col gap-16">
       <div className="flex flex-wrap gap-8">
         {STATUS_FILTERS.map((filter) => (
           <button

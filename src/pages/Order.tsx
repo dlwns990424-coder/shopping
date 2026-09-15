@@ -202,11 +202,11 @@ function Order() {
         <title>NOVERA | 주문/결제</title>
       </Helmet>
 
-      <div className="px-20 pb-16 pt-32 md:px-32 lg:px-40 lg:pb-24 lg:pt-48">
+      <div className="mx-auto max-w-1200 px-20 pb-16 pt-32 md:px-32 lg:px-40 lg:pb-24 lg:pt-48">
         <h1 className="text-h2">주문/결제</h1>
       </div>
 
-      <div className="flex flex-col gap-32 px-20 pb-32 md:px-32 lg:flex-row lg:items-start lg:gap-64 lg:px-40 lg:pb-80">
+      <div className="mx-auto flex max-w-1200 flex-col gap-32 px-20 pb-32 md:px-32 lg:flex-row lg:items-start lg:gap-64 lg:px-40 lg:pb-80">
         <div className="flex min-w-0 flex-1 flex-col gap-48 lg:max-w-720">
           <div className="flex flex-col gap-16">
             <div className="flex items-center justify-between">

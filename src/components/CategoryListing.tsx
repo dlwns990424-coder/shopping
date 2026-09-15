@@ -6,12 +6,14 @@ import Button from './Button'
 import ProductCard from './ProductCard'
 import { sizeOptions } from '../mock/productDetail'
 import { CATEGORY_TABS as TABS, SUB_CATEGORIES } from '../constants/categoryFilters'
+import { useBestsellers } from '../context/BestsellersContext'
 import type { Gender, Product } from '../types'
 
 const PRODUCTS_PER_PAGE = 12
 
 const SORT_OPTIONS = [
   { id: 'default', label: '기본순' },
+  { id: 'new', label: '신상품순' },
   { id: 'price-asc', label: '가격 낮은순' },
   { id: 'price-desc', label: '가격 높은순' },
 ]
@@ -25,7 +27,7 @@ const GENDER_TABS: { id: 'all' | Gender; label: string }[] = [
 interface CategoryListingProps {
   basePath: string
   products: Product[]
-  defaultGender: Gender
+  defaultGender: 'all' | Gender
   categoryParam: string
   heroImageMobile?: string
   heroImageDesktop?: string
@@ -46,6 +48,8 @@ function CategoryListing({
   const sortParam = searchParams.get('sort') ?? 'default'
   const qParam = searchParams.get('q') ?? ''
   const genderOverride = searchParams.get('gender')
+  const saleOnly = searchParams.get('sale') === 'true'
+  const { bestsellerProductIds } = useBestsellers()
 
   const [queryInput, setQueryInput] = useState(qParam)
   const [visibleCount, setVisibleCount] = useState(PRODUCTS_PER_PAGE)
@@ -55,7 +59,11 @@ function CategoryListing({
   }, [qParam])
 
   const isSearching = qParam.trim().length > 0
-  const effectiveGender: 'all' | Gender = isSearching ? (genderOverride as 'all' | Gender) || 'all' : defaultGender
+  // 검색 중이거나(기존 동작), basePath 자체가 성별 무관("/shop")이면 URL의 gender로
+  // 세부 필터링 가능. Men/Women 페이지(defaultGender가 'men'|'women' 고정)는 기존과 동일하게
+  // genderOverride를 무시하고 defaultGender를 그대로 쓴다.
+  const effectiveGender: 'all' | Gender =
+    isSearching || defaultGender === 'all' ? (genderOverride as 'all' | Gender) || 'all' : defaultGender
   const genderLabel = effectiveGender === 'all' ? '전체' : effectiveGender.toUpperCase()
 
   useEffect(() => {
@@ -107,9 +115,23 @@ function CategoryListing({
 
   const bySize = sizeParam === 'all' ? bySub : bySub.filter((product) => product.sizes.includes(sizeParam))
 
-  const displayedProducts = [...bySize].sort((a, b) => {
+  const bySale = saleOnly ? bySize.filter((product) => product.salePrice != null) : bySize
+
+  const discountRate = (product: Product) =>
+    product.salePrice != null ? (product.price - product.salePrice) / product.price : 0
+
+  const bestRank = new Map(bestsellerProductIds.map((id, index) => [id, index]))
+
+  const displayedProducts = [...bySale].sort((a, b) => {
     if (sortParam === 'price-asc') return (a.salePrice ?? a.price) - (b.salePrice ?? b.price)
     if (sortParam === 'price-desc') return (b.salePrice ?? b.price) - (a.salePrice ?? a.price)
+    if (sortParam === 'new') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    if (sortParam === 'best') {
+      const rankA = bestRank.get(a.id) ?? Number.MAX_SAFE_INTEGER
+      const rankB = bestRank.get(b.id) ?? Number.MAX_SAFE_INTEGER
+      return rankA - rankB
+    }
+    if (saleOnly) return discountRate(b) - discountRate(a)
     return 0
   })
 
@@ -173,7 +195,7 @@ function CategoryListing({
         )}
       </div>
 
-      {isSearching && (
+      {(isSearching || defaultGender === 'all') && (
         <div className="flex flex-wrap gap-8 pb-16">
           {GENDER_TABS.map((tab) => (
             <Link

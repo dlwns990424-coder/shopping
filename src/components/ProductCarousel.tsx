@@ -6,9 +6,11 @@ import type { Product } from '../types'
 
 interface ProductCarouselProps {
   products: Product[]
+  // 베스트 상품 행에서 1~N 순위 배지를 얹을 때 사용(products가 이미 순위대로 정렬돼 있다고 가정).
+  showRank?: boolean
 }
 
-function ProductCarousel({ products }: ProductCarouselProps) {
+function ProductCarousel({ products, showRank = false }: ProductCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'start',
     slidesToScroll: 4,
@@ -40,8 +42,16 @@ function ProductCarousel({ products }: ProductCarouselProps) {
     <div className="relative">
       <div className="overflow-hidden touch-pan-y" ref={emblaRef}>
         <div className="-ml-16 flex">
-          {products.map((product) => (
-            <div key={product.id} className="min-w-0 flex-[0_0_45%] pl-16 md:flex-[0_0_33.333%] lg:flex-[0_0_25%]">
+          {products.map((product, index) => (
+            <div
+              key={product.id}
+              className="relative min-w-0 flex-[0_0_45%] pl-16 md:flex-[0_0_33.333%] lg:flex-[0_0_25%]"
+            >
+              {showRank && (
+                <span className="absolute left-24 top-8 z-10 flex h-20 min-w-20 items-center justify-center rounded-sm bg-primary px-4 text-caption font-bold text-surface">
+                  {index + 1}
+                </span>
+              )}
               <ProductCard {...product} />
             </div>
           ))}

@@ -1,40 +1,44 @@
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import CategoryCard from '../components/CategoryCard'
 import CategoryListing from '../components/CategoryListing'
-import EditorialSubBanners from '../components/EditorialSubBanners'
+import ProductRow from '../components/ProductRow'
 import { useProducts } from '../context/ProductsContext'
 import { useContent } from '../context/ContentContext'
+import { useBestsellers } from '../context/BestsellersContext'
 import { womenCategories } from '../mock/categories'
+import type { Product } from '../types'
 
-const EDITORIAL_SUB_BANNER_IDS = ['sub-1', 'sub-2', 'sub-3', 'sub-4']
+const BESTSELLER_LIMIT = 5
+const SALE_LIMIT = 8
 
-function editorialBannerUrl(category: string, sub: string) {
-  const params = new URLSearchParams({ category: category || 'all' })
-  if (sub) params.set('sub', sub)
-  return `/women?${params.toString()}`
+function discountRate(product: Product) {
+  return product.salePrice != null ? (product.price - product.salePrice) / product.price : 0
 }
 
 function Women() {
   const [searchParams] = useSearchParams()
   const { products } = useProducts()
   const { content } = useContent()
+  const { bestsellerProductIds } = useBestsellers()
   const categoryParam = searchParams.get('category')
 
   if (categoryParam) {
-    const isImpactBanner = searchParams.get('banner') === 'impact'
-
     return (
-      <CategoryListing
-        basePath="/women"
-        products={products}
-        defaultGender="women"
-        categoryParam={categoryParam}
-        heroImageMobile={isImpactBanner ? content['home.impact_banner.image_mobile'] : undefined}
-        heroImageDesktop={isImpactBanner ? content['home.impact_banner.image_desktop'] : undefined}
-      />
+      <CategoryListing basePath="/women" products={products} defaultGender="women" categoryParam={categoryParam} />
     )
   }
+
+  const womenProducts = products.filter((product) => product.gender === 'women')
+  const productById = new Map(womenProducts.map((product) => [product.id, product]))
+  const bestsellers = bestsellerProductIds
+    .map((id) => productById.get(id))
+    .filter((product): product is Product => product != null)
+    .slice(0, BESTSELLER_LIMIT)
+  const saleProducts = [...womenProducts]
+    .filter((product) => product.salePrice != null)
+    .sort((a, b) => discountRate(b) - discountRate(a))
+    .slice(0, SALE_LIMIT)
 
   const heroFallback =
     'https://res.cloudinary.com/reformation/image/upload/c_scale,w_3840,w_2000/v1/home%20banner%202025/craftcore_des?_i=AH'
@@ -42,36 +46,16 @@ function Women() {
   const heroTablet = content['women.hero.image_tablet'] || content['women.hero.image_desktop'] || heroFallback
   const heroMobile = content['women.hero.image_mobile'] || content['women.hero.image_desktop'] || heroFallback
 
-  // TEMP: 관리자가 아직 타이틀/서브타이틀을 안 넣어서 레이아웃 확인용 임시 문구 — 실제 값 들어오면 제거
-  const editorialTitle = content['women.editorial.title'] || '이번 시즌, 새로운 무드를 제안합니다'
-  const editorialSubtitle =
-    content['women.editorial.subtitle'] || '폭넓은 스타일을 선보이는 NOVERA의 세계에서 제안하는 시즌별 컬렉션과 엄선된 아이템'
-  const editorialImage = content['women.editorial.image']
-  const editorialSubBanners = EDITORIAL_SUB_BANNER_IDS.map((id) => ({
-    id,
-    title: content[`women.editorial_sub_banner.${id}.title`] ?? '',
-    subtitle: content[`women.editorial_sub_banner.${id}.subtitle`] ?? '',
-    image: content[`women.editorial_sub_banner.${id}.image`] ?? '',
-    category: content[`women.editorial_sub_banner.${id}.category`] || 'all',
-    sub: content[`women.editorial_sub_banner.${id}.sub`] ?? '',
-    order: Number(content[`women.editorial_sub_banner.${id}.order`]) || 0,
-  }))
-    .sort((a, b) => a.order - b.order)
-    .map((banner) => ({
-      id: banner.id,
-      title: banner.title,
-      subtitle: banner.subtitle,
-      image: banner.image,
-      to: editorialBannerUrl(banner.category, banner.sub),
-    }))
-
   return (
-    <div>
+    <div className="pb-64 md:pb-96 lg:pb-128">
       <Helmet>
         <title>NOVERA | WOMEN</title>
       </Helmet>
 
-      <section className="relative -mt-48 flex aspect-[3/4] items-end overflow-hidden md:-mt-64 md:aspect-square lg:aspect-auto lg:h-screen">
+      <Link
+        to="/women?category=all&sort=new"
+        className="relative -mt-48 flex aspect-[3/4] items-end overflow-hidden text-inherit no-underline md:-mt-64 md:aspect-square lg:aspect-auto lg:h-screen"
+      >
         <div
           className="absolute inset-0 hidden bg-cover bg-center lg:block"
           style={{ backgroundImage: `url(${heroDesktop})` }}
@@ -95,7 +79,7 @@ function Women() {
             {content['women.hero.subtitle'] || '이번 시즌 새롭게 만나는 NOVERA의 제안'}
           </p>
         </div>
-      </section>
+      </Link>
 
       <section className="mt-32 px-20 pb-32 md:mt-48 md:px-32 md:pb-48 lg:mt-64 lg:px-40 lg:pb-64">
         <div className="page-section__header">
@@ -114,37 +98,9 @@ function Women() {
         </div>
       </section>
 
-      {/* 모바일/태블릿 전용: 타이틀 → 메인 이미지 → 서브배너 순서(데스크톱은 아래 별도 블록) */}
-      <section className="mt-32 bg-surface-muted px-20 pb-32 pt-32 md:mt-48 md:px-32 md:pb-48 md:pt-48 lg:hidden">
-        <h2 className="text-[40px] font-normal leading-[1.2] tracking-[-0.02em]">{editorialTitle}</h2>
-        <p className="mt-8 text-body-sm text-secondary">{editorialSubtitle}</p>
-        <div
-          className="mt-16 aspect-[3/4] bg-surface bg-cover bg-center"
-          style={editorialImage ? { backgroundImage: `url(${editorialImage})` } : undefined}
-        />
-        <div className="mt-16">
-          <EditorialSubBanners banners={editorialSubBanners} />
-        </div>
-      </section>
+      <ProductRow title="베스트" moreHref="/women?category=all&sort=best" products={bestsellers} showRank />
 
-      {/* 데스크톱 전용: 좌(메인 이미지, 풀하이트) / 우(타이틀+서브배너) 5:5.
-          min-h로 섹션 기본 높이를 키움 — 우측 컬럼 콘텐츠는 그대로 두고 좌측 이미지만 그 높이만큼 같이 늘어남(items-stretch 기본값) */}
-      <section className="hidden bg-surface-muted lg:mt-64 lg:block lg:px-40 lg:pb-64 lg:pt-64">
-        <div className="grid grid-cols-2 items-stretch gap-x-64 lg:min-h-720">
-          <div
-            className="bg-surface bg-cover bg-center"
-            style={editorialImage ? { backgroundImage: `url(${editorialImage})` } : undefined}
-          />
-          <div className="flex h-full flex-col">
-            {/* 타이틀을 맨 위(이미지 경계선)에 붙이지 않고, 이 위쪽 빈 공간(경계선~서브배너) 안에서 세로 중앙에 오도록 */}
-            <div className="flex flex-1 flex-col justify-center">
-              <h2 className="text-[40px] font-normal leading-[1.2] tracking-[-0.02em]">{editorialTitle}</h2>
-              <p className="mt-8 text-body-sm text-secondary">{editorialSubtitle}</p>
-            </div>
-            <EditorialSubBanners banners={editorialSubBanners} />
-          </div>
-        </div>
-      </section>
+      <ProductRow title="할인상품" moreHref="/women?category=all&sale=true" products={saleProducts} />
     </div>
   )
 }

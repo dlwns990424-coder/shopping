@@ -10,6 +10,7 @@ import { ReviewsProvider } from './context/ReviewsContext'
 import { AuthModalProvider } from './context/AuthModalContext'
 import { ProductsProvider } from './context/ProductsContext'
 import { ContentProvider } from './context/ContentContext'
+import { BestsellersProvider } from './context/BestsellersContext'
 import ScrollToTop from './components/ScrollToTop'
 import RequireAuth from './components/RequireAuth'
 import RequireAdmin from './components/RequireAdmin'
@@ -18,9 +19,9 @@ import UserLayout from './layouts/UserLayout'
 import AdminLayout from './layouts/AdminLayout'
 
 import Home from './pages/Home'
-import CampaignHome from './pages/CampaignHome'
 import Men from './pages/Men'
 import Women from './pages/Women'
+import Shop from './pages/Shop'
 import ProductDetail from './pages/ProductDetail'
 import Wishlist from './pages/Wishlist'
 import Cart from './pages/Cart'
@@ -43,6 +44,7 @@ function App() {
       <AuthProvider>
         <ProductsProvider>
           <ContentProvider>
+            <BestsellersProvider>
             <CartProvider>
               <WishlistProvider>
                 <RecentSearchProvider>
@@ -54,9 +56,9 @@ function App() {
                         <Routes>
                           <Route element={<UserLayout />}>
                             <Route path="/" element={<Home />} />
-                            <Route path="/campaign/home" element={<CampaignHome />} />
                             <Route path="/men" element={<Men />} />
                             <Route path="/women" element={<Women />} />
+                            <Route path="/shop" element={<Shop />} />
                             <Route path="/products/:productId" element={<ProductDetail />} />
                             <Route path="/wishlist" element={<Wishlist />} />
                             <Route path="/login" element={<Login />} />
@@ -88,6 +90,7 @@ function App() {
                 </RecentSearchProvider>
               </WishlistProvider>
             </CartProvider>
+            </BestsellersProvider>
           </ContentProvider>
         </ProductsProvider>
       </AuthProvider>

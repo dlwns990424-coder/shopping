@@ -30,7 +30,7 @@ function MyPageNav({ activeTab, onLogout }: MyPageNavProps) {
       </ul>
       <button
         type="button"
-        className="hidden cursor-pointer self-start border-none bg-transparent px-16 text-sm text-secondary transition-colors active:scale-95 hover:text-point md:block"
+        className="hidden cursor-pointer self-start border-none bg-transparent px-16 text-sm text-secondary transition-colors active:scale-95 hover:text-point lg:block"
         onClick={onLogout}
       >
         로그아웃

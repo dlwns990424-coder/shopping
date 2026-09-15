@@ -97,10 +97,7 @@ function Header() {
   const firstMenuLinkRef = useRef<HTMLButtonElement | null>(null)
 
   const isHeroPage =
-    (location.pathname === '/' ||
-      location.pathname === '/men' ||
-      location.pathname === '/women' ||
-      location.pathname === '/campaign/home') &&
+    (location.pathname === '/' || location.pathname === '/men' || location.pathname === '/women') &&
     !searchParams.get('category')
   const isTransparent = isHeroPage && !scrolled && !searchOpen && !menuOpen && !hovered
 
@@ -128,22 +125,13 @@ function Header() {
       setScrolled(false)
       return
     }
-    // 캠페인 페이지는 히어로+3분할이 수천 px짜리 스크롤 고정(sticky) 구간이라 고정 px 임계값 대신,
-    // 그 구간(.js-campaign-hero-boundary)을 실제로 다 지나쳤는지로 투명 여부를 판단한다.
-    const isCampaignPage = location.pathname === '/campaign/home'
     const handleScroll = () => {
-      if (isCampaignPage) {
-        const boundaries = Array.from(document.querySelectorAll<HTMLElement>('.js-campaign-hero-boundary'))
-        const visible = boundaries.find((el) => el.offsetParent !== null)
-        setScrolled(visible ? visible.getBoundingClientRect().bottom <= 100 : window.scrollY > TRANSPARENT_SCROLL_THRESHOLD)
-        return
-      }
       setScrolled(window.scrollY > TRANSPARENT_SCROLL_THRESHOLD)
     }
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [isHeroPage, location.pathname])
+  }, [isHeroPage])
 
   const handleMobileProtectedClick = (e: MouseEvent) => {
     setMenuOpen(false)

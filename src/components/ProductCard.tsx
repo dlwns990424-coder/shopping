@@ -16,6 +16,7 @@ interface ProductCardProps {
 function ProductCard({ id, name, price, salePrice, image, hoverImage }: ProductCardProps) {
   const { isWishlisted, toggle } = useWishlist()
   const wishlisted = isWishlisted(id)
+  const discountPercent = salePrice != null && price > 0 ? Math.round((1 - salePrice / price) * 100) : null
 
   const handleToggleWishlist = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -34,6 +35,11 @@ function ProductCard({ id, name, price, salePrice, image, hoverImage }: ProductC
             className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-0 lg:group-hover:opacity-100"
             style={{ backgroundImage: `url(${hoverImage})` }}
           />
+        )}
+        {discountPercent != null && discountPercent > 0 && (
+          <span className="absolute left-8 top-8 rounded-full bg-point px-8 py-4 text-caption font-semibold text-surface lg:left-12 lg:top-12">
+            -{discountPercent}%
+          </span>
         )}
         <button
           type="button"

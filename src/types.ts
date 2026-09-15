@@ -21,6 +21,7 @@ export interface Product {
   featured: boolean
   featuredOrder: number | null
   description: string
+  createdAt: string
 }
 
 export const MAX_DETAIL_IMAGES = 6

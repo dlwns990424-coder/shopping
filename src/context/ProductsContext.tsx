@@ -27,6 +27,7 @@ interface ProductRow {
   featured: boolean
   featured_order: number | null
   description: string
+  created_at: string
 }
 
 function toProduct(row: ProductRow): Product {
@@ -46,6 +47,7 @@ function toProduct(row: ProductRow): Product {
     featured: row.featured,
     featuredOrder: row.featured_order,
     description: row.description,
+    createdAt: row.created_at,
   }
 }
 

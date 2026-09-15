@@ -83,7 +83,7 @@ function AccountSettingsForm() {
 
   return (
     <div>
-      <form className="flex max-w-400 flex-col gap-32" onSubmit={handleSubmit} noValidate>
+      <form className="mx-auto flex max-w-400 flex-col gap-32" onSubmit={handleSubmit} noValidate>
         <section className="flex flex-col gap-16">
           <h2 className="text-h3">회원정보</h2>
           <Input
