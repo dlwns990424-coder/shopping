@@ -101,9 +101,9 @@ function CampaignHome() {
   const mobileMenLabelOpacity = Math.min(1, Math.max(0, (mobileProgress - 0.65) / 0.08))
   const mobileWomenLabelOpacity = Math.min(1, Math.max(0, (mobileProgress - 0.85) / 0.08))
 
-  const menImage = content['home.campaign.men_image']
-  const womenImage = content['home.campaign.women_image']
   // TODO: home.campaign.* 관리자 업로드 UI 연동 전까지 임시로 로컬 이미지를 사용(시각 확인용).
+  const menImage = content['home.campaign.men_image'] || '/images/banner/cam-men-1.png'
+  const womenImage = content['home.campaign.women_image'] || '/images/banner/cam-women.png'
   const heroImageDesktop =
     content['home.campaign.hero_image_desktop'] || '/images/banner/women-banner-1-background.png'
   const heroImageMobile = content['home.campaign.hero_image_mobile'] || heroImageDesktop
@@ -182,7 +182,7 @@ function CampaignHome() {
             style={{ opacity: mobileMenLabelOpacity }}
           >
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-            <span className="relative z-10 pb-64 text-[20px] font-medium drop-shadow-md md:text-[24px]">남성 쇼핑하기</span>
+            <span className="relative z-10 pb-64 text-[20px] font-medium drop-shadow-md md:text-[24px]">SHOP MEN&apos;S</span>
           </div>
 
           <Link
@@ -198,7 +198,7 @@ function CampaignHome() {
             style={{ opacity: mobileWomenLabelOpacity }}
           >
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-            <span className="relative z-10 pb-64 text-[20px] font-medium drop-shadow-md md:text-[24px]">여성 쇼핑하기</span>
+            <span className="relative z-10 pb-64 text-[20px] font-medium drop-shadow-md md:text-[24px]">SHOP WOMEN&apos;S</span>
           </div>
         </div>
       </div>
@@ -252,7 +252,7 @@ function CampaignHome() {
             >
               <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
               <span className="relative z-10 w-full px-40 pb-48 text-center text-[18px] font-medium text-surface transition-colors duration-300 group-hover:text-surface/70">
-                남성 쇼핑하기
+                SHOP MEN&apos;S
               </span>
             </Link>
 
@@ -281,7 +281,7 @@ function CampaignHome() {
             >
               <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent" />
               <span className="relative z-10 w-full px-40 pb-48 text-center text-[18px] font-medium text-surface transition-colors duration-300 group-hover:text-surface/70">
-                여성 쇼핑하기
+                SHOP WOMEN&apos;S
               </span>
             </Link>
           </div>

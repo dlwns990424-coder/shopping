@@ -31,7 +31,7 @@ function EditorialSubBanners({
   subtitleClassName = 'text-caption text-surface/80',
 }: EditorialSubBannersProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    align: 'start',
+    align: 'center',
     slidesToScroll: 1,
     containScroll: 'trimSnaps',
     skipSnaps: true,
@@ -58,11 +58,11 @@ function EditorialSubBanners({
   return (
     <div className="relative">
       <div className="overflow-hidden touch-pan-y" ref={emblaRef}>
-        <div className="-ml-12 flex">
+        <div className="-ml-20 flex">
           {banners.map((banner) => (
             <div
               key={banner.id}
-              className="min-w-0 flex-[0_0_77%] pl-12 lg:flex-[0_0_var(--desktop-basis)]"
+              className="min-w-0 flex-[0_0_77%] pl-20 lg:flex-[0_0_var(--desktop-basis)]"
               style={{ '--desktop-basis': desktopBasis } as React.CSSProperties}
             >
               <Link

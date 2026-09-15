@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
+import useEmblaCarousel from 'embla-carousel-react'
 import { useContent } from '../context/ContentContext'
 
 // 라벨/이미지/성별/카테고리/서브카테고리/노출순서는 전부 관리자 페이지
@@ -12,8 +13,41 @@ function eventBannerUrl(gender: string, category: string, sub: string) {
   return `/${gender}?${params.toString()}`
 }
 
+interface EventBanner {
+  id: string
+  label: string
+  image: string
+  gender: string
+  category: string
+  sub: string
+}
+
+function EventBannerCard({ banner }: { banner: EventBanner }) {
+  return (
+    <Link
+      to={eventBannerUrl(banner.gender, banner.category, banner.sub)}
+      className="group relative flex aspect-[2/3] items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
+      style={banner.image ? { backgroundImage: `url(${banner.image})` } : undefined}
+    >
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
+      <div className="relative z-10 flex flex-col gap-8 px-16 pt-16 pb-20 text-surface md:px-32 md:pt-32 md:pb-48 lg:px-40">
+        <p className="text-[20px] font-medium leading-[1.3] text-surface md:text-[28px]">{banner.label}</p>
+        <span className="w-fit text-sm font-normal text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:text-base lg:group-hover:text-surface/70">
+          SHOP NOW
+        </span>
+      </div>
+    </Link>
+  )
+}
+
 function Home() {
   const { content } = useContent()
+  const [eventEmblaRef] = useEmblaCarousel({
+    align: 'center',
+    slidesToScroll: 1,
+    containScroll: 'trimSnaps',
+    skipSnaps: true,
+  })
 
   // 태블릿(md)+데스크톱(lg)은 아래 신규 레이어 히어로(home.hero_layered.*)로 대체됨 —
   // home.hero.image_desktop/image_tablet은 더는 안 쓰지만, 관리자 화면에는 아직 남아있음(정리는 별도).
@@ -142,7 +176,7 @@ function Home() {
         </div>
       </div>
 
-      <section className="mt-32 md:mt-48 lg:mt-64">
+      <section className="mt-40 md:mt-48 lg:mt-64">
         <div className="grid grid-cols-1 gap-0 md:grid-cols-2">
           <Link
             to="/men"
@@ -191,7 +225,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="mt-32 md:mt-48 lg:mt-64">
+      <section className="mt-40 md:mt-48 lg:mt-64">
         <Link
           to={impactBannerUrl}
           className="group relative flex aspect-[4/5] items-end rounded-none bg-secondary lg:aspect-[21/9]"
@@ -219,23 +253,22 @@ function Home() {
         </Link>
       </section>
 
-      <section className="mt-32 pb-32 md:mt-48 md:pb-48 lg:mt-64 lg:pb-64">
-        <div className="grid grid-cols-2 gap-0 md:grid-cols-4">
-          {eventBanners.map((banner) => (
-            <Link
-              key={banner.id}
-              to={eventBannerUrl(banner.gender, banner.category, banner.sub)}
-              className="group relative flex aspect-[2/3] items-end overflow-hidden rounded-none bg-secondary bg-cover bg-center"
-              style={banner.image ? { backgroundImage: `url(${banner.image})` } : undefined}
-            >
-              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
-              <div className="relative z-10 flex flex-col gap-8 px-16 pt-16 pb-20 text-surface md:px-32 md:pt-32 md:pb-48 lg:px-40">
-                <p className="text-[28px] font-medium leading-[1.3] text-surface">{banner.label}</p>
-                <span className="w-fit text-sm font-normal text-surface underline [text-underline-offset:6px] transition-colors duration-300 lg:text-base lg:group-hover:text-surface/70">
-                  SHOP NOW
-                </span>
+      <section className="mt-40 pb-32 md:mt-48 md:pb-48 lg:mt-64 lg:pb-64">
+        {/* 모바일: EditorialSubBanners와 동일하게 1.3개씩 보이는 스와이프 캐러셀(버튼 없이 터치 드래그만) */}
+        <div className="overflow-hidden touch-pan-y px-20 md:hidden" ref={eventEmblaRef}>
+          <div className="-ml-20 flex">
+            {eventBanners.map((banner) => (
+              <div key={banner.id} className="min-w-0 flex-[0_0_77%] pl-20">
+                <EventBannerCard banner={banner} />
               </div>
-            </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* 태블릿+데스크톱: 기존 4열 그리드 */}
+        <div className="hidden md:grid md:grid-cols-4 md:gap-0">
+          {eventBanners.map((banner) => (
+            <EventBannerCard key={banner.id} banner={banner} />
           ))}
         </div>
       </section>
