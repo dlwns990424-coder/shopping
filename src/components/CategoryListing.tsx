@@ -146,7 +146,7 @@ function CategoryListing({
       <div className="px-20 pt-32 md:px-32 md:pt-48 lg:px-40">
       <div className="mb-24">
         <p className="text-caption mb-8 tracking-[0.08em] text-secondary">NOVERA | {genderLabel}</p>
-        <h1 className="text-h1">{title}</h1>
+        <h1 className="text-[40px] font-bold leading-[1.25] tracking-[-0.02em]">{title}</h1>
       </div>
 
       <div className="relative mb-24 max-w-480">
