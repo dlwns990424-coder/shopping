@@ -35,6 +35,9 @@ export interface Review {
   content: string
   photos: string[]
   createdAt: string
+  purchasedOption: string | null
+  height: number | null
+  weight: number | null
 }
 
 export interface Category {

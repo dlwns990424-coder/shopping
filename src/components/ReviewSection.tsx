@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ChevronDown, X } from 'lucide-react'
+import { ChevronDown, Star, X } from 'lucide-react'
 import StarRating from './StarRating'
 import Button from './Button'
 import ReviewFormModal from './ReviewFormModal'
@@ -9,7 +9,6 @@ import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 import { useOrderHistory } from '../context/OrderHistoryContext'
 import { useReviews } from '../context/ReviewsContext'
-import { useProducts } from '../context/ProductsContext'
 
 interface ReviewSectionProps {
   productId: string
@@ -31,8 +30,6 @@ function ReviewSection({ productId }: ReviewSectionProps) {
   const { openLoginModal } = useAuthModal()
   const { orders } = useOrderHistory()
   const { reviews, addReview, deleteReview } = useReviews()
-  const { products } = useProducts()
-  const product = products.find((item) => item.id === productId)
   const [showForm, setShowForm] = useState(false)
   const [visibleCount, setVisibleCount] = useState(REVIEWS_PAGE_SIZE)
   const [sortOrder, setSortOrder] = useState<SortOrder>('latest')
@@ -46,30 +43,7 @@ function ReviewSection({ productId }: ReviewSectionProps) {
     setSortOrder('latest')
   }, [productId])
 
-  // TEMP: UI 미리보기용 목업 — 사용자가 직접 확인하는 동안만 유지, 이후 제거 예정
-  const MOCK_PREVIEW_REVIEWS = [
-    {
-      id: 'mock-1',
-      productId,
-      userId: 'mock-user-1',
-      nickname: 'so****',
-      rating: 5,
-      content: '핏이 생각보다 예쁘고 기장도 딱 맞았어요. 재질도 부드럽고 겨울에 안에 니트 입어도 여유있게 들어갑니다. 다음에 다른 컬러로 또 구매하고 싶어요.',
-      photos: [product?.image ?? ''].filter(Boolean),
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: 'mock-2',
-      productId,
-      userId: 'mock-user-2',
-      nickname: 'ji****',
-      rating: 4,
-      content: '색감 예쁘고 만족스러운데 생각보다 얇아서 완전 한겨울엔 히트텍이나 니트 레이어드 필수일 것 같아요.',
-      photos: [],
-      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    },
-  ]
-  const productReviews = [...MOCK_PREVIEW_REVIEWS, ...reviews.filter((review) => review.productId === productId)]
+  const productReviews = reviews.filter((review) => review.productId === productId)
   const averageRating =
     productReviews.length > 0
       ? productReviews.reduce((sum, review) => sum + review.rating, 0) / productReviews.length
@@ -102,8 +76,25 @@ function ReviewSection({ productId }: ReviewSectionProps) {
     setShowForm(true)
   }
 
-  const handleSubmit = async (rating: number, content: string, photos: string[]) => {
-    const result = await addReview({ productId, rating, content, photos })
+  const handleSubmit = async (
+    rating: number,
+    content: string,
+    photos: string[],
+    height: number | null,
+    weight: number | null,
+  ) => {
+    // 어떤 옵션(컬러·사이즈)으로 구매했는지는 사용자가 직접 입력하지 않고, 본인의 배송완료
+    // 주문에서 이 상품이 담긴 항목을 찾아 자동으로 채운다(hasVerifiedPurchase와 동일한 조건).
+    const matchingOrder = orders.find(
+      (order) =>
+        order.userEmail === user?.email &&
+        order.shippingStatus === '배송완료' &&
+        !order.returnStatus &&
+        order.items.some((item) => item.productId === productId),
+    )
+    const purchasedOption = matchingOrder?.items.find((item) => item.productId === productId)?.option ?? null
+
+    const result = await addReview({ productId, rating, content, photos, purchasedOption, height, weight })
     if (result.success) setShowForm(false)
     return result
   }
@@ -119,16 +110,11 @@ function ReviewSection({ productId }: ReviewSectionProps) {
 
   return (
     <>
-      <div className="flex flex-col gap-12 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-8">
-          <StarRating value={averageRating} />
-          <span className="text-body-sm text-secondary">
-            {averageRating > 0 ? averageRating.toFixed(1) : '0.0'} ({productReviews.length})
-          </span>
-        </div>
+      <div className="flex items-center justify-between gap-16">
+        <h2 className="text-xl font-bold lg:text-2xl">리뷰</h2>
         {!user && (
           <Button variant="secondary" size="small" onClick={handleWriteClick}>
-            리뷰 작성
+            내 리뷰 작성하기
           </Button>
         )}
         {user && alreadyReviewed && (
@@ -136,12 +122,19 @@ function ReviewSection({ productId }: ReviewSectionProps) {
         )}
         {user && !alreadyReviewed && hasVerifiedPurchase && (
           <Button variant="secondary" size="small" onClick={handleWriteClick}>
-            리뷰 작성
+            내 리뷰 작성하기
           </Button>
         )}
         {user && !alreadyReviewed && !hasVerifiedPurchase && (
           <p className="text-caption text-secondary">구매 후 배송완료 상태에서 작성할 수 있습니다</p>
         )}
+      </div>
+
+      {/* 전체 평점 — 개별 리뷰 별점(작은 별 5개)과 헷갈리지 않게 별 1개 아이콘 + 큰 숫자로 표시 */}
+      <div className="mt-16 flex items-center gap-8">
+        <Star size={28} strokeWidth={1.5} className="text-star" fill="currentColor" />
+        <span className="text-2xl font-bold">{averageRating > 0 ? averageRating.toFixed(1) : '0.0'}</span>
+        <span className="text-body-sm text-secondary">({productReviews.length})</span>
       </div>
 
       {productReviews.length === 0 ? (
@@ -172,39 +165,53 @@ function ReviewSection({ productId }: ReviewSectionProps) {
             </div>
           </div>
 
-          <div className="mt-12 flex flex-col gap-16">
+          <div className="mt-24 flex flex-col gap-16">
             {sortedReviews.slice(0, visibleCount).map((review) => (
-              <div key={review.id} className="flex flex-col gap-8 border-b border-line pb-16 last:border-b-0">
-                <div className="flex items-center gap-8">
-                  <StarRating value={review.rating} size={14} />
-                  <span className="text-body-sm font-medium">{review.nickname}</span>
-                  <span className="text-caption text-secondary">
-                    {new Date(review.createdAt).toLocaleDateString('ko-KR')}
-                  </span>
-                  {user && review.userId === user.id && (
-                    <button
-                      type="button"
-                      onClick={() => setDeleteTargetId(review.id)}
-                      className="ml-auto flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 text-secondary hover:text-primary"
-                      aria-label="리뷰 삭제"
-                    >
-                      <X size={16} strokeWidth={1.5} />
-                    </button>
+              <div key={review.id} className="flex justify-between gap-16 border-b border-line pb-16 last:border-b-0">
+                {/* 좌: 구매 옵션 → 별점 → 리뷰 내용 → 사진(정사각형, 최대 160px, 1장) */}
+                <div className="flex min-w-0 flex-1 flex-col gap-8">
+                  {review.purchasedOption && (
+                    <p className="text-body-sm text-secondary">
+                      상품 옵션
+                      <span className="ml-8 text-primary">{review.purchasedOption.replace(' · ', ' / ')}</span>
+                    </p>
+                  )}
+                  <StarRating value={review.rating} size={16} />
+                  <p className="text-body whitespace-pre-line text-primary">{review.content}</p>
+                  {review.photos.length > 0 && (
+                    <img
+                      src={review.photos[0]}
+                      alt="리뷰 사진"
+                      className="aspect-square w-full max-w-160 rounded-sm border border-line object-cover"
+                    />
                   )}
                 </div>
-                <p className="text-body-sm whitespace-pre-line text-secondary">{review.content}</p>
-                {review.photos.length > 0 && (
-                  <div className="flex flex-wrap gap-8">
-                    {review.photos.map((url) => (
-                      <img
-                        key={url}
-                        src={url}
-                        alt="리뷰 사진"
-                        className="h-96 w-96 rounded-sm border border-line object-cover"
-                      />
-                    ))}
+
+                {/* 우: 닉네임 → 키/몸무게 → (간격) → 작성일 */}
+                <div className="flex shrink-0 flex-col items-end gap-4 text-right">
+                  <div className="flex items-center gap-8">
+                    <span className="text-body font-medium text-primary">{review.nickname}</span>
+                    {user && review.userId === user.id && (
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTargetId(review.id)}
+                        className="flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 text-secondary hover:text-primary"
+                        aria-label="리뷰 삭제"
+                      >
+                        <X size={16} strokeWidth={1.5} />
+                      </button>
+                    )}
                   </div>
-                )}
+                  <p className="text-body-sm mt-8 text-secondary">
+                    {review.height != null ? `키 ${review.height}cm` : '키 작성하지 않음'}
+                  </p>
+                  <p className="text-body-sm text-secondary">
+                    {review.weight != null ? `몸무게 ${review.weight}kg` : '몸무게 작성하지 않음'}
+                  </p>
+                  <p className="text-caption mt-8 text-disabled">
+                    {new Date(review.createdAt).toLocaleDateString('ko-KR')}
+                  </p>
+                </div>
               </div>
             ))}
           </div>

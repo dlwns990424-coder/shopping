@@ -8,6 +8,9 @@ interface AddReviewInput {
   rating: number
   content: string
   photos: string[]
+  purchasedOption: string | null
+  height: number | null
+  weight: number | null
 }
 
 interface ReviewsContextValue {
@@ -28,6 +31,9 @@ interface ReviewRow {
   content: string
   photos: string[]
   created_at: string
+  purchased_option: string | null
+  height: number | null
+  weight: number | null
 }
 
 function toReview(row: ReviewRow): Review {
@@ -40,6 +46,9 @@ function toReview(row: ReviewRow): Review {
     content: row.content,
     photos: row.photos ?? [],
     createdAt: row.created_at,
+    purchasedOption: row.purchased_option ?? null,
+    height: row.height ?? null,
+    weight: row.weight ?? null,
   }
 }
 
@@ -61,7 +70,7 @@ export function ReviewsProvider({ children }: { children: ReactNode }) {
     load()
   }, [load])
 
-  const addReview = async ({ productId, rating, content, photos }: AddReviewInput) => {
+  const addReview = async ({ productId, rating, content, photos, purchasedOption, height, weight }: AddReviewInput) => {
     if (!user) return { success: false, message: '로그인이 필요합니다.' }
 
     const { error } = await supabase.from('reviews').insert({
@@ -71,6 +80,9 @@ export function ReviewsProvider({ children }: { children: ReactNode }) {
       rating,
       content,
       photos,
+      purchased_option: purchasedOption,
+      height,
+      weight,
     })
     if (error) {
       // unique(user_id, product_id) 위반 = 이미 리뷰를 작성함, RLS 위반 = 구매(배송완료) 이력 없음

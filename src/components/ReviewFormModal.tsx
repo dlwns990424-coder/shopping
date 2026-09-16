@@ -6,18 +6,26 @@ import { uploadImage } from '../utils/uploadImage'
 
 interface ReviewFormModalProps {
   onCancel: () => void
-  onSubmit: (rating: number, content: string, photos: string[]) => Promise<{ success: boolean; message?: string }>
+  onSubmit: (
+    rating: number,
+    content: string,
+    photos: string[],
+    height: number | null,
+    weight: number | null,
+  ) => Promise<{ success: boolean; message?: string }>
   // 상품 상세페이지에서는 이미 어떤 상품인지 화면에 나와있어 생략, 마이페이지 주문내역처럼
   // 문맥 없이 여러 상품 중 하나를 고르는 곳에서 열 때만 넘겨서 표시한다.
   productName?: string
 }
 
-const MAX_PHOTOS = 4
+const MAX_PHOTOS = 1
 
 function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalProps) {
   const [rating, setRating] = useState(5)
   const [content, setContent] = useState('')
   const [photos, setPhotos] = useState<string[]>([])
+  const [height, setHeight] = useState('')
+  const [weight, setWeight] = useState('')
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -56,7 +64,9 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
     }
     setSubmitting(true)
     setError(null)
-    const result = await onSubmit(rating, content.trim(), photos)
+    const heightValue = height.trim() ? Number(height) : null
+    const weightValue = weight.trim() ? Number(weight) : null
+    const result = await onSubmit(rating, content.trim(), photos, heightValue, weightValue)
     setSubmitting(false)
     if (!result.success) {
       setError(result.message ?? '리뷰 등록에 실패했습니다. 잠시 후 다시 시도해주세요.')
@@ -87,6 +97,29 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
             placeholder="상품에 대한 솔직한 후기를 남겨주세요."
             className="text-body-sm rounded-sm border border-line px-12 py-8"
           />
+        </div>
+
+        <div className="flex gap-16">
+          <div className="flex flex-1 flex-col gap-8">
+            <label className="text-body-sm text-secondary">키 (cm, 선택)</label>
+            <input
+              type="number"
+              value={height}
+              onChange={(e) => setHeight(e.target.value)}
+              placeholder="입력하지 않으면 작성하지 않음으로 표시"
+              className="text-body-sm rounded-sm border border-line px-12 py-8"
+            />
+          </div>
+          <div className="flex flex-1 flex-col gap-8">
+            <label className="text-body-sm text-secondary">몸무게 (kg, 선택)</label>
+            <input
+              type="number"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder="입력하지 않으면 작성하지 않음으로 표시"
+              className="text-body-sm rounded-sm border border-line px-12 py-8"
+            />
+          </div>
         </div>
 
         <div className="flex flex-col gap-8">

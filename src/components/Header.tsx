@@ -155,8 +155,8 @@ function Header() {
     <header
       onPointerEnter={(e) => e.pointerType === 'mouse' && setHovered(true)}
       onPointerLeave={(e) => e.pointerType === 'mouse' && setHovered(false)}
-      className={`fixed inset-x-0 top-0 z-header flex h-48 items-center gap-16 border-b px-20 transition-colors duration-300 md:h-64 md:gap-32 md:px-32 lg:px-80 xl:px-140 2xl:px-200 ${
-        isTransparent ? 'border-transparent bg-transparent' : 'border-line bg-surface'
+      className={`fixed inset-x-0 top-0 z-header flex h-48 items-center gap-16 border-b px-20 transition-colors duration-300 md:h-54 md:gap-32 md:px-32 lg:h-60 lg:px-80 xl:px-140 2xl:px-200 ${
+        isTransparent ? 'border-transparent bg-transparent' : 'border-line/50 bg-surface'
       }`}
     >
       <div

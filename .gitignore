@@ -17,6 +17,10 @@ dist-ssr
 .env
 .env.local
 
+# Local image generation/backup scratch folders (not app assets)
+/image-backups
+/output
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
