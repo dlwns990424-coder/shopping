@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
 
 import { AuthProvider } from './context/AuthContext'
@@ -18,7 +18,6 @@ import RequireAdmin from './components/RequireAdmin'
 import UserLayout from './layouts/UserLayout'
 import AdminLayout from './layouts/AdminLayout'
 
-import Home from './pages/Home'
 import Men from './pages/Men'
 import Women from './pages/Women'
 import Shop from './pages/Shop'
@@ -55,7 +54,7 @@ function App() {
                         <ScrollToTop />
                         <Routes>
                           <Route element={<UserLayout />}>
-                            <Route path="/" element={<Home />} />
+                            <Route path="/" element={<Navigate to="/men" replace />} />
                             <Route path="/men" element={<Men />} />
                             <Route path="/women" element={<Women />} />
                             <Route path="/shop" element={<Shop />} />

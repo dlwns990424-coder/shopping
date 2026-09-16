@@ -6,9 +6,8 @@ import ConfirmModal from '../../components/ConfirmModal'
 import ImageCropModal from '../../components/ImageCropModal'
 import { uploadImage } from '../../utils/uploadImage'
 import FeaturedCarouselManager from '../components/FeaturedCarouselManager'
-import HeroLayeredManager from '../components/HeroLayeredManager'
 import BestsellerManager from '../components/BestsellerManager'
-import HomeBannerManager from '../components/HomeBannerManager'
+import EditorialBannerManager from '../components/EditorialBannerManager'
 
 interface ContentRow {
   key: string
@@ -19,17 +18,23 @@ interface ContentRow {
 }
 
 const PAGE_LABELS: Record<string, string> = {
-  home: '홈',
   men: 'MEN',
   women: 'WOMEN',
 }
 
 const SECTION_LABELS: Record<string, string> = {
   hero: '히어로',
-  category_all: '카테고리 - 모두 보기',
-  category_outer: '카테고리 - 아우터',
-  category_top: '카테고리 - 상의',
-  category_bottom: '카테고리 - 하의',
+  category_coat: '카테고리 - 코트',
+  category_jacket: '카테고리 - 자켓·블레이저',
+  category_padding: '카테고리 - 패딩',
+  category_cardigan: '카테고리 - 가디건',
+  category_shirt: '카테고리 - 셔츠',
+  category_tshirt: '카테고리 - 티셔츠',
+  category_knit: '카테고리 - 니트·스웨트',
+  category_hoodie: '카테고리 - 후드',
+  category_denim: '카테고리 - 데님',
+  category_slacks: '카테고리 - 슬랙스',
+  category_shorts: '카테고리 - 반바지',
 }
 
 // key는 "page.section.나머지" 형태(예: home.event_banner.men-outer.label) — 두 번째 조각을 섹션으로 취급
@@ -52,7 +57,19 @@ const FIXED_ASPECT = 2 / 3
 const RESPONSIVE_SECTIONS = new Set(Object.keys(RESPONSIVE_ASPECT))
 
 const CATEGORY_ASPECT = 3 / 4
-const CATEGORY_SECTIONS = new Set(['category_all', 'category_outer', 'category_top', 'category_bottom'])
+const CATEGORY_SECTIONS = new Set([
+  'category_coat',
+  'category_jacket',
+  'category_padding',
+  'category_cardigan',
+  'category_shirt',
+  'category_tshirt',
+  'category_knit',
+  'category_hoodie',
+  'category_denim',
+  'category_slacks',
+  'category_shorts',
+])
 
 // 히어로 섹션은 고정 헤더(모바일 h-48, 그 아래 그라디언트는 160px까지)가 이미지 위에 겹쳐진다.
 // 크롭 높이 대비 대략적인 비율(여유를 좀 둔 값) — 이 안에는 얼굴 등 중요한 요소를 두면 안 됨.
@@ -182,15 +199,8 @@ function ContentManage() {
     loadRows()
   }
 
-  // hero_layered/new_banner/sale_banner는 각각 전용 매니저(HeroLayeredManager/HomeBannerManager)가
-  // 전담하므로 범용 렌더링에서 제외.
-  const groupedByPage = rows
-    .filter(
-      (row) =>
-        sectionOf(row.key) !== 'hero_layered' &&
-        sectionOf(row.key) !== 'new_banner' &&
-        sectionOf(row.key) !== 'sale_banner',
-    )
+  // editorial_sub_banner는 전용 매니저(EditorialBannerManager)가 전담하므로 범용 렌더링에서 제외.
+  const groupedByPage = rows.filter((row) => sectionOf(row.key) !== 'editorial_sub_banner')
     .reduce<Record<string, Record<string, ContentRow[]>>>((pages, row) => {
       const section = sectionOf(row.key)
       const page = (pages[row.page] ??= {})
@@ -324,23 +334,11 @@ function ContentManage() {
       ) : (
         <>
           <div className="flex flex-col gap-24">
-            <h2 className="text-h3 border-b border-line pb-8 font-bold">{PAGE_LABELS.home}</h2>
+            <h2 className="text-h3 border-b border-line pb-8 font-bold">공통</h2>
 
             <div className="flex flex-col gap-16">
-              <h3 className="text-body-sm font-bold text-secondary">홈 히어로 (태블릿·데스크톱)</h3>
-              <HeroLayeredManager />
-            </div>
-
-            {renderSections('home', ['hero'])}
-
-            <div className="flex flex-col gap-16">
-              <h3 className="text-body-sm font-bold text-secondary">베스트 상품</h3>
+              <h3 className="text-body-sm font-bold text-secondary">베스트 상품 (MEN/WOMEN 공통)</h3>
               <BestsellerManager />
-            </div>
-
-            <div className="flex flex-col gap-16">
-              <h3 className="text-body-sm font-bold text-secondary">홈 신상품·세일 배너</h3>
-              <HomeBannerManager />
             </div>
           </div>
 
@@ -352,7 +350,25 @@ function ContentManage() {
               <FeaturedCarouselManager gender="men" label="MEN" />
             </div>
 
-            {renderSections('men', ['hero', 'category_all', 'category_outer', 'category_top', 'category_bottom'])}
+            {renderSections('men', [
+              'hero',
+              'category_coat',
+              'category_jacket',
+              'category_padding',
+              'category_cardigan',
+              'category_shirt',
+              'category_tshirt',
+              'category_knit',
+              'category_hoodie',
+              'category_denim',
+              'category_slacks',
+              'category_shorts',
+            ])}
+
+            <div className="flex flex-col gap-16">
+              <h3 className="text-body-sm font-bold text-secondary">에디토리얼 배너</h3>
+              <EditorialBannerManager page="men" />
+            </div>
           </div>
 
           <div className="flex flex-col gap-24">
@@ -363,7 +379,25 @@ function ContentManage() {
               <FeaturedCarouselManager gender="women" label="WOMEN" />
             </div>
 
-            {renderSections('women', ['hero', 'category_all', 'category_outer', 'category_top', 'category_bottom'])}
+            {renderSections('women', [
+              'hero',
+              'category_coat',
+              'category_jacket',
+              'category_padding',
+              'category_cardigan',
+              'category_shirt',
+              'category_tshirt',
+              'category_knit',
+              'category_hoodie',
+              'category_denim',
+              'category_slacks',
+              'category_shorts',
+            ])}
+
+            <div className="flex flex-col gap-16">
+              <h3 className="text-body-sm font-bold text-secondary">에디토리얼 배너</h3>
+              <EditorialBannerManager page="women" />
+            </div>
           </div>
         </>
       )}

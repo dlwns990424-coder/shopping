@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { ChevronDown, Heart } from 'lucide-react'
+import ProductGallery from '../components/ProductGallery'
 import SizeSelector from '../components/SizeSelector'
 import QuantityStepper from '../components/QuantityStepper'
 import Button from '../components/Button'
@@ -413,11 +414,9 @@ function ProductDetail() {
 
       {/* 모바일 전용: 사진 1장만 보고 바로 이름/가격/사이즈에 닿도록 순서를 다시 짬(데스크톱은 아래 별도 블록, 손 안 댐) */}
       <div className="flex flex-col gap-32 px-20 pt-32 md:px-32 lg:hidden">
-        <div
-          data-anchor="info"
-          className="aspect-[4/5] scroll-mt-96 bg-surface-muted bg-cover bg-center bg-no-repeat md:scroll-mt-112"
-          style={{ backgroundImage: `url(${product.image})` }}
-        />
+        <div data-anchor="info" className="scroll-mt-96 md:scroll-mt-112">
+          <ProductGallery images={[product.image, ...product.detailImages]} />
+        </div>
 
         {purchaseSelectors}
 
@@ -438,12 +437,18 @@ function ProductDetail() {
         )}
       </div>
 
-      {/* 데스크톱 전용 탭바: 그리드 안쪽 sticky는 그리드 영역을 벗어나면(리뷰/추천 지나서) 같이 사라지는 문제가 있어서,
-          그리드 밖으로 꺼내 페이지 전체 기준 fixed로 바꿈 — 맨 아래로 스크롤해도 항상 보임.
-          그리드와 동일한 mx-auto/max-w-1920/grid-cols-[13fr_7fr]를 그대로 복제해서 버튼 위치를 이미지 칼럼과 맞춤 */}
-      <nav className="fixed inset-x-0 top-64 z-fixed-bar hidden h-56 bg-surface-muted text-body text-secondary lg:block">
-        <div className="mx-auto grid h-full max-w-1920 grid-cols-[13fr_7fr] items-center gap-64">
-          <div className="flex justify-center gap-80 px-20">
+      {/* 데스크톱 전용: 좌(이미지+제품정보+탭바+상세이미지+리뷰)/우(구매 패널, sticky) 65:35 비율, 1600px에서 폭 제한.
+          탭바는 모바일과 동일하게 좌측 칼럼 안의 일반 흐름 요소로 두고 sticky로 붙인다 — 그리드를
+          더는 복제할 필요 없이 좌측 칼럼 폭에 자연히 맞음. 헤더 높이(64px)만큼 top을 줘서 그 아래에 붙는다. */}
+      <div className="hidden lg:mx-auto lg:grid lg:max-w-1920 lg:grid-cols-[13fr_7fr] lg:gap-x-64 lg:px-80 xl:px-140 2xl:px-200">
+        <div className="bg-surface">
+          <div data-anchor="info" className="scroll-mt-112">
+            <ProductGallery images={[product.image, ...product.detailImages]} />
+          </div>
+
+          <div className="px-40 py-40">{descriptionBlock}</div>
+
+          <nav className="sticky top-64 z-fixed-bar flex justify-center gap-80 border-y border-line bg-surface text-body text-secondary">
             <button
               type="button"
               onClick={() => scrollToAnchor('info')}
@@ -471,23 +476,19 @@ function ProductDetail() {
             >
               추천
             </button>
-          </div>
-        </div>
-      </nav>
+          </nav>
 
-      {/* 데스크톱 전용: 좌(이미지 2열+리뷰)/우(정보, sticky) 65:35 비율, 1600px에서 폭 제한. 회색 캔버스 위에 흰색 패널 2개.
-          위 fixed 탭바가 실제 공간을 안 차지하니(fixed는 흐름에서 빠짐) pt-56으로 띄워줌 — 탭바를 h-56으로 고정해서 정확히 맞물리게 함 */}
-      <div className="hidden lg:mx-auto lg:grid lg:max-w-1920 lg:grid-cols-[13fr_7fr] lg:gap-x-64 lg:pt-56">
-        <div className="bg-surface">
-          <div data-anchor="info" className="grid scroll-mt-112 grid-cols-2 gap-4 px-40 py-40">
-            {[product.image, ...product.detailImages].map((src, index) => (
-              <div
-                key={index}
-                className="aspect-[4/5] bg-surface-muted bg-cover bg-center bg-no-repeat"
-                style={{ backgroundImage: `url(${src})` }}
-              />
-            ))}
-          </div>
+          {product.detailImages.length > 0 && (
+            <div className="grid grid-cols-2 gap-4 px-40 py-40">
+              {product.detailImages.map((src, index) => (
+                <div
+                  key={index}
+                  className="aspect-[4/5] bg-surface-muted bg-cover bg-center bg-no-repeat"
+                  style={{ backgroundImage: `url(${src})` }}
+                />
+              ))}
+            </div>
+          )}
 
           {/* 오른쪽 구매 칸(sticky)이 리뷰까지 따라 내려오도록, 좌측 칼럼 안에 리뷰를 포함시켜서 칼럼 높이를 늘린다 */}
           <div data-anchor="review" className="scroll-mt-112 border-t border-line px-40 py-40">
@@ -498,7 +499,7 @@ function ProductDetail() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-32 self-start bg-surface-muted px-40 py-40 lg:sticky lg:top-96">
+        <div className="flex flex-col gap-32 self-start bg-surface px-40 py-40 lg:sticky lg:top-64">
           {purchaseEssentials}
 
           <div className="flex flex-col gap-12">
@@ -509,8 +510,6 @@ function ProductDetail() {
               바로 구매
             </Button>
           </div>
-
-          {descriptionBlock}
         </div>
       </div>
 

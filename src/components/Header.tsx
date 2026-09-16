@@ -97,8 +97,7 @@ function Header() {
   const firstMenuLinkRef = useRef<HTMLButtonElement | null>(null)
 
   const isHeroPage =
-    (location.pathname === '/' || location.pathname === '/men' || location.pathname === '/women') &&
-    !searchParams.get('category')
+    (location.pathname === '/men' || location.pathname === '/women') && !searchParams.get('category')
   const isTransparent = isHeroPage && !scrolled && !searchOpen && !menuOpen && !hovered
 
   useEffect(() => {
@@ -156,7 +155,7 @@ function Header() {
     <header
       onPointerEnter={(e) => e.pointerType === 'mouse' && setHovered(true)}
       onPointerLeave={(e) => e.pointerType === 'mouse' && setHovered(false)}
-      className={`fixed inset-x-0 top-0 z-header flex h-48 items-center gap-16 border-b px-20 transition-colors duration-300 md:h-64 md:gap-32 md:px-32 lg:px-40 ${
+      className={`fixed inset-x-0 top-0 z-header flex h-48 items-center gap-16 border-b px-20 transition-colors duration-300 md:h-64 md:gap-32 md:px-32 lg:px-80 xl:px-140 2xl:px-200 ${
         isTransparent ? 'border-transparent bg-transparent' : 'border-line bg-surface'
       }`}
     >

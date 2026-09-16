@@ -17,7 +17,7 @@ interface HomeBannerProps {
 function HomeBanner({ title, subtitle, imageMobile, imageDesktop, href, products }: HomeBannerProps) {
   return (
     <section className="mt-64 md:mt-96 lg:mt-128">
-      <div className="relative flex h-[50vh] w-full items-center overflow-hidden bg-secondary">
+      <div className="relative flex h-[36vh] w-full items-center overflow-hidden bg-secondary md:h-[50vh]">
         <div
           className="absolute inset-0 hidden bg-cover bg-center lg:block"
           style={imageDesktop ? { backgroundImage: `url(${imageDesktop})` } : undefined}
@@ -27,8 +27,8 @@ function HomeBanner({ title, subtitle, imageMobile, imageDesktop, href, products
           style={imageMobile || imageDesktop ? { backgroundImage: `url(${imageMobile || imageDesktop})` } : undefined}
         />
         <div className="absolute inset-0 bg-black/30" />
-        <div className="relative z-10 flex w-full flex-col items-center gap-12 px-20 text-center text-surface md:px-32 lg:px-40">
-          <h2 className="text-[32px] font-light leading-[1.2] tracking-[-0.02em] text-surface drop-shadow-md md:text-[50px]">
+        <div className="relative z-10 flex w-full flex-col items-center gap-12 px-20 text-center text-surface md:px-32 lg:px-80 xl:px-140 2xl:px-200">
+          <h2 className="text-[32px] font-normal leading-[1.3] tracking-[-0.03em] text-surface drop-shadow-md md:text-[50px]">
             {title}
           </h2>
           {subtitle && (
@@ -44,7 +44,7 @@ function HomeBanner({ title, subtitle, imageMobile, imageDesktop, href, products
       </div>
 
       {products.length > 0 && (
-        <div className="mx-auto mt-24 max-w-1600 px-20 md:px-32 lg:px-40">
+        <div className="mx-auto mt-24 max-w-1600 px-20 md:px-32 lg:px-80 xl:px-140 2xl:px-200">
           <ProductCarousel products={products} />
         </div>
       )}

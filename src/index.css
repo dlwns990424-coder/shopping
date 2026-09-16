@@ -135,7 +135,7 @@
   }
 
   .page-section {
-    @apply px-20 pb-0 pt-32 md:px-32 md:pt-48 lg:px-40 lg:pt-64;
+    @apply px-20 pb-0 pt-32 md:px-32 md:pt-48 lg:px-80 xl:px-140 2xl:px-200 lg:pt-64;
   }
 
   .page-section:last-of-type {
@@ -153,9 +153,5 @@
 
   .product-grid {
     @apply grid grid-cols-2 gap-x-24 gap-y-20 md:grid-cols-3 lg:grid-cols-4 lg:gap-y-0;
-  }
-
-  .category-grid {
-    @apply grid grid-cols-2 gap-24 md:grid-cols-4;
   }
 }
