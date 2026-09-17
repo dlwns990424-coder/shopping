@@ -14,13 +14,15 @@ interface MyPageNavProps {
 function MyPageNav({ activeTab, onLogout }: MyPageNavProps) {
   return (
     <nav className="flex flex-col gap-32">
-      <ul className="m-0 flex list-none flex-col gap-4 p-0">
+      <ul className="-mx-20 m-0 grid list-none grid-cols-3 border-b border-line p-0 md:mx-0 lg:flex lg:flex-col lg:gap-4 lg:border-b-0">
         {TABS.map((tab) => (
-          <li key={tab.id}>
+          <li key={tab.id} className="min-w-0">
             <Link
               to={`/mypage?tab=${tab.id}`}
-              className={`block rounded-sm px-16 py-12 text-base font-medium no-underline transition-colors active:scale-95 hover:text-primary ${
-                activeTab === tab.id ? 'bg-surface-muted text-primary' : 'text-secondary'
+              className={`flex h-48 w-full items-center justify-center border-b px-8 text-center text-sm font-medium no-underline transition-colors hover:text-primary lg:h-auto lg:justify-start lg:rounded-sm lg:border-b-0 lg:px-16 lg:py-12 lg:text-left lg:text-base lg:active:scale-95 ${
+                activeTab === tab.id
+                  ? 'border-primary text-primary lg:bg-surface-muted'
+                  : 'border-transparent text-secondary'
               }`}
             >
               {tab.label}

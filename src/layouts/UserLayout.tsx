@@ -1,13 +1,22 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation, useSearchParams } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import ScrollTopButton from '../components/ScrollTopButton'
+import { getBottomNavMode } from '../utils/bottomNavMode'
+import { getCompactHeaderConfig } from '../utils/headerNavigation'
 
 function UserLayout() {
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
+  const compactHeader = getCompactHeaderConfig(location.pathname, searchParams)
+  const bottomNavMode = getBottomNavMode(location.pathname, Boolean(searchParams.get('category')))
+
   return (
-    <div className="flex min-h-svh flex-col">
+    <div
+      className={`flex min-h-svh flex-col ${bottomNavMode === 'hidden' ? '' : 'main-with-bottom-nav'}`}
+    >
       <Header />
-      <main className="flex-1 pt-92 md:pt-54 lg:pt-60">
+      <main className={`flex-1 ${compactHeader ? 'main-header-offset-back' : 'main-header-offset-brand'}`}>
         <Outlet />
       </main>
       <Footer />

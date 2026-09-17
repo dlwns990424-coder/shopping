@@ -4,7 +4,6 @@ import { Helmet } from 'react-helmet-async'
 import { ChevronDown, Search, X } from 'lucide-react'
 import Button from './Button'
 import ProductCard from './ProductCard'
-import { sizeOptions } from '../mock/productDetail'
 import { CATEGORY_TABS as TABS, SUB_CATEGORIES } from '../constants/categoryFilters'
 import { useBestsellers } from '../context/BestsellersContext'
 import type { Gender, Product } from '../types'
@@ -44,7 +43,6 @@ function CategoryListing({
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const subParam = searchParams.get('sub') ?? 'all'
-  const sizeParam = searchParams.get('size') ?? 'all'
   const sortParam = searchParams.get('sort') ?? 'default'
   const qParam = searchParams.get('q') ?? ''
   const genderOverride = searchParams.get('gender')
@@ -65,13 +63,17 @@ function CategoryListing({
   const effectiveGender: 'all' | Gender =
     isSearching || defaultGender === 'all' ? (genderOverride as 'all' | Gender) || 'all' : defaultGender
   const genderLabel = effectiveGender === 'all' ? '전체' : effectiveGender.toUpperCase()
+  const genderPathLabel = effectiveGender === 'men' ? '남자' : effectiveGender === 'women' ? '여자' : '전체'
+  const genderHomePath =
+    effectiveGender === 'men' ? '/men' : effectiveGender === 'women' ? '/women' : '/shop?category=all'
 
   useEffect(() => {
     setVisibleCount(PRODUCTS_PER_PAGE)
-  }, [categoryParam, subParam, sizeParam, sortParam, qParam, effectiveGender])
+  }, [categoryParam, subParam, sortParam, qParam, effectiveGender])
 
   const buildUrl = (overrides: Record<string, string | undefined>) => {
     const params = new URLSearchParams(searchParams)
+    params.delete('size')
     Object.entries(overrides).forEach(([key, value]) => {
       if (!value || value === 'all' || value === 'default') params.delete(key)
       else params.set(key, value)
@@ -84,6 +86,7 @@ function CategoryListing({
     const params = new URLSearchParams(searchParams)
     params.set('category', id)
     params.delete('sub')
+    params.delete('size')
     return `${basePath}?${params.toString()}`
   }
 
@@ -92,7 +95,15 @@ function CategoryListing({
     navigate(buildUrl({ q: value || undefined }), { replace: true })
   }
 
-  const title = isSearching ? `"${qParam}" 검색 결과` : categoryParam === 'all' ? '전체 상품' : categoryParam
+  const title = isSearching
+    ? `"${qParam}" 검색 결과`
+    : saleOnly
+      ? '할인 상품'
+      : sortParam === 'best'
+        ? '베스트'
+        : categoryParam === 'all'
+          ? '전체 상품'
+          : categoryParam
 
   const genderProducts =
     effectiveGender === 'all' ? products : products.filter((product) => product.gender === effectiveGender)
@@ -113,9 +124,7 @@ function CategoryListing({
       ? categoryProducts
       : categoryProducts.filter((product) => product.subCategory === subParam)
 
-  const bySize = sizeParam === 'all' ? bySub : bySub.filter((product) => product.sizes.includes(sizeParam))
-
-  const bySale = saleOnly ? bySize.filter((product) => product.salePrice != null) : bySize
+  const bySale = saleOnly ? bySub.filter((product) => product.salePrice != null) : bySub
 
   const discountRate = (product: Product) =>
     product.salePrice != null ? (product.price - product.salePrice) / product.price : 0
@@ -165,35 +174,62 @@ function CategoryListing({
         </div>
       )}
 
-      <div className="px-20 pt-32 md:px-32 md:pt-48 lg:px-80 xl:px-140 2xl:px-200">
-      <div className="mb-24">
-        <p className="text-caption mb-8 tracking-[0.08em] text-secondary">NOVERA | {genderLabel}</p>
-        <h1 className="text-[40px] font-bold leading-[1.25] tracking-[-0.02em]">{title}</h1>
+      <div
+        className={`px-20 md:px-32 lg:px-80 xl:px-140 2xl:px-200 ${
+          isSearching ? 'pt-32 md:pt-48' : 'pt-16 md:pt-24 lg:pt-48'
+        }`}
+      >
+      <div className={isSearching ? 'mb-24' : 'lg:mb-24'}>
+        {isSearching ? (
+          <p className="text-caption mb-8 tracking-[0.08em] text-secondary">NOVERA | {genderLabel}</p>
+        ) : (
+          <nav
+            aria-label="현재 상품 분류"
+            className="text-caption mb-8 hidden items-center gap-6 tracking-[0.08em] text-secondary lg:flex"
+          >
+            <Link to={genderHomePath} className="text-secondary no-underline hover:text-primary">
+              {genderPathLabel}
+            </Link>
+            <span aria-hidden="true">&gt;</span>
+            <span>{title}</span>
+          </nav>
+        )}
+        <h1
+          className={
+            isSearching
+              ? 'text-[40px] font-bold leading-[1.25] tracking-[-0.02em]'
+              : 'text-h2 sr-only lg:not-sr-only'
+          }
+        >
+          {title}
+        </h1>
       </div>
 
-      <div className="relative mb-24 max-w-480">
-        <Search
-          size={18}
-          strokeWidth={1.5}
-          className="pointer-events-none absolute left-16 top-1/2 -translate-y-1/2 text-secondary"
-        />
-        <input
-          value={queryInput}
-          onChange={(e) => handleQueryChange(e.target.value)}
-          placeholder="상품명을 검색해보세요"
-          className="text-sm w-full rounded-sm border border-line py-12 pl-44 pr-40 text-primary outline-none focus:border-primary"
-        />
-        {queryInput && (
-          <button
-            type="button"
-            onClick={() => navigate(buildUrl({ q: undefined, gender: undefined }))}
-            aria-label="검색어 지우기"
-            className="absolute right-12 top-1/2 flex h-24 w-24 -translate-y-1/2 items-center justify-center text-secondary transition-colors active:scale-90 hover:text-primary"
-          >
-            <X size={16} strokeWidth={1.5} />
-          </button>
-        )}
-      </div>
+      {isSearching && (
+        <div className="relative mb-24 max-w-480">
+          <Search
+            size={18}
+            strokeWidth={1.5}
+            className="pointer-events-none absolute left-16 top-1/2 -translate-y-1/2 text-secondary"
+          />
+          <input
+            value={queryInput}
+            onChange={(e) => handleQueryChange(e.target.value)}
+            placeholder="상품명을 검색해보세요"
+            className="text-sm w-full rounded-sm border border-line py-12 pl-44 pr-40 text-primary outline-none focus:border-primary"
+          />
+          {queryInput && (
+            <button
+              type="button"
+              onClick={() => navigate(buildUrl({ q: undefined, gender: undefined }))}
+              aria-label="검색어 지우기"
+              className="absolute right-12 top-1/2 flex h-24 w-24 -translate-y-1/2 items-center justify-center text-secondary transition-colors active:scale-90 hover:text-primary"
+            >
+              <X size={16} strokeWidth={1.5} />
+            </button>
+          )}
+        </div>
+      )}
 
       {(isSearching || defaultGender === 'all') && (
         <div className="flex flex-wrap gap-8 pb-16">
@@ -209,12 +245,12 @@ function CategoryListing({
         </div>
       )}
 
-      <div className="flex gap-24 border-b border-line">
+      <div className="-mx-20 grid grid-cols-4 border-b border-line md:mx-0 md:flex md:gap-24">
         {TABS.map((tab) => (
           <Link
             key={tab.id}
             to={categoryTabUrl(tab.id)}
-            className={`-mb-px border-b py-12 text-sm font-medium no-underline transition-colors active:scale-95 hover:border-primary hover:text-primary ${
+            className={`-mb-px w-full border-b py-12 text-center text-sm font-medium no-underline transition-colors active:scale-95 hover:border-primary hover:text-primary md:w-auto ${
               categoryParam === tab.id ? 'border-primary text-primary' : 'border-transparent text-disabled'
             }`}
           >
@@ -235,17 +271,6 @@ function CategoryListing({
           ))}
         </div>
       )}
-
-      <div className="flex flex-wrap gap-8 pt-16">
-        <Link to={buildUrl({ size: undefined })} className={subTabClass(sizeParam === 'all')}>
-          전체 사이즈
-        </Link>
-        {sizeOptions.map((size) => (
-          <Link key={size} to={buildUrl({ size })} className={subTabClass(sizeParam === size)}>
-            {size}
-          </Link>
-        ))}
-      </div>
 
       <div className="flex items-center justify-between py-16 text-secondary">
         <span className="text-body-sm">{displayedProducts.length}개 상품</span>

@@ -30,10 +30,10 @@ function ScrollTopButton() {
   }, [])
 
   const bottomClass = isProductDetail || isCart
-    ? 'bottom-96 lg:bottom-24'
+    ? 'bottom-[calc(96px+env(safe-area-inset-bottom))] lg:bottom-24'
     : hasBottomNav
-      ? 'bottom-88 md:bottom-24'
-      : 'bottom-24'
+      ? 'bottom-[calc(88px+env(safe-area-inset-bottom))] md:bottom-24'
+      : 'bottom-[max(24px,env(safe-area-inset-bottom))]'
 
   const shouldShow = visible && (bottomNavMode !== 'scroll-aware' || bottomNavVisible)
 

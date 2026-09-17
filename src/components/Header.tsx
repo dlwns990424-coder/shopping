@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useState, type ReactNode } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
-import { Search, Heart, ShoppingBag, User } from 'lucide-react'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Search, Heart, ShoppingBag, User } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 import { useCart } from '../context/CartContext'
@@ -8,6 +8,7 @@ import { useProducts } from '../context/ProductsContext'
 import SearchOverlay from './SearchOverlay'
 import MobileMainNav from './MobileMainNav'
 import { getBottomNavMode } from '../utils/bottomNavMode'
+import { getCompactHeaderConfig } from '../utils/headerNavigation'
 
 const TRANSPARENT_SCROLL_THRESHOLD = 100
 
@@ -87,6 +88,7 @@ function Header() {
   const { items: cartItems } = useCart()
   const { products } = useProducts()
   const location = useLocation()
+  const navigate = useNavigate()
   // Cart.tsx의 "총 N개 상품"과 동일하게 라인(종류) 개수 기준으로 통일 — 수량 합산 아님
   const cartCount = cartItems.length
   const [searchParams] = useSearchParams()
@@ -99,6 +101,24 @@ function Header() {
     (location.pathname === '/men' || location.pathname === '/women') && !searchParams.get('category')
   const isTransparent = isHeroPage && !scrolled && !searchOpen && !hovered
   const bottomNavMode = getBottomNavMode(location.pathname, Boolean(searchParams.get('category')))
+  const compactHeader = getCompactHeaderConfig(location.pathname, searchParams)
+
+  const handleBack = () => {
+    if (searchOpen) {
+      setSearchOpen(false)
+      return
+    }
+
+    const historyState = window.history.state as { idx?: number } | null
+    if (typeof historyState?.idx === 'number' && historyState.idx > 0) {
+      navigate(-1)
+      return
+    }
+
+    const loginFrom = (location.state as { from?: string } | null)?.from
+    const productFallback = activeGender ? `/${activeGender}?category=all` : compactHeader?.fallbackPath
+    navigate(loginFrom ?? productFallback ?? '/men', { replace: true })
+  }
 
   useEffect(() => {
     setSearchOpen(false)
@@ -137,7 +157,7 @@ function Header() {
     <header
       onPointerEnter={(e) => e.pointerType === 'mouse' && setHovered(true)}
       onPointerLeave={(e) => e.pointerType === 'mouse' && setHovered(false)}
-      className={`fixed inset-x-0 top-0 z-header flex h-48 items-center gap-16 border-b border-line/50 bg-surface px-20 transition-colors duration-300 md:h-54 md:gap-32 md:px-32 lg:h-60 lg:px-80 xl:px-140 2xl:px-200 ${
+      className={`app-header fixed inset-x-0 top-0 z-header flex items-center gap-16 border-b border-line/50 bg-surface transition-colors duration-300 md:gap-32 ${
         isTransparent ? 'md:border-transparent md:bg-transparent' : ''
       }`}
     >
@@ -148,7 +168,21 @@ function Header() {
         }`}
       />
 
-      <Link to="/" className="inline-flex shrink-0 items-center">
+      {compactHeader && (
+        <button
+          type="button"
+          onClick={handleBack}
+          aria-label="뒤로가기"
+          className="relative z-10 -ml-12 flex h-44 w-44 shrink-0 items-center justify-center text-primary transition-transform active:scale-90 md:ml-0 lg:hidden"
+        >
+          <ArrowLeft size={22} strokeWidth={1.5} />
+        </button>
+      )}
+
+      <Link
+        to="/"
+        className={`${compactHeader ? 'hidden lg:inline-flex' : 'inline-flex'} shrink-0 items-center`}
+      >
         <img
           src="/images/brand/novera-logo-header.png"
           alt="NOVERA"
@@ -158,7 +192,32 @@ function Header() {
         />
       </Link>
 
-      <nav className="hidden flex-1 gap-24 md:flex">
+      {compactHeader?.breadcrumb ? (
+        <nav
+          aria-label="현재 상품 분류"
+          className="relative z-10 -ml-8 flex min-w-0 flex-1 items-center gap-6 text-sm font-semibold text-primary lg:hidden"
+        >
+          <Link to={compactHeader.breadcrumb.rootPath} className="shrink-0 text-primary no-underline">
+            {compactHeader.breadcrumb.rootLabel}
+          </Link>
+          <span aria-hidden="true" className="shrink-0 text-secondary">
+            &gt;
+          </span>
+          <span className="truncate">{compactHeader.breadcrumb.currentLabel}</span>
+        </nav>
+      ) : compactHeader ? (
+        <p
+          className={
+            compactHeader.alignTitleLeft
+              ? 'relative z-10 -ml-8 flex min-w-0 flex-1 items-center truncate text-sm font-semibold text-primary lg:hidden'
+              : 'pointer-events-none absolute inset-x-76 bottom-0 flex h-48 items-center justify-center truncate px-8 text-center text-sm font-semibold text-primary md:h-54 lg:hidden'
+          }
+        >
+          {compactHeader.title}
+        </p>
+      ) : null}
+
+      <nav className={`${compactHeader ? 'hidden lg:flex' : 'hidden md:flex'} flex-1 gap-24`}>
         <Link to="/men" className={navLinkClass(activeGender === 'men')}>
           MEN
         </Link>
@@ -167,7 +226,7 @@ function Header() {
         </Link>
       </nav>
 
-      <div className="hidden items-center gap-8 md:flex md:gap-16">
+      <div className={`${compactHeader ? 'hidden lg:flex' : 'hidden md:flex'} items-center gap-8`}>
         <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)} light={isTransparent}>
           <Search size={20} strokeWidth={1.5} />
         </IconButton>
@@ -193,31 +252,56 @@ function Header() {
         </IconButton>
       </div>
 
-      <div className="ml-auto flex items-center gap-8 md:hidden">
-        <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)} light={false}>
-          <Search size={20} strokeWidth={1.5} />
-        </IconButton>
-        <IconButton
-          label="장바구니"
-          to={user ? '/cart' : undefined}
-          onClick={user ? undefined : openLoginModal}
-          light={false}
-          badgeCount={user ? cartCount : 0}
-        >
-          <ShoppingBag size={20} strokeWidth={1.5} />
-        </IconButton>
-      </div>
+      {!compactHeader && (
+        <div className="-mr-12 ml-auto flex items-center gap-0 md:hidden">
+          <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)} light={false}>
+            <Search size={20} strokeWidth={1.5} />
+          </IconButton>
+          <IconButton
+            label="장바구니"
+            to={user ? '/cart' : undefined}
+            onClick={user ? undefined : openLoginModal}
+            light={false}
+            badgeCount={user ? cartCount : 0}
+          >
+            <ShoppingBag size={20} strokeWidth={1.5} />
+          </IconButton>
+        </div>
+      )}
 
-      <nav className="fixed inset-x-0 top-48 z-header flex h-44 border-b border-line/50 bg-surface md:hidden">
-        <Link to="/men" className={genderTabClass(activeGender === 'men')}>
-          MEN
-        </Link>
-        <Link to="/women" className={genderTabClass(activeGender === 'women')}>
-          WOMEN
-        </Link>
-      </nav>
+      {compactHeader?.showShoppingActions && (
+        <div className="relative z-10 -mr-12 ml-auto flex items-center gap-0 md:mr-0 lg:hidden">
+          <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)} light={false}>
+            <Search size={20} strokeWidth={1.5} />
+          </IconButton>
+          <IconButton
+            label="장바구니"
+            to={user ? '/cart' : undefined}
+            onClick={user ? undefined : openLoginModal}
+            light={false}
+            badgeCount={user ? cartCount : 0}
+          >
+            <ShoppingBag size={20} strokeWidth={1.5} />
+          </IconButton>
+        </div>
+      )}
 
-      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+      {!compactHeader && (
+        <nav className="mobile-gender-tabs fixed inset-x-0 z-header flex h-44 border-b border-line/50 bg-surface md:hidden">
+          <Link to="/men" className={genderTabClass(activeGender === 'men')}>
+            MEN
+          </Link>
+          <Link to="/women" className={genderTabClass(activeGender === 'women')}>
+            WOMEN
+          </Link>
+        </nav>
+      )}
+
+      <SearchOverlay
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        compactHeader={Boolean(compactHeader)}
+      />
 
       <MobileMainNav
         gender={activeGender ?? 'men'}

@@ -58,7 +58,7 @@ function Wishlist() {
         <Heart size={48} strokeWidth={1.2} className="text-disabled" />
         <p className="text-h3">아직 찜한 상품이 없습니다</p>
         <p className="text-body text-secondary">마음에 드는 상품을 위시리스트에 담아보세요</p>
-        <Button variant="primary" size="large" onClick={() => navigate('/')}>
+        <Button variant="primary" size="large" className="h-44 !py-0" onClick={() => navigate('/')}>
           쇼핑하러 가기
         </Button>
       </div>
@@ -66,11 +66,11 @@ function Wishlist() {
   }
 
   return (
-    <div className="page-section mb-60 md:mb-0">
+    <div className="page-section">
       <Helmet>
         <title>NOVERA | 위시리스트</title>
       </Helmet>
-      <h1 className="text-h1 mb-24">찜한 상품</h1>
+      <h1 className="text-h1 mb-24 hidden lg:block lg:text-h2">찜한 상품</h1>
       <div className="mb-16 flex items-center justify-between">
         {selectionMode ? (
           <Checkbox

@@ -1,6 +1,6 @@
 let activeFrameId: number | null = null
 
-export function animateScrollTo(top: number, duration: number) {
+export function animateScrollTo(top: number, duration: number, onComplete?: () => void) {
   if (activeFrameId != null) {
     window.cancelAnimationFrame(activeFrameId)
     activeFrameId = null
@@ -14,6 +14,7 @@ export function animateScrollTo(top: number, duration: number) {
 
   if (reduceMotion || duration <= 0 || Math.abs(distance) < 1) {
     window.scrollTo({ top: targetTop })
+    onComplete?.()
     return
   }
 
@@ -28,6 +29,7 @@ export function animateScrollTo(top: number, duration: number) {
       activeFrameId = window.requestAnimationFrame(step)
     } else {
       activeFrameId = null
+      onComplete?.()
     }
   }
 

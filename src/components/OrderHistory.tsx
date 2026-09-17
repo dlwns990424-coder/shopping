@@ -132,7 +132,7 @@ function OrderHistory() {
         <ShoppingBag size={48} strokeWidth={1.2} className="text-disabled" />
         <p className="text-h3">아직 주문한 상품이 없습니다</p>
         <p className="text-body text-secondary">마음에 드는 상품을 만나보세요</p>
-        <Button variant="primary" size="large" onClick={() => navigate('/')}>
+        <Button variant="primary" size="large" className="h-44 !py-0" onClick={() => navigate('/')}>
           쇼핑하러 가기
         </Button>
       </div>

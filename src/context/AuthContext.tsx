@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { AuthError } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabaseClient'
 import type { AuthResult, SignupInput, User } from '../types'
@@ -64,9 +64,14 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-// 정지되었거나(관리자가 정지) 삭제된(휴지통) 계정은 로그인 세션이 있어도
-// 프로필을 못 찾은 것으로 취급해서 즉시 로그아웃시킨다.
-async function loadProfile(userId: string): Promise<User | null> {
+type ProfileResult =
+  | { status: 'active'; user: User }
+  | { status: 'blocked' }
+  | { status: 'error' }
+
+// 조회 오류를 계정 없음·정지 상태와 구분한다. 일시적인 통신 오류까지 계정 제한으로
+// 오인해 세션을 삭제하면 로그인 직후 다시 비로그인 상태가 되는 문제가 생긴다.
+async function loadProfile(userId: string): Promise<ProfileResult> {
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
@@ -74,41 +79,63 @@ async function loadProfile(userId: string): Promise<User | null> {
     .is('deleted_at', null)
     .maybeSingle()
 
-  if (error || !data || data.suspended) return null
-  return toUser(data as ProfileRow)
+  if (error) {
+    console.error('프로필 조회에 실패했습니다.', error)
+    return { status: 'error' }
+  }
+  if (!data || data.suspended) return { status: 'blocked' }
+  return { status: 'active', user: toUser(data as ProfileRow) }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const sessionUserIdRef = useRef<string | undefined>(undefined)
+  const loginInProgressRef = useRef(false)
 
   useEffect(() => {
     let active = true
 
     const syncSession = async (userId: string | undefined) => {
+      sessionUserIdRef.current = userId
       if (!userId) {
         if (active) setUser(null)
         return
       }
-      const profile = await loadProfile(userId)
-      if (!active) return
-      if (!profile) {
+
+      const result = await loadProfile(userId)
+      if (!active || sessionUserIdRef.current !== userId) return
+
+      if (result.status === 'error') return
+      if (result.status === 'blocked') {
         await supabase.auth.signOut()
-        setUser(null)
+        if (active) setUser(null)
       } else {
-        setUser(profile)
+        setUser(result.user)
       }
     }
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      await syncSession(session?.user.id)
-      if (active) setLoading(false)
-    })
+    const restoreSession = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        await syncSession(session?.user.id)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    void restoreSession()
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      syncSession(session?.user.id)
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // 초기 세션은 restoreSession이, 직접 로그인은 login()이 프로필까지 확인한다.
+      // 같은 프로필 조회를 동시에 실행하지 않도록 해당 이벤트는 건너뛴다.
+      if (event === 'INITIAL_SESSION') return
+      if (event === 'SIGNED_IN' && loginInProgressRef.current) return
+      void syncSession(session?.user.id)
     })
 
     return () => {
@@ -130,20 +157,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const login = async (email: string, password: string): Promise<AuthResult> => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    loginInProgressRef.current = true
+    let signInResult: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>
+    try {
+      signInResult = await supabase.auth.signInWithPassword({ email, password })
+    } finally {
+      loginInProgressRef.current = false
+    }
+
+    const { data, error } = signInResult
+
     if (error || !data.user) {
       return { success: false, message: error ? translateAuthError(error) : '로그인에 실패했습니다.' }
     }
-    const profile = await loadProfile(data.user.id)
-    if (!profile) {
+
+    const result = await loadProfile(data.user.id)
+    if (result.status === 'error') {
+      return { success: false, message: '회원 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.' }
+    }
+    if (result.status === 'blocked') {
       await supabase.auth.signOut()
       return { success: false, message: '정지되었거나 존재하지 않는 계정입니다. 고객센터에 문의해주세요.' }
     }
-    setUser(profile)
+
+    sessionUserIdRef.current = data.user.id
+    setUser(result.user)
     return { success: true }
   }
 
   const logout = async () => {
+    sessionUserIdRef.current = undefined
     await supabase.auth.signOut()
     setUser(null)
   }

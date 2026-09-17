@@ -16,11 +16,14 @@ function chunkIntoPairs<T>(items: T[]): T[][] {
   return pairs
 }
 
-// 상품 상세의 메인 이미지 갤러리 — 최대 4장을 2장씩 한 페이지로 묶어 보여주고(참고 사이트와 동일),
-// 스와이프는 페이지 단위로 넘어간다. 하단 썸네일도 페이지와 동일하게 2장 세트로 묶어 한 줄로 배치하고,
-// 클릭하면 해당 페이지로 바로 이동한다(화살표 버튼 없음).
+// 상품 상세의 메인 이미지 갤러리 — 모바일은 최대 4장을 한 장씩, 태블릿 이상은 두 장씩 묶는다.
+// 하단 썸네일도 현재 화면의 묶음 단위와 맞추고, 클릭하면 해당 페이지로 이동한다.
 function ProductGallery({ images, scrollMarginClassName = '' }: ProductGalleryProps) {
-  const pairs = chunkIntoPairs(images.slice(0, 4))
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches,
+  )
+  const limitedImages = images.slice(0, 4)
+  const pages = isMobile ? limitedImages.map((image) => [image]) : chunkIntoPairs(limitedImages)
   const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start' })
   const [selectedIndex, setSelectedIndex] = useState(0)
 
@@ -36,16 +39,29 @@ function ProductGallery({ images, scrollMarginClassName = '' }: ProductGalleryPr
     emblaApi.on('reInit', onSelect)
   }, [emblaApi, onSelect])
 
-  if (pairs.length === 0) return null
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)')
+    const handleChange = (event: MediaQueryListEvent) => setIsMobile(event.matches)
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+
+  useEffect(() => {
+    if (!emblaApi) return
+    emblaApi.reInit()
+    emblaApi.scrollTo(0, true)
+  }, [emblaApi, isMobile])
+
+  if (pages.length === 0) return null
 
   return (
     <div className={scrollMarginClassName}>
       <div className="overflow-hidden touch-pan-y" ref={emblaRef}>
         <div className="flex">
-          {pairs.map((pair, pairIndex) => (
-            <div key={pairIndex} className="min-w-0 flex-[0_0_100%]">
-              <div className="grid grid-cols-2 gap-8">
-                {pair.map((src, imgIndex) => (
+          {pages.map((page, pageIndex) => (
+            <div key={pageIndex} className="min-w-0 flex-[0_0_100%]">
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+                {page.map((src, imgIndex) => (
                   <div
                     key={imgIndex}
                     className="aspect-[4/5] bg-surface-muted bg-cover bg-center bg-no-repeat"
@@ -58,20 +74,20 @@ function ProductGallery({ images, scrollMarginClassName = '' }: ProductGalleryPr
         </div>
       </div>
 
-      {pairs.length > 1 && (
+      {pages.length > 1 && (
         <div className="mt-12 flex justify-start gap-8">
-          {pairs.map((pair, pairIndex) => (
+          {pages.map((page, pageIndex) => (
             <button
-              key={pairIndex}
+              key={pageIndex}
               type="button"
-              onClick={() => emblaApi?.scrollTo(pairIndex)}
-              aria-label={`${pairIndex + 1}번째 이미지 세트 보기`}
-              aria-current={selectedIndex === pairIndex}
-              className={`grid h-80 w-150 shrink-0 cursor-pointer grid-cols-2 gap-4 overflow-hidden rounded-sm border p-0 transition-colors ${
-                selectedIndex === pairIndex ? 'border-primary' : 'border-line'
+              onClick={() => emblaApi?.scrollTo(pageIndex)}
+              aria-label={`${pageIndex + 1}번째 ${isMobile ? '이미지' : '이미지 세트'} 보기`}
+              aria-current={selectedIndex === pageIndex}
+              className={`grid h-80 w-60 shrink-0 cursor-pointer grid-cols-1 gap-4 overflow-hidden rounded-sm border p-0 transition-colors md:w-150 md:grid-cols-2 ${
+                selectedIndex === pageIndex ? 'border-primary' : 'border-line'
               }`}
             >
-              {pair.map((src, imgIndex) => (
+              {page.map((src, imgIndex) => (
                 <div
                   key={imgIndex}
                   className="h-full w-full bg-cover bg-center bg-no-repeat bg-surface-muted"

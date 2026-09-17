@@ -23,11 +23,11 @@ function MyPage() {
   }
 
   return (
-    <div className="page-section mb-60 flex flex-col gap-32 md:mb-0">
+    <div className="page-section flex flex-col gap-32 pt-16 md:pt-24 lg:pt-64">
       <Helmet>
         <title>NOVERA | 마이페이지</title>
       </Helmet>
-      <h1 className="text-h1 max-w-1000">마이페이지</h1>
+      <h1 className="text-h1 max-w-1000 hidden lg:block lg:text-h2">마이페이지</h1>
 
       {/* lg 미만: 사이드바가 콘텐츠 위에 쌓이는 기존 방식 그대로.
           lg 이상: 사이드바는 왼쪽에 절대위치로 고정하고, 콘텐츠는 사이드바 유무와 무관하게

@@ -28,6 +28,7 @@ import { getSizeChartValue, SIZE_CHART_BY_SUBCATEGORY } from '../constants/sizeC
 // 상품ID가 다르면(다른 상품 보다 로그인한 경우 등) 무시하고, 읽는 즉시 지워서 1회성으로 쓴다.
 const PENDING_SELECTION_KEY = 'pdp_pending_selection'
 const STICKY_TAB_SCROLL_DURATION_MS = 300
+type ProductDetailAnchor = 'productInfo' | 'size' | 'review' | 'related'
 
 function shuffle<T>(items: T[]): T[] {
   const copy = [...items]
@@ -69,7 +70,8 @@ function ProductDetail() {
   const [sizeError, setSizeError] = useState(false)
   const [quantity, setQuantity] = useState(1)
   const [showToast, setShowToast] = useState(false)
-  const [activeAnchor, setActiveAnchor] = useState<'productInfo' | 'size' | 'review' | 'related'>('productInfo')
+  const [activeAnchor, setActiveAnchor] = useState<ProductDetailAnchor>('productInfo')
+  const scrollingToAnchorRef = useRef<ProductDetailAnchor | null>(null)
 
   useEffect(() => {
     if (product) addRecentlyViewed(product.id)
@@ -101,9 +103,11 @@ function ProductDetail() {
     const SCROLL_POSITION_TOLERANCE_PX = 2
 
     const handleScroll = () => {
+      if (scrollingToAnchorRef.current) return
+
       const targets = getTargets()
       const isCompactViewport = window.innerWidth <= COMPACT_MAX_WIDTH_PX
-      let current: 'productInfo' | 'size' | 'review' | 'related' = 'productInfo'
+      let current: ProductDetailAnchor = 'productInfo'
       for (const { anchor, el } of targets) {
         const scrollMarginTop = parseFloat(getComputedStyle(el).scrollMarginTop) || ACTIVE_THRESHOLD_PX
         const activationThreshold = isCompactViewport
@@ -227,14 +231,18 @@ function ProductDetail() {
   // scroll-margin-top 계산이 브라우저/타이밍에 따라 미묘하게 어긋나는 경우가 있어서(스크롤이
   // 의도한 지점보다 훨씬 더 내려가 sticky 탭바가 화면 밖으로 사라지는 버그가 있었다),
   // 매번 같은 결과가 나오는 이 방식이 더 안전하다.
-  const scrollToAnchor = (anchor: 'productInfo' | 'size' | 'review' | 'related') => {
+  const scrollToAnchor = (anchor: ProductDetailAnchor) => {
     const el = Array.from(document.querySelectorAll<HTMLElement>(`[data-anchor="${anchor}"]`)).find(
       (item) => item.offsetParent !== null,
     )
     if (!el) return
     const scrollMarginTop = parseFloat(getComputedStyle(el).scrollMarginTop) || 0
     const target = window.scrollY + el.getBoundingClientRect().top - scrollMarginTop
-    animateScrollTo(target, STICKY_TAB_SCROLL_DURATION_MS)
+    scrollingToAnchorRef.current = anchor
+    setActiveAnchor(anchor)
+    animateScrollTo(target, STICKY_TAB_SCROLL_DURATION_MS, () => {
+      if (scrollingToAnchorRef.current === anchor) scrollingToAnchorRef.current = null
+    })
   }
 
   const handleAddToCart = () => {
@@ -465,7 +473,7 @@ function ProductDetail() {
         {/* 방금 지운 모바일 전용 "바로 구매" 버튼이 있던 자리 — 탭바를 여기로 옮겨서, 처음엔 일반 콘텐츠처럼
             있다가 스크롤이 이 지점을 넘어가면 그때부터 헤더 아래 고정(sticky)된다. 4등분(grid-cols-4)해서
             가운데로 몰리지 않게 하고, 활성 탭은 블랙 border-bottom, 비활성은 연한 회색 border-bottom으로 표시한다. */}
-        <nav className="sticky top-92 z-fixed-bar grid h-40 grid-cols-4 bg-surface text-body tracking-[-0.02em] md:top-54">
+        <nav className="sticky top-[var(--mobile-header-height)] z-fixed-bar grid h-40 grid-cols-4 bg-surface text-body tracking-[-0.02em] md:top-[var(--tablet-header-height)]">
           {tabNavItems.map(({ anchor, label }) => (
             <button
               key={anchor}
@@ -480,7 +488,10 @@ function ProductDetail() {
           ))}
         </nav>
 
-        <div data-anchor="productInfo" className="scroll-mt-140 md:scroll-mt-112">
+        <div
+          data-anchor="productInfo"
+          className="scroll-mt-[calc(var(--mobile-header-height)+40px)] md:scroll-mt-[calc(var(--tablet-header-height)+40px)]"
+        >
           {descriptionBlock}
         </div>
 
@@ -496,17 +507,26 @@ function ProductDetail() {
           </div>
         )}
 
-        <div data-anchor="size" className="scroll-mt-140 md:scroll-mt-112">
+        <div
+          data-anchor="size"
+          className="scroll-mt-[calc(var(--mobile-header-height)+40px)] md:scroll-mt-[calc(var(--tablet-header-height)+40px)]"
+        >
           {sizeAndMaterialBlock}
         </div>
 
         {/* 리뷰와 추천 상품을 탭바와 같은 컨테이너 안에 둬서, 모바일·태블릿에서는 추천 상품을
             살펴보는 동안에도 탭바가 유지되고 추천 영역이 끝난 뒤에만 sticky가 해제되게 한다. */}
-        <div data-anchor="review" className="scroll-mt-140 md:scroll-mt-112">
+        <div
+          data-anchor="review"
+          className="scroll-mt-[calc(var(--mobile-header-height)+40px)] md:scroll-mt-[calc(var(--tablet-header-height)+40px)]"
+        >
           <ReviewSection productId={product.id} />
         </div>
 
-        <section data-anchor="related" className="scroll-mt-140 md:scroll-mt-112 md:pt-16">
+        <section
+          data-anchor="related"
+          className="scroll-mt-[calc(var(--mobile-header-height)+40px)] md:scroll-mt-[calc(var(--tablet-header-height)+40px)] md:pt-16"
+        >
           <div className="page-section__header">
             <h2 className="text-xl font-bold">추천 상품</h2>
           </div>
@@ -583,7 +603,7 @@ function ProductDetail() {
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-fixed-bar flex gap-8 border-t border-line bg-surface px-20 pb-[calc(12px+env(safe-area-inset-bottom))] pt-12 lg:hidden">
+      <div className="safe-fixed-bar-x fixed inset-x-0 bottom-0 z-fixed-bar flex gap-8 border-t border-line bg-surface pb-[calc(12px+env(safe-area-inset-bottom))] pt-12 lg:hidden">
         <Button
           variant="secondary"
           size="large"

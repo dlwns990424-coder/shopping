@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
-import { Menu, Star, Home, Heart, User as UserIcon, X } from 'lucide-react'
+import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from 'react'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Menu, Star, Home, Heart, Search, User as UserIcon, X } from 'lucide-react'
 import CategoryCard from './CategoryCard'
 import { menCategories, womenCategories } from '../mock/categories'
 import type { Gender, User } from '../types'
 import type { BottomNavMode } from '../utils/bottomNavMode'
 import { useScrollDirectionVisible } from '../hooks/useScrollDirectionVisible'
+import { useRecentSearch } from '../context/RecentSearchContext'
 
 interface MobileMainNavProps {
   gender: Gender
@@ -40,23 +41,64 @@ function MinimalHomeIcon({ active }: { active: boolean }) {
 
 function MobileMainNav({ gender, user, openLoginModal, mode }: MobileMainNavProps) {
   const location = useLocation()
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [categoryOpen, setCategoryOpen] = useState(false)
   const [menuGender, setMenuGender] = useState<Gender>(gender)
+  const [drawerQuery, setDrawerQuery] = useState('')
+  const { addTerm } = useRecentSearch()
   const navVisible = useScrollDirectionVisible(mode === 'scroll-aware')
+  const categoryButtonRef = useRef<HTMLButtonElement | null>(null)
+  const drawerRef = useRef<HTMLDivElement | null>(null)
   const closeButtonRef = useRef<HTMLButtonElement | null>(null)
 
   useEffect(() => {
     if (!categoryOpen) return
-    setMenuGender(gender)
-    closeButtonRef.current?.focus()
+    const categoryButton = categoryButtonRef.current
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const focusFrame = window.requestAnimationFrame(() => closeButtonRef.current?.focus())
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setCategoryOpen(false)
+      if (e.key === 'Escape') {
+        setCategoryOpen(false)
+        return
+      }
+
+      if (e.key !== 'Tab') return
+
+      const drawer = drawerRef.current
+      if (!drawer) return
+
+      const focusable = Array.from(
+        drawer.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => element.getClientRects().length > 0)
+
+      if (focusable.length === 0) return
+
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      const activeElement = document.activeElement
+
+      if (e.shiftKey && (activeElement === first || !drawer.contains(activeElement))) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && (activeElement === last || !drawer.contains(activeElement))) {
+        e.preventDefault()
+        first.focus()
+      }
     }
+
     document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [categoryOpen, gender])
+    return () => {
+      window.cancelAnimationFrame(focusFrame)
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = previousOverflow
+      categoryButton?.focus()
+    }
+  }, [categoryOpen])
 
   const menuCategories = menuGender === 'men' ? menCategories : womenCategories
 
@@ -65,6 +107,17 @@ function MobileMainNav({ gender, user, openLoginModal, mode }: MobileMainNavProp
       e.preventDefault()
       openLoginModal()
     }
+  }
+
+  const handleDrawerSearch = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const query = drawerQuery.trim()
+    if (!query) return
+
+    addTerm(query)
+    setDrawerQuery('')
+    setCategoryOpen(false)
+    navigate(`/${menuGender}?category=all&q=${encodeURIComponent(query)}&gender=${menuGender}`)
   }
 
   const tabClass = (active: boolean) =>
@@ -82,22 +135,31 @@ function MobileMainNav({ gender, user, openLoginModal, mode }: MobileMainNavProp
   return (
     <>
       <nav
-        className={`fixed inset-x-0 bottom-0 z-header flex h-60 items-stretch border-t border-line/50 bg-surface transition-transform duration-300 md:hidden ${
+        className={`mobile-main-nav fixed inset-x-0 bottom-0 z-header flex items-stretch border-t border-line/50 bg-surface transition-transform duration-300 md:hidden ${
           navVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
       >
         <button
+          ref={categoryButtonRef}
           type="button"
-          onClick={() => setCategoryOpen((prev) => !prev)}
+          onClick={() => {
+            if (!categoryOpen) setMenuGender(gender)
+            setCategoryOpen((prev) => !prev)
+          }}
           className={tabClass(categoryOpen)}
           aria-expanded={categoryOpen}
           aria-controls="category-drawer"
         >
-          <Menu size={20} strokeWidth={1.5} />
+          <Menu size={20} strokeWidth={1.5} stroke={categoryOpen ? 'black' : 'currentColor'} />
           카테고리
         </button>
         <Link to={`/${gender}?category=all&sort=best`} className={tabClass(isBestActive)}>
-          <Star size={20} strokeWidth={1.5} fill={isBestActive ? 'black' : 'none'} />
+          <Star
+            size={20}
+            strokeWidth={1.5}
+            fill={isBestActive ? 'black' : 'none'}
+            stroke={isBestActive ? 'black' : 'currentColor'}
+          />
           베스트
         </Link>
         <Link to={`/${gender}`} className={tabClass(isHomeActive)}>
@@ -105,28 +167,60 @@ function MobileMainNav({ gender, user, openLoginModal, mode }: MobileMainNavProp
           홈
         </Link>
         <Link to="/wishlist" className={tabClass(isWishlistActive)}>
-          <Heart size={20} strokeWidth={1.5} fill={isWishlistActive ? 'black' : 'none'} />
+          <Heart
+            size={20}
+            strokeWidth={1.5}
+            fill={isWishlistActive ? 'black' : 'none'}
+            stroke={isWishlistActive ? 'black' : 'currentColor'}
+          />
           좋아요
         </Link>
         <Link to={user ? '/mypage' : '#'} onClick={handleProtectedClick} className={tabClass(isMyPageActive)}>
-          <UserIcon size={20} strokeWidth={1.5} fill={isMyPageActive ? 'black' : 'none'} />
+          <UserIcon
+            size={20}
+            strokeWidth={1.5}
+            fill={isMyPageActive ? 'black' : 'none'}
+            stroke={isMyPageActive ? 'black' : 'currentColor'}
+          />
           마이페이지
         </Link>
       </nav>
 
       <div
+        aria-hidden="true"
         className={`fixed inset-0 z-modal bg-black/40 transition-opacity duration-300 md:hidden ${
           categoryOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={() => setCategoryOpen(false)}
       />
       <div
+        ref={drawerRef}
         id="category-drawer"
-        className={`fixed inset-y-0 left-0 z-modal w-full overflow-y-auto bg-surface shadow-lg transition-transform duration-300 ease-out md:hidden ${
+        role="dialog"
+        aria-modal="true"
+        aria-label="카테고리 메뉴"
+        aria-hidden={!categoryOpen}
+        inert={!categoryOpen}
+        className={`mobile-category-drawer fixed inset-y-0 left-0 z-modal w-full overflow-y-auto bg-surface shadow-lg transition-transform duration-300 ease-out md:hidden ${
           categoryOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex h-48 items-center justify-end px-20">
+        <div className="flex h-56 items-center gap-8 px-20">
+          <form onSubmit={handleDrawerSearch} className="relative flex-1">
+            <button
+              type="submit"
+              aria-label="상품 검색"
+              className="absolute left-0 top-1/2 flex h-40 w-40 -translate-y-1/2 items-center justify-center text-secondary"
+            >
+              <Search size={18} strokeWidth={1.5} />
+            </button>
+            <input
+              value={drawerQuery}
+              onChange={(e) => setDrawerQuery(e.target.value)}
+              placeholder="상품명을 검색해보세요"
+              className="h-40 w-full rounded-sm border border-line bg-surface pl-40 pr-12 text-sm text-primary outline-none focus:border-primary"
+            />
+          </form>
           <button
             ref={closeButtonRef}
             type="button"

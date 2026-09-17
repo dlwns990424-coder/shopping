@@ -81,7 +81,7 @@ function Cart() {
         <ShoppingBag size={48} strokeWidth={1.2} className="text-disabled" />
         <p className="text-h3">장바구니가 비어있습니다</p>
         <p className="text-body text-secondary">마음에 드는 상품을 담아보세요</p>
-        <Button variant="primary" size="large" onClick={() => navigate('/')}>
+        <Button variant="primary" size="large" className="h-44 !py-0" onClick={() => navigate('/')}>
           쇼핑하러 가기
         </Button>
       </div>
@@ -110,7 +110,7 @@ function Cart() {
       </Helmet>
 
       <div className="flex flex-col gap-4 px-20 pb-16 pt-32 md:px-32 lg:px-80 lg:pb-24 lg:pt-48 xl:px-140 2xl:px-200">
-        <h1 className="text-h2">장바구니</h1>
+        <h1 className="text-h2 hidden lg:block">장바구니</h1>
         <p className="text-body-sm text-secondary">총 {cartItems.length}개 상품</p>
       </div>
 
@@ -209,7 +209,7 @@ function Cart() {
           }`}
         >
           <div className="min-h-0 overflow-hidden">
-            <div className="flex flex-col gap-12 px-20 pb-16 pt-16 md:px-32">
+            <div className="safe-fixed-bar-x flex flex-col gap-12 pb-16 pt-16">
               <div className="text-body-sm flex items-center justify-between text-primary">
                 <span className="text-secondary">상품금액</span>
                 <span>{formatPrice(originalProductTotal)}</span>
@@ -248,7 +248,7 @@ function Cart() {
           />
         </button>
 
-        <div className="px-20 pb-[calc(12px+env(safe-area-inset-bottom))] md:px-32">
+        <div className="safe-fixed-bar-x pb-[calc(12px+env(safe-area-inset-bottom))]">
           <Button
             variant="primary"
             size="large"

@@ -10,9 +10,10 @@ const PREVIEW_LIMIT = 6
 interface SearchOverlayProps {
   open: boolean
   onClose: () => void
+  compactHeader?: boolean
 }
 
-function SearchOverlay({ open, onClose }: SearchOverlayProps) {
+function SearchOverlay({ open, onClose, compactHeader = false }: SearchOverlayProps) {
   const { products } = useProducts()
   const { terms: recentTerms, addTerm, removeTerm, clearAll } = useRecentSearch()
   const [query, setQuery] = useState('')
@@ -45,8 +46,17 @@ function SearchOverlay({ open, onClose }: SearchOverlayProps) {
 
   return (
     <>
-      <div className="fixed inset-0 top-92 z-modal bg-black/40 md:top-54 lg:top-60" onClick={onClose} />
-      <div className="fixed inset-x-0 top-92 z-modal max-h-[calc(100vh-92px)] overflow-y-auto border-b border-line bg-surface shadow-lg md:top-54 md:max-h-[calc(100vh-54px)] lg:top-60 lg:max-h-[calc(100vh-60px)]">
+      <div
+        className={`fixed inset-x-0 bottom-0 z-modal bg-black/40 ${
+          compactHeader ? 'search-overlay-offset-back' : 'search-overlay-offset-brand'
+        }`}
+        onClick={onClose}
+      />
+      <div
+        className={`fixed inset-x-0 z-modal overflow-y-auto border-b border-line bg-surface shadow-lg ${
+          compactHeader ? 'search-overlay-offset-back' : 'search-overlay-offset-brand'
+        }`}
+      >
         <div className="mx-auto max-w-640 px-20 py-24 md:px-32 lg:px-80 xl:px-140 2xl:px-200">
           <div className="flex items-center gap-8">
             <div className="relative flex-1">
