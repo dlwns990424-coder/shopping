@@ -14,6 +14,30 @@ interface MobileMainNavProps {
   mode: BottomNavMode
 }
 
+function MinimalHomeIcon({ active }: { active: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      width="20"
+      height="20"
+      className="h-[20px] w-[20px] shrink-0"
+      viewBox="0 0 24 24"
+      fill={active ? '#000' : 'none'}
+      stroke={active ? 'none' : 'currentColor'}
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3.5 10.5 12 3.5l8.5 7v9.25a.75.75 0 0 1-.75.75H4.25a.75.75 0 0 1-.75-.75V10.5Z" />
+      {active ? (
+        <rect x="11" y="15" width="2" height="5.5" fill="#fff" stroke="none" />
+      ) : (
+        <path d="M12 20.5V15" fill="none" stroke="currentColor" />
+      )}
+    </svg>
+  )
+}
+
 function MobileMainNav({ gender, user, openLoginModal, mode }: MobileMainNavProps) {
   const location = useLocation()
   const [searchParams] = useSearchParams()
@@ -77,7 +101,7 @@ function MobileMainNav({ gender, user, openLoginModal, mode }: MobileMainNavProp
           베스트
         </Link>
         <Link to={`/${gender}`} className={tabClass(isHomeActive)}>
-          <Home size={20} strokeWidth={1.5} fill={isHomeActive ? 'black' : 'none'} />
+          <MinimalHomeIcon active={isHomeActive} />
           홈
         </Link>
         <Link to="/wishlist" className={tabClass(isWishlistActive)}>

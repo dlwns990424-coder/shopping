@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { ShoppingBag } from 'lucide-react'
+import { ChevronUp, ShoppingBag } from 'lucide-react'
 import CartItemRow from '../components/CartItemRow'
+import CartOptionModal from '../components/CartOptionModal'
 import Checkbox from '../components/Checkbox'
 import ConfirmModal from '../components/ConfirmModal'
 import Button from '../components/Button'
@@ -14,12 +15,14 @@ import type { CartItem } from '../types'
 
 function Cart() {
   const navigate = useNavigate()
-  const { items: cartItems, updateQuantity, removeItem, removeItems } = useCart()
+  const { items: cartItems, updateItemOption, removeItem, removeItems } = useCart()
   const { products } = useProducts()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [expanded, setExpanded] = useState(false)
   const [removeTargetId, setRemoveTargetId] = useState<string | null>(null)
   const [confirmingRemoveSelected, setConfirmingRemoveSelected] = useState(false)
+  const [optionTargetId, setOptionTargetId] = useState<string | null>(null)
+  const [summaryOpen, setSummaryOpen] = useState(false)
 
   // CartContext는 로그인 확인 후 localStorage에서 비동기로 아이템을 채우기 때문에,
   // /cart 새로고침·직링크 진입 시 최초 렌더에는 cartItems가 아직 비어있을 수 있다.
@@ -34,10 +37,15 @@ function Cart() {
 
   // 담을 당시 가격을 스냅샷으로 저장해두지만, 장바구니에 떠 있는 동안은 세일가 변동을
   // 그대로 반영해서 보여준다 — 실제 결제 금액도 이 값 기준으로 넘긴다.
+  const getProduct = (item: CartItem) =>
+    item.productId ? products.find((product) => product.id === item.productId) : undefined
+
   const getLivePrice = (item: CartItem) => {
-    const product = item.productId ? products.find((p) => p.id === item.productId) : undefined
+    const product = getProduct(item)
     return product ? (product.salePrice ?? product.price) : item.price
   }
+
+  const getOriginalPrice = (item: CartItem) => getProduct(item)?.price ?? item.price
 
   const allSelected = cartItems.length > 0 && selectedIds.length === cartItems.length
 
@@ -84,21 +92,29 @@ function Cart() {
     .filter((item) => selectedIds.includes(item.id))
     .map((item) => ({ ...item, price: getLivePrice(item) }))
   const productTotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const originalProductTotal = cartItems
+    .filter((item) => selectedIds.includes(item.id))
+    .reduce((sum, item) => sum + getOriginalPrice(item) * item.quantity, 0)
+  const discountAmount = Math.max(0, originalProductTotal - productTotal)
   const shippingFee = selectedItems.length > 0 ? SHIPPING_FEE : 0
   const totalPrice = productTotal + shippingFee
+  const optionTarget = optionTargetId ? cartItems.find((item) => item.id === optionTargetId) : undefined
+  const optionTargetProduct = optionTarget ? getProduct(optionTarget) : undefined
+
+  const handlePurchase = () => navigate('/order', { state: { items: selectedItems } })
 
   return (
-    <div>
+    <div className="pb-96 lg:pb-0">
       <Helmet>
         <title>NOVERA | 장바구니</title>
       </Helmet>
 
-      <div className="mx-auto flex max-w-1200 flex-col gap-4 px-20 pb-16 pt-32 md:px-32 lg:px-80 xl:px-140 2xl:px-200 lg:pb-24 lg:pt-48">
+      <div className="flex flex-col gap-4 px-20 pb-16 pt-32 md:px-32 lg:px-80 lg:pb-24 lg:pt-48 xl:px-140 2xl:px-200">
         <h1 className="text-h2">장바구니</h1>
         <p className="text-body-sm text-secondary">총 {cartItems.length}개 상품</p>
       </div>
 
-      <div className="mx-auto flex max-w-1200 flex-col gap-32 px-20 pb-32 md:px-32 lg:flex-row lg:items-start lg:gap-64 lg:px-80 xl:px-140 2xl:px-200 lg:pb-80">
+      <div className="flex flex-col gap-32 px-20 pb-32 md:px-32 lg:flex-row lg:items-start lg:gap-64 lg:px-80 lg:pb-80 xl:px-140 2xl:px-200">
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between pb-16">
             <Checkbox
@@ -123,7 +139,7 @@ function Cart() {
                 item={{ ...item, price: formatPrice(getLivePrice(item)) }}
                 checked={selectedIds.includes(item.id)}
                 onCheck={() => toggleItem(item.id)}
-                onQuantityChange={(quantity) => updateQuantity(item.id, quantity)}
+                onOptionChange={() => setOptionTargetId(item.id)}
                 onRemove={() => setRemoveTargetId(item.id)}
               />
             ))}
@@ -140,11 +156,17 @@ function Cart() {
           )}
         </div>
 
-        <div className="flex w-full shrink-0 flex-col gap-20 bg-surface-muted px-24 pb-24 pt-20 lg:sticky lg:top-96 lg:w-360">
+        <div className="hidden w-full shrink-0 flex-col gap-20 bg-surface-muted px-24 pb-24 pt-20 lg:sticky lg:top-96 lg:flex lg:w-360">
           <p className="text-[15px] font-medium text-primary">주문 요약</p>
           <div className="text-body-sm flex items-center justify-between text-primary">
             <span className="text-secondary">상품금액</span>
-            <span>{formatPrice(productTotal)}</span>
+            <span>{formatPrice(originalProductTotal)}</span>
+          </div>
+          <div className="text-body-sm flex items-center justify-between text-primary">
+            <span className="text-secondary">할인금액</span>
+            <span className={discountAmount > 0 ? 'text-point' : undefined}>
+              {discountAmount > 0 ? `-${formatPrice(discountAmount)}` : formatPrice(0)}
+            </span>
           </div>
           <div className="text-body-sm flex items-center justify-between text-primary">
             <span className="text-secondary">배송비</span>
@@ -158,14 +180,107 @@ function Cart() {
           <Button
             variant="primary"
             size="large"
-            className="w-full"
+            className="h-44 w-full !py-0"
             disabled={selectedItems.length === 0}
-            onClick={() => navigate('/order', { state: { items: selectedItems } })}
+            onClick={handlePurchase}
           >
-            주문하기
+            {formatPrice(totalPrice)} 구매하기 ({selectedItems.length}개)
           </Button>
         </div>
       </div>
+
+      <div
+        aria-hidden="true"
+        className={`fixed inset-0 z-[199] bg-black/50 transition-opacity duration-[220ms] lg:hidden ${
+          summaryOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+        onClick={() => setSummaryOpen(false)}
+      />
+
+      <div
+        className={`fixed inset-x-0 bottom-0 border-t border-line bg-surface shadow-[0_-4px_16px_rgba(0,0,0,0.08)] lg:hidden ${
+          summaryOpen ? 'z-modal' : 'z-fixed-bar'
+        }`}
+      >
+        <div
+          id="mobile-cart-summary"
+          className={`grid bg-surface-muted transition-[grid-template-rows,opacity] duration-[220ms] ease-out ${
+            summaryOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+          }`}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <div className="flex flex-col gap-12 px-20 pb-16 pt-16 md:px-32">
+              <div className="text-body-sm flex items-center justify-between text-primary">
+                <span className="text-secondary">상품금액</span>
+                <span>{formatPrice(originalProductTotal)}</span>
+              </div>
+              <div className="text-body-sm flex items-center justify-between text-primary">
+                <span className="text-secondary">할인금액</span>
+                <span className={discountAmount > 0 ? 'text-point' : undefined}>
+                  {discountAmount > 0 ? `-${formatPrice(discountAmount)}` : formatPrice(0)}
+                </span>
+              </div>
+              <div className="text-body-sm flex items-center justify-between text-primary">
+                <span className="text-secondary">배송비</span>
+                <span>{formatPrice(shippingFee)}</span>
+              </div>
+              <div className="h-px bg-line" />
+              <div className="flex items-center justify-between text-primary">
+                <span className="text-[15px] font-medium">총 결제금액</span>
+                <span className="text-price">{formatPrice(totalPrice)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className="flex h-28 w-full cursor-pointer items-center justify-center gap-4 border-none bg-surface text-[12px] text-secondary"
+          aria-expanded={summaryOpen}
+          aria-controls="mobile-cart-summary"
+          onClick={() => setSummaryOpen((open) => !open)}
+        >
+          {summaryOpen ? '주문 요약 접기' : '주문 요약 보기'}
+          <ChevronUp
+            size={14}
+            strokeWidth={1.5}
+            className={`transition-transform duration-[220ms] ${summaryOpen ? 'rotate-180' : ''}`}
+          />
+        </button>
+
+        <div className="px-20 pb-[calc(12px+env(safe-area-inset-bottom))] md:px-32">
+          <Button
+            variant="primary"
+            size="large"
+            className="h-44 w-full !py-0"
+            disabled={selectedItems.length === 0}
+            onClick={handlePurchase}
+          >
+            {formatPrice(totalPrice)} 구매하기 ({selectedItems.length}개)
+          </Button>
+        </div>
+      </div>
+
+      {optionTarget && optionTargetProduct && (
+        <CartOptionModal
+          key={optionTarget.id}
+          item={optionTarget}
+          product={optionTargetProduct}
+          unitPrice={getLivePrice(optionTarget)}
+          onCancel={() => setOptionTargetId(null)}
+          onConfirm={(size, quantity) => {
+            const colorLabel = optionTarget.option.split(' · ')[0] || optionTargetProduct.color.label
+            const nextId = `${optionTargetProduct.id}-${colorLabel}-${size}`
+            setSelectedIds((prev) => {
+              const wasSelected = prev.includes(optionTarget.id)
+              const next = prev.filter((id) => id !== optionTarget.id)
+              return wasSelected && !next.includes(nextId) ? [...next, nextId] : next
+            })
+            updateItemOption(optionTarget.id, size, quantity)
+            setOptionTargetId(null)
+          }}
+        />
+      )}
 
       {removeTargetId && (
         <ConfirmModal

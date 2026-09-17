@@ -72,8 +72,8 @@ function WishlistCard({ product, selectionMode, selected, onToggleSelect, onAdde
           <p className="text-body text-primary">{product.name}</p>
           {product.salePrice != null ? (
             <p className="flex items-center gap-8">
+              <span className="text-sm font-bold text-point">{formatPrice(product.salePrice)}</span>
               <span className="text-caption text-disabled line-through">{formatPrice(product.price)}</span>
-              <span className="text-sm font-semibold text-point">{formatPrice(product.salePrice)}</span>
             </p>
           ) : (
             <p className="text-sm font-semibold text-primary">{formatPrice(product.price)}</p>

@@ -6,7 +6,7 @@ import { useAuth } from './AuthContext'
 interface CartContextValue {
   items: CartItem[]
   addItem: (product: Product, size: string, quantity?: number) => void
-  updateQuantity: (id: string, quantity: number) => void
+  updateItemOption: (id: string, size: string, quantity: number) => void
   removeItem: (id: string) => void
   removeItems: (ids: string[]) => void
 }
@@ -54,7 +54,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const existing = prev.find((item) => item.id === id)
       if (existing) {
         return prev.map((item) =>
-          item.id === id ? { ...item, quantity: item.quantity + quantity } : item
+          item.id === id ? { ...item, size, quantity: item.quantity + quantity } : item
         )
       }
       return [
@@ -64,6 +64,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           productId: product.id,
           name: product.name,
           option,
+          size,
           price: product.salePrice ?? product.price,
           quantity,
           image: product.image,
@@ -72,8 +73,31 @@ export function CartProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const updateQuantity = (id: string, quantity: number) => {
-    updateItems((prev) => prev.map((item) => (item.id === id ? { ...item, quantity } : item)))
+  const updateItemOption = (id: string, size: string, quantity: number) => {
+    updateItems((prev) => {
+      const current = prev.find((item) => item.id === id)
+      if (!current?.productId) return prev
+
+      const colorLabel = current.option.split(' · ')[0] || ''
+      const nextId = `${current.productId}-${colorLabel}-${size}`
+      const existing = prev.find((item) => item.id === nextId && item.id !== id)
+
+      if (existing) {
+        return prev
+          .filter((item) => item.id !== id)
+          .map((item) =>
+            item.id === nextId
+              ? { ...item, size, quantity: Math.min(99, item.quantity + quantity) }
+              : item,
+          )
+      }
+
+      return prev.map((item) =>
+        item.id === id
+          ? { ...item, id: nextId, option: `${colorLabel} · ${size}`, size, quantity }
+          : item,
+      )
+    })
   }
 
   const removeItem = (id: string) => {
@@ -85,7 +109,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <CartContext.Provider value={{ items, addItem, updateQuantity, removeItem, removeItems }}>
+    <CartContext.Provider value={{ items, addItem, updateItemOption, removeItem, removeItems }}>
       {children}
     </CartContext.Provider>
   )

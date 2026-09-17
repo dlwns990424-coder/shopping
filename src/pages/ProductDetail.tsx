@@ -19,6 +19,7 @@ import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 import { useReviews } from '../context/ReviewsContext'
 import { formatPrice } from '../utils/formatPrice'
+import { animateScrollTo } from '../utils/animateScrollTo'
 import { SHIPPING_FEE } from '../constants'
 import { getSizeChartValue, SIZE_CHART_BY_SUBCATEGORY } from '../constants/sizeChart'
 
@@ -26,6 +27,7 @@ import { getSizeChartValue, SIZE_CHART_BY_SUBCATEGORY } from '../constants/sizeC
 // 통째로 재마운트되어 선택한 사이즈·수량이 날아간다. 그 사이만 잠깐 붙잡아두는 용도라
 // 상품ID가 다르면(다른 상품 보다 로그인한 경우 등) 무시하고, 읽는 즉시 지워서 1회성으로 쓴다.
 const PENDING_SELECTION_KEY = 'pdp_pending_selection'
+const STICKY_TAB_SCROLL_DURATION_MS = 300
 
 function shuffle<T>(items: T[]): T[] {
   const copy = [...items]
@@ -83,7 +85,7 @@ function ProductDetail() {
       const productInfoEl = findVisible('[data-anchor="productInfo"]')
       const sizeEl = findVisible('[data-anchor="size"]')
       const reviewEl = findVisible('[data-anchor="review"]')
-      const relatedEl = document.getElementById('related-section')
+      const relatedEl = findVisible('[data-anchor="related"]')
       const targets: Array<{ anchor: 'productInfo' | 'size' | 'review' | 'related'; el: HTMLElement }> = []
       if (productInfoEl) targets.push({ anchor: 'productInfo', el: productInfoEl })
       if (sizeEl) targets.push({ anchor: 'size', el: sizeEl })
@@ -95,12 +97,19 @@ function ProductDetail() {
     // 헤더(최대 60px) + 탭바 높이만큼 여유를 둬서, 섹션 제목이 탭바 아래로 막
     // 넘어온 시점에 활성으로 바뀌게 한다.
     const ACTIVE_THRESHOLD_PX = 140
+    const COMPACT_MAX_WIDTH_PX = 1023
+    const SCROLL_POSITION_TOLERANCE_PX = 2
 
     const handleScroll = () => {
       const targets = getTargets()
+      const isCompactViewport = window.innerWidth <= COMPACT_MAX_WIDTH_PX
       let current: 'productInfo' | 'size' | 'review' | 'related' = 'productInfo'
       for (const { anchor, el } of targets) {
-        if (el.getBoundingClientRect().top <= ACTIVE_THRESHOLD_PX) {
+        const scrollMarginTop = parseFloat(getComputedStyle(el).scrollMarginTop) || ACTIVE_THRESHOLD_PX
+        const activationThreshold = isCompactViewport
+          ? scrollMarginTop + SCROLL_POSITION_TOLERANCE_PX
+          : ACTIVE_THRESHOLD_PX
+        if (el.getBoundingClientRect().top <= activationThreshold) {
           current = anchor
         }
       }
@@ -212,24 +221,20 @@ function ProductDetail() {
     visible?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
-  // "상품정보"/"사이즈 및 소재"/"리뷰"는 모바일/데스크톱 전용 블록에 각각 한 번씩 중복
-  // 렌더링되므로 실제로 보이는 쪽을 찾아서 스크롤한다. "추천 상품"은 중복 없이 페이지
-  // 하단에 한 번만 있어서 id로 바로 찾는다.
+  // 각 섹션은 모바일/태블릿과 데스크톱 전용 블록에 중복 렌더링될 수 있으므로,
+  // 현재 breakpoint에서 실제로 보이는 쪽을 찾아서 스크롤한다.
   // scrollIntoView 대신 목표 좌표를 직접 계산해서 scrollTo로 이동한다 — scrollIntoView는
   // scroll-margin-top 계산이 브라우저/타이밍에 따라 미묘하게 어긋나는 경우가 있어서(스크롤이
   // 의도한 지점보다 훨씬 더 내려가 sticky 탭바가 화면 밖으로 사라지는 버그가 있었다),
   // 매번 같은 결과가 나오는 이 방식이 더 안전하다.
   const scrollToAnchor = (anchor: 'productInfo' | 'size' | 'review' | 'related') => {
-    const el =
-      anchor === 'related'
-        ? document.getElementById('related-section')
-        : Array.from(document.querySelectorAll<HTMLElement>(`[data-anchor="${anchor}"]`)).find(
-            (item) => item.offsetParent !== null,
-          )
+    const el = Array.from(document.querySelectorAll<HTMLElement>(`[data-anchor="${anchor}"]`)).find(
+      (item) => item.offsetParent !== null,
+    )
     if (!el) return
     const scrollMarginTop = parseFloat(getComputedStyle(el).scrollMarginTop) || 0
     const target = window.scrollY + el.getBoundingClientRect().top - scrollMarginTop
-    window.scrollTo({ top: target, behavior: 'smooth' })
+    animateScrollTo(target, STICKY_TAB_SCROLL_DURATION_MS)
   }
 
   const handleAddToCart = () => {
@@ -285,8 +290,8 @@ function ProductDetail() {
           <h1 className="text-h3 font-bold mb-8">{product.name}</h1>
           {product.salePrice != null ? (
             <p className="flex items-center gap-8">
+              <span className="text-price font-semibold text-point">{formatPrice(product.salePrice)}</span>
               <span className="text-body-sm text-disabled line-through">{formatPrice(product.price)}</span>
-              <span className="text-price font-medium text-point">{formatPrice(product.salePrice)}</span>
             </p>
           ) : (
             <p className="text-price font-medium">{formatPrice(product.price)}</p>
@@ -495,12 +500,22 @@ function ProductDetail() {
           {sizeAndMaterialBlock}
         </div>
 
-        {/* 데스크톱과 동일하게 리뷰를 탭바와 같은 컨테이너 안에 둬야, "추천" 탭까지 스크롤해도 탭바의
-            sticky 컨테이너가 리뷰 끝까지는 이어져서 탭바가 도중에 사라지지 않는다(예전엔 리뷰가 이
-            wrapper 밖에 있어서 "사이즈" 섹션 끝나자마자 탭바가 풀려버리는 버그가 있었다). */}
+        {/* 리뷰와 추천 상품을 탭바와 같은 컨테이너 안에 둬서, 모바일·태블릿에서는 추천 상품을
+            살펴보는 동안에도 탭바가 유지되고 추천 영역이 끝난 뒤에만 sticky가 해제되게 한다. */}
         <div data-anchor="review" className="scroll-mt-140 md:scroll-mt-112">
           <ReviewSection productId={product.id} />
         </div>
+
+        <section data-anchor="related" className="scroll-mt-140 md:scroll-mt-112 md:pt-16">
+          <div className="page-section__header">
+            <h2 className="text-xl font-bold">추천 상품</h2>
+          </div>
+          <div className="product-grid">
+            {relatedProducts.map((item) => (
+              <ProductCard key={item.id} {...item} />
+            ))}
+          </div>
+        </section>
       </div>
 
       {/* 데스크톱 전용: 좌(이미지+제품정보+탭바+상세이미지+리뷰)/우(구매 패널, sticky) 65:35 비율, 1600px에서 폭 제한.
@@ -558,10 +573,10 @@ function ProductDetail() {
           {purchaseEssentials}
 
           <div className="flex flex-col gap-12">
-            <Button variant="secondary" size="large" className="w-full" onClick={handleAddToCart}>
+            <Button variant="secondary" size="large" className="h-44 w-full !py-0" onClick={handleAddToCart}>
               장바구니 담기
             </Button>
-            <Button variant="primary" size="large" className="w-full" onClick={handleBuyNow}>
+            <Button variant="primary" size="large" className="h-44 w-full !py-0" onClick={handleBuyNow}>
               바로 구매
             </Button>
           </div>
@@ -572,7 +587,7 @@ function ProductDetail() {
         <Button
           variant="secondary"
           size="large"
-          className="h-40 flex-1 !py-0 !text-[14px] tracking-[-0.02em]"
+          className="h-44 flex-1 !py-0 !text-[14px] tracking-[-0.02em]"
           onClick={handleAddToCart}
         >
           장바구니 담기
@@ -580,14 +595,14 @@ function ProductDetail() {
         <Button
           variant="primary"
           size="large"
-          className="h-40 flex-1 !py-0 !text-[14px] tracking-[-0.02em]"
+          className="h-44 flex-1 !py-0 !text-[14px] tracking-[-0.02em]"
           onClick={handleBuyNow}
         >
           바로 구매
         </Button>
       </div>
 
-      <section id="related-section" className="page-section scroll-mt-140 md:scroll-mt-112 lg:scroll-mt-130">
+      <section data-anchor="related" className="page-section hidden lg:block lg:scroll-mt-130">
         <div className="page-section__header">
           <h2 className="text-xl font-bold lg:text-2xl">추천 상품</h2>
         </div>

@@ -78,6 +78,7 @@ export interface CartItem {
   productId?: string
   name: string
   option: string
+  size?: string
   price: number
   quantity: number
   image: string | null

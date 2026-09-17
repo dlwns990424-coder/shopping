@@ -12,11 +12,6 @@ import type { Product } from '../types'
 
 const NEW_ARRIVALS_LIMIT = 8
 const BESTSELLER_LIMIT = 5
-const SALE_LIMIT = 8
-
-function discountRate(product: Product) {
-  return product.salePrice != null ? (product.price - product.salePrice) / product.price : 0
-}
 
 function Men() {
   const [searchParams] = useSearchParams()
@@ -38,10 +33,6 @@ function Men() {
     .map((id) => productById.get(id))
     .filter((product): product is Product => product != null)
     .slice(0, BESTSELLER_LIMIT)
-  const saleProducts = [...menProducts]
-    .filter((product) => product.salePrice != null)
-    .sort((a, b) => discountRate(b) - discountRate(a))
-    .slice(0, SALE_LIMIT)
 
   const heroImage = content['men.hero.image_mobile']
 
@@ -81,7 +72,7 @@ function Men() {
         )}
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/35 to-transparent" />
         <div className="absolute inset-x-0 bottom-[20%] z-10 px-20 text-surface md:px-32 lg:px-80 xl:px-140 2xl:px-200">
-          <h1 className="text-[52px] font-normal leading-[1.2] tracking-[-0.02em] text-surface drop-shadow-md">
+          <h1 className="text-[32px] font-normal leading-[1.2] tracking-[-0.02em] text-surface drop-shadow-md md:text-[38px] lg:text-[44px]">
             {content['men.hero.title'] ?? '댄디하고 심플한 무드의 새 시즌 컬렉션'}
           </h1>
           <p className="mt-12 text-[18px] font-light text-surface drop-shadow-md">
@@ -110,11 +101,15 @@ function Men() {
         </div>
       </section>
 
-      <ProductRow title="NEW ARRIVALS" moreHref="/men?category=all&sort=new" products={newArrivals} />
+      <ProductRow title="신상품이 입고되었어요" products={newArrivals} featuredHeading />
 
-      <ProductRow title="BEST SELLERS" moreHref="/men?category=all&sort=best" products={bestsellers} />
+      <ProductRow
+        title="베스트 상품을 확인해보세요"
+        moreHref="/men?category=all&sort=best"
+        products={bestsellers}
+        featuredHeading
+      />
 
-      <ProductRow title="할인상품" moreHref="/men?category=all&sale=true" products={saleProducts} />
     </div>
   )
 }
