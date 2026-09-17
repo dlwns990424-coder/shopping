@@ -1,11 +1,13 @@
-import { forwardRef, useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
+import { forwardRef, useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
-import { Search, Heart, ShoppingBag, User, Menu, X } from 'lucide-react'
+import { Search, Heart, ShoppingBag, User } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 import { useCart } from '../context/CartContext'
 import { useProducts } from '../context/ProductsContext'
 import SearchOverlay from './SearchOverlay'
+import MobileMainNav from './MobileMainNav'
+import { getBottomNavMode } from '../utils/bottomNavMode'
 
 const TRANSPARENT_SCROLL_THRESHOLD = 100
 
@@ -90,34 +92,17 @@ function Header() {
   const [searchParams] = useSearchParams()
   const activeGender = getActiveGender(location.pathname, products)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [hovered, setHovered] = useState(false)
-  const menuToggleRef = useRef<HTMLButtonElement | null>(null)
-  const firstMenuLinkRef = useRef<HTMLButtonElement | null>(null)
 
   const isHeroPage =
     (location.pathname === '/men' || location.pathname === '/women') && !searchParams.get('category')
-  const isTransparent = isHeroPage && !scrolled && !searchOpen && !menuOpen && !hovered
+  const isTransparent = isHeroPage && !scrolled && !searchOpen && !hovered
+  const bottomNavMode = getBottomNavMode(location.pathname, Boolean(searchParams.get('category')))
 
   useEffect(() => {
     setSearchOpen(false)
-    setMenuOpen(false)
   }, [location.pathname])
-
-  useEffect(() => {
-    if (!menuOpen) return
-    firstMenuLinkRef.current?.focus()
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setMenuOpen(false)
-        menuToggleRef.current?.focus()
-      }
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [menuOpen])
 
   useEffect(() => {
     if (!isHeroPage) {
@@ -132,14 +117,6 @@ function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [isHeroPage])
 
-  const handleMobileProtectedClick = (e: MouseEvent) => {
-    setMenuOpen(false)
-    if (!user) {
-      e.preventDefault()
-      openLoginModal()
-    }
-  }
-
   const navLinkClass = (active: boolean) =>
     `border-b py-4 text-sm font-medium no-underline transition-colors ${
       isTransparent
@@ -151,17 +128,22 @@ function Header() {
           : 'border-transparent text-disabled hover:border-primary hover:text-primary'
     }`
 
+  const genderTabClass = (active: boolean) =>
+    `flex h-44 w-1/2 items-center justify-center border-b text-sm font-medium no-underline transition-colors ${
+      active ? 'border-primary text-primary' : 'border-transparent text-disabled'
+    }`
+
   return (
     <header
       onPointerEnter={(e) => e.pointerType === 'mouse' && setHovered(true)}
       onPointerLeave={(e) => e.pointerType === 'mouse' && setHovered(false)}
-      className={`fixed inset-x-0 top-0 z-header flex h-48 items-center gap-16 border-b px-20 transition-colors duration-300 md:h-54 md:gap-32 md:px-32 lg:h-60 lg:px-80 xl:px-140 2xl:px-200 ${
-        isTransparent ? 'border-transparent bg-transparent' : 'border-line/50 bg-surface'
+      className={`fixed inset-x-0 top-0 z-header flex h-48 items-center gap-16 border-b border-line/50 bg-surface px-20 transition-colors duration-300 md:h-54 md:gap-32 md:px-32 lg:h-60 lg:px-80 xl:px-140 2xl:px-200 ${
+        isTransparent ? 'md:border-transparent md:bg-transparent' : ''
       }`}
     >
       <div
         aria-hidden
-        className={`pointer-events-none absolute inset-x-0 top-0 -z-10 h-[160px] bg-gradient-to-b from-black/20 to-transparent transition-opacity duration-300 ${
+        className={`pointer-events-none absolute inset-x-0 top-0 -z-10 hidden h-[160px] bg-gradient-to-b from-black/20 to-transparent transition-opacity duration-300 md:block ${
           isTransparent ? 'opacity-100' : 'opacity-0'
         }`}
       />
@@ -171,12 +153,12 @@ function Header() {
           src="/images/brand/novera-logo-header.png"
           alt="NOVERA"
           className={`block h-22 w-auto transition-[filter] duration-300 md:h-26 ${
-            isTransparent ? 'brightness-0 invert' : ''
+            isTransparent ? 'md:brightness-0 md:invert' : ''
           }`}
         />
       </Link>
 
-      <nav className="flex flex-1 gap-16 md:gap-24">
+      <nav className="hidden flex-1 gap-24 md:flex">
         <Link to="/men" className={navLinkClass(activeGender === 'men')}>
           MEN
         </Link>
@@ -211,77 +193,38 @@ function Header() {
         </IconButton>
       </div>
 
-      <div className="md:hidden">
+      <div className="ml-auto flex items-center gap-8 md:hidden">
+        <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)} light={false}>
+          <Search size={20} strokeWidth={1.5} />
+        </IconButton>
         <IconButton
-          ref={menuToggleRef}
-          label={menuOpen ? '메뉴 닫기' : '메뉴 열기'}
-          onClick={() => setMenuOpen((prev) => !prev)}
-          light={isTransparent}
-          ariaExpanded={menuOpen}
-          ariaControls="mobile-menu-panel"
+          label="장바구니"
+          to={user ? '/cart' : undefined}
+          onClick={user ? undefined : openLoginModal}
+          light={false}
+          badgeCount={user ? cartCount : 0}
         >
-          {menuOpen ? <X size={22} strokeWidth={1.5} /> : <Menu size={22} strokeWidth={1.5} />}
+          <ShoppingBag size={20} strokeWidth={1.5} />
         </IconButton>
       </div>
 
+      <nav className="fixed inset-x-0 top-48 z-header flex h-44 border-b border-line/50 bg-surface md:hidden">
+        <Link to="/men" className={genderTabClass(activeGender === 'men')}>
+          MEN
+        </Link>
+        <Link to="/women" className={genderTabClass(activeGender === 'women')}>
+          WOMEN
+        </Link>
+      </nav>
+
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
 
-      {menuOpen && (
-        <>
-          <div
-            className="fixed inset-0 top-48 z-modal bg-black/40 animate-[fade-in_0.2s_ease-out_forwards] md:hidden"
-            onClick={() => setMenuOpen(false)}
-          />
-          <div
-            id="mobile-menu-panel"
-            className="fixed inset-x-0 top-48 z-modal border-b border-line bg-surface shadow-lg animate-[menu-in_0.2s_ease-out_forwards] md:hidden"
-          >
-            <nav className="flex flex-col px-20">
-              <button
-                ref={firstMenuLinkRef}
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false)
-                  setSearchOpen(true)
-                }}
-                className="flex items-center gap-12 border-none bg-transparent py-16 text-left text-body text-primary"
-              >
-                <Search size={20} strokeWidth={1.5} />
-                검색
-              </button>
-              <Link
-                to="/wishlist"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-12 py-16 text-body text-primary no-underline"
-              >
-                <Heart size={20} strokeWidth={1.5} />
-                위시리스트
-              </Link>
-              <Link
-                to={user ? '/cart' : '#'}
-                onClick={handleMobileProtectedClick}
-                className="flex items-center gap-12 py-16 text-body text-primary no-underline"
-              >
-                <ShoppingBag size={20} strokeWidth={1.5} />
-                장바구니
-                {user && cartCount > 0 && (
-                  <span className="flex h-20 w-20 items-center justify-center rounded-full bg-point text-[11px] font-semibold leading-none text-surface">
-                    {cartCount > 9 ? '9+' : cartCount}
-                  </span>
-                )}
-              </Link>
-              <Link
-                to={user ? '/mypage' : '#'}
-                onClick={handleMobileProtectedClick}
-                className="flex items-center gap-12 py-16 text-body text-primary no-underline"
-              >
-                <User size={20} strokeWidth={1.5} />
-                마이페이지
-              </Link>
-            </nav>
-          </div>
-        </>
-      )}
+      <MobileMainNav
+        gender={activeGender ?? 'men'}
+        user={user}
+        openLoginModal={openLoginModal}
+        mode={bottomNavMode}
+      />
     </header>
   )
 }

@@ -66,7 +66,7 @@ function Wishlist() {
   }
 
   return (
-    <div className="page-section">
+    <div className="page-section mb-60 md:mb-0">
       <Helmet>
         <title>NOVERA | 위시리스트</title>
       </Helmet>

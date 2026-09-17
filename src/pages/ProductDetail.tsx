@@ -460,7 +460,7 @@ function ProductDetail() {
         {/* 방금 지운 모바일 전용 "바로 구매" 버튼이 있던 자리 — 탭바를 여기로 옮겨서, 처음엔 일반 콘텐츠처럼
             있다가 스크롤이 이 지점을 넘어가면 그때부터 헤더 아래 고정(sticky)된다. 4등분(grid-cols-4)해서
             가운데로 몰리지 않게 하고, 활성 탭은 블랙 border-bottom, 비활성은 연한 회색 border-bottom으로 표시한다. */}
-        <nav className="sticky top-48 z-fixed-bar grid h-40 grid-cols-4 bg-surface text-body tracking-[-0.02em] md:top-54">
+        <nav className="sticky top-92 z-fixed-bar grid h-40 grid-cols-4 bg-surface text-body tracking-[-0.02em] md:top-54">
           {tabNavItems.map(({ anchor, label }) => (
             <button
               key={anchor}
@@ -475,7 +475,7 @@ function ProductDetail() {
           ))}
         </nav>
 
-        <div data-anchor="productInfo" className="scroll-mt-96 md:scroll-mt-112">
+        <div data-anchor="productInfo" className="scroll-mt-140 md:scroll-mt-112">
           {descriptionBlock}
         </div>
 
@@ -491,14 +491,14 @@ function ProductDetail() {
           </div>
         )}
 
-        <div data-anchor="size" className="scroll-mt-96 md:scroll-mt-112">
+        <div data-anchor="size" className="scroll-mt-140 md:scroll-mt-112">
           {sizeAndMaterialBlock}
         </div>
 
         {/* 데스크톱과 동일하게 리뷰를 탭바와 같은 컨테이너 안에 둬야, "추천" 탭까지 스크롤해도 탭바의
             sticky 컨테이너가 리뷰 끝까지는 이어져서 탭바가 도중에 사라지지 않는다(예전엔 리뷰가 이
             wrapper 밖에 있어서 "사이즈" 섹션 끝나자마자 탭바가 풀려버리는 버그가 있었다). */}
-        <div data-anchor="review" className="scroll-mt-96 md:scroll-mt-112">
+        <div data-anchor="review" className="scroll-mt-140 md:scroll-mt-112">
           <ReviewSection productId={product.id} />
         </div>
       </div>
@@ -587,7 +587,7 @@ function ProductDetail() {
         </Button>
       </div>
 
-      <section id="related-section" className="page-section scroll-mt-96 md:scroll-mt-112 lg:scroll-mt-130">
+      <section id="related-section" className="page-section scroll-mt-140 md:scroll-mt-112 lg:scroll-mt-130">
         <div className="page-section__header">
           <h2 className="text-xl font-bold lg:text-2xl">추천 상품</h2>
         </div>

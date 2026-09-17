@@ -62,7 +62,7 @@ function Women() {
   }))
 
   return (
-    <div className="pb-64 md:pb-96 lg:pb-128">
+    <div className="pb-124 md:pb-96 lg:pb-128">
       <Helmet>
         <title>NOVERA | WOMEN</title>
       </Helmet>
@@ -70,7 +70,7 @@ function Women() {
       {/* 히어로: 이미지 1장 + 하단 텍스트, 모바일~데스크톱 공용 */}
       <Link
         to="/women?category=all&sort=new"
-        className="relative -mt-48 flex aspect-[3/4] items-end overflow-hidden text-inherit no-underline md:-mt-64 md:aspect-square lg:aspect-auto lg:h-screen"
+        className="relative flex aspect-[3/4] items-end overflow-hidden text-inherit no-underline md:-mt-64 md:aspect-square lg:aspect-auto lg:h-screen"
       >
         {heroImage ? (
           <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${heroImage})` }} />
@@ -92,11 +92,11 @@ function Women() {
         </div>
       </Link>
 
-      <section className="mt-64 pb-32 md:mt-96 md:pb-48 lg:mt-128 lg:pb-64">
-        <div className="mx-auto max-w-1600 px-20 md:px-32 lg:px-80 xl:px-140 2xl:px-200">
+      <section className="mt-64 px-20 pb-32 md:mt-96 md:px-32 md:pb-48 lg:mt-128 lg:px-80 lg:pb-64 xl:px-140 2xl:px-200">
+        <div className="mx-auto max-w-1600">
           <CategoryCarousel categories={womenCategoriesWithContent} />
         </div>
-        <div className="mt-32 flex justify-center px-20 md:px-32 lg:px-80 xl:px-140 2xl:px-200">
+        <div className="mt-32 flex justify-center">
           <Link
             to="/women?category=all"
             className="inline-flex h-[42px] items-center justify-center rounded-sm border border-primary bg-transparent px-24 text-[14px] text-primary no-underline transition-colors hover:bg-surface-muted active:scale-[0.98] md:h-[44px] md:w-[260px]"
@@ -106,8 +106,10 @@ function Women() {
         </div>
       </section>
 
-      <section className="mx-auto mt-64 max-w-1600 px-20 md:mt-96 md:px-32 lg:mt-128 lg:px-80 xl:px-140 2xl:px-200">
-        <EditorialSubBanners banners={editorialBanners} />
+      <section className="mt-64 px-20 md:mt-96 md:px-32 lg:mt-128 lg:px-80 xl:px-140 2xl:px-200">
+        <div className="mx-auto max-w-1600">
+          <EditorialSubBanners banners={editorialBanners} />
+        </div>
       </section>
 
       <ProductRow title="NEW ARRIVALS" moreHref="/women?category=all&sort=new" products={newArrivals} />

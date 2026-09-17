@@ -14,8 +14,8 @@ function ProductRow({ title, moreHref, products }: ProductRowProps) {
   if (products.length === 0) return null
 
   return (
-    <section className="mx-auto mt-64 max-w-1600 md:mt-96 lg:mt-128">
-      <div className="relative mb-24 flex items-center justify-center px-20 md:px-32 lg:px-80 xl:px-140 2xl:px-200">
+    <section className="mt-64 px-20 md:mt-96 md:px-32 lg:mt-128 lg:px-80 xl:px-140 2xl:px-200">
+      <div className="relative mx-auto mb-24 flex max-w-1600 items-center justify-center">
         <h2 className="text-center text-[32px] font-normal leading-[1.3] tracking-[-0.03em] text-primary md:text-[50px]">
           {title}
         </h2>
@@ -26,7 +26,7 @@ function ProductRow({ title, moreHref, products }: ProductRowProps) {
           더보기
         </Link>
       </div>
-      <div className="px-20 md:px-32 lg:px-80 xl:px-140 2xl:px-200">
+      <div className="mx-auto max-w-1600">
         <ProductCarousel products={products} />
       </div>
     </section>

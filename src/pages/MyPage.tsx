@@ -23,7 +23,7 @@ function MyPage() {
   }
 
   return (
-    <div className="page-section flex flex-col gap-32">
+    <div className="page-section mb-60 flex flex-col gap-32 md:mb-0">
       <Helmet>
         <title>NOVERA | 마이페이지</title>
       </Helmet>

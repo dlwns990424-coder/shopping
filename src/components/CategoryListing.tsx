@@ -143,7 +143,7 @@ function CategoryListing({
     }`
 
   return (
-    <div className="pb-32 md:pb-48 lg:pb-64">
+    <div className="pb-92 md:pb-48 lg:pb-64">
       <Helmet>
         <title>{`NOVERA | ${genderLabel} | ${title}`}</title>
       </Helmet>

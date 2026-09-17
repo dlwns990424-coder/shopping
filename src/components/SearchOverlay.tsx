@@ -45,8 +45,8 @@ function SearchOverlay({ open, onClose }: SearchOverlayProps) {
 
   return (
     <>
-      <div className="fixed inset-0 top-48 z-modal bg-black/40 md:top-54 lg:top-60" onClick={onClose} />
-      <div className="fixed inset-x-0 top-48 z-modal max-h-[calc(100vh-48px)] overflow-y-auto border-b border-line bg-surface shadow-lg md:top-54 md:max-h-[calc(100vh-54px)] lg:top-60 lg:max-h-[calc(100vh-60px)]">
+      <div className="fixed inset-0 top-92 z-modal bg-black/40 md:top-54 lg:top-60" onClick={onClose} />
+      <div className="fixed inset-x-0 top-92 z-modal max-h-[calc(100vh-92px)] overflow-y-auto border-b border-line bg-surface shadow-lg md:top-54 md:max-h-[calc(100vh-54px)] lg:top-60 lg:max-h-[calc(100vh-60px)]">
         <div className="mx-auto max-w-640 px-20 py-24 md:px-32 lg:px-80 xl:px-140 2xl:px-200">
           <div className="flex items-center gap-8">
             <div className="relative flex-1">
