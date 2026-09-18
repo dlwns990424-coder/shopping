@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ChevronDown, Star, X } from 'lucide-react'
+import { Star, X } from 'lucide-react'
 import StarRating from './StarRating'
 import Button from './Button'
 import ReviewFormModal from './ReviewFormModal'
@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 import { useOrderHistory } from '../context/OrderHistoryContext'
 import { useReviews } from '../context/ReviewsContext'
+import SortDropdown from './SortDropdown'
 
 interface ReviewSectionProps {
   productId: string
@@ -36,12 +37,30 @@ function ReviewSection({ productId }: ReviewSectionProps) {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [showDeleteToast, setShowDeleteToast] = useState(false)
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null)
 
   // 다른 상품 페이지로 이동해도 이 컴포넌트는 재마운트되지 않으므로, productId가 바뀌면 펼친 개수/정렬을 초기화한다.
   useEffect(() => {
     setVisibleCount(REVIEWS_PAGE_SIZE)
     setSortOrder('latest')
+    setSelectedPhoto(null)
   }, [productId])
+
+  useEffect(() => {
+    if (!selectedPhoto) return
+
+    const previousOverflow = document.body.style.overflow
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedPhoto(null)
+    }
+
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [selectedPhoto])
 
   const productReviews = reviews.filter((review) => review.productId === productId)
   const averageRating =
@@ -142,32 +161,23 @@ function ReviewSection({ productId }: ReviewSectionProps) {
       ) : (
         <>
           <div className="mt-16 flex justify-end">
-            <div className="relative">
-              <select
-                value={sortOrder}
-                onChange={(e) => {
-                  setSortOrder(e.target.value as SortOrder)
-                  setVisibleCount(REVIEWS_PAGE_SIZE)
-                }}
-                className="cursor-pointer appearance-none rounded-sm border border-line bg-surface py-6 pl-12 pr-32 text-body-sm text-secondary"
-              >
-                {SORT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                size={14}
-                strokeWidth={1.5}
-                className="pointer-events-none absolute right-10 top-1/2 -translate-y-1/2 text-secondary"
-              />
-            </div>
+            <SortDropdown
+              value={sortOrder}
+              options={SORT_OPTIONS}
+              ariaLabel="리뷰 정렬 기준"
+              onChange={(value) => {
+                setSortOrder(value as SortOrder)
+                setVisibleCount(REVIEWS_PAGE_SIZE)
+              }}
+            />
           </div>
 
           <div className="mt-24 flex flex-col gap-16">
             {sortedReviews.slice(0, visibleCount).map((review) => (
-              <div key={review.id} className="flex justify-between gap-16 border-b border-line pb-16 last:border-b-0">
+              <div
+                key={review.id}
+                className="flex justify-between gap-16 border-b border-line pb-16 md:grid md:grid-cols-[minmax(0,1fr)_136px] md:gap-32 lg:grid-cols-[minmax(0,1fr)_152px] lg:gap-40"
+              >
                 {/* 좌: 구매 옵션 → 별점 → 리뷰 내용 → 사진(정사각형, 최대 160px, 1장) */}
                 <div className="flex min-w-0 flex-1 flex-col gap-8">
                   {review.purchasedOption && (
@@ -179,16 +189,23 @@ function ReviewSection({ productId }: ReviewSectionProps) {
                   <StarRating value={review.rating} size={16} />
                   <p className="text-body whitespace-pre-line text-primary">{review.content}</p>
                   {review.photos.length > 0 && (
-                    <img
-                      src={review.photos[0]}
-                      alt="리뷰 사진"
-                      className="aspect-square w-full max-w-160 rounded-sm border border-line object-cover"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPhoto(review.photos[0])}
+                      className="group w-full max-w-160 cursor-zoom-in rounded-sm border border-line bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      aria-label="리뷰 사진 크게 보기"
+                    >
+                      <img
+                        src={review.photos[0]}
+                        alt="리뷰 사진"
+                        className="aspect-square w-full rounded-sm object-cover transition-opacity group-hover:opacity-90"
+                      />
+                    </button>
                   )}
                 </div>
 
                 {/* 우: 닉네임 → 키/몸무게 → (간격) → 작성일 */}
-                <div className="flex shrink-0 flex-col items-end gap-4 text-right">
+                <div className="flex shrink-0 flex-col items-end gap-4 pt-16 text-right md:w-full">
                   <div className="flex items-center gap-8">
                     <span className="text-body font-medium text-primary">{review.nickname}</span>
                     {user && review.userId === user.id && (
@@ -202,12 +219,14 @@ function ReviewSection({ productId }: ReviewSectionProps) {
                       </button>
                     )}
                   </div>
-                  <p className="text-body-sm mt-8 text-secondary">
-                    {review.height != null ? `키 ${review.height}cm` : '키 작성하지 않음'}
-                  </p>
-                  <p className="text-body-sm text-secondary">
-                    {review.weight != null ? `몸무게 ${review.weight}kg` : '몸무게 작성하지 않음'}
-                  </p>
+                  {review.height != null && (
+                    <p className="text-body-sm mt-8 text-secondary">키 {review.height}cm</p>
+                  )}
+                  {review.weight != null && (
+                    <p className={`text-body-sm text-secondary ${review.height == null ? 'mt-8' : ''}`}>
+                      몸무게 {review.weight}kg
+                    </p>
+                  )}
                   <p className="text-caption mt-8 text-disabled">
                     {new Date(review.createdAt).toLocaleDateString('ko-KR')}
                   </p>
@@ -239,6 +258,47 @@ function ReviewSection({ productId }: ReviewSectionProps) {
           onConfirm={handleConfirmDelete}
           onCancel={() => setDeleteTargetId(null)}
         />
+      )}
+
+      {selectedPhoto && (
+        <div
+          className="fixed inset-0 z-modal bg-black/95"
+          role="dialog"
+          aria-modal="true"
+          aria-label="리뷰 사진 확대 보기"
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div
+            className="absolute inset-x-0 top-0 z-10 flex h-64 items-center justify-between bg-gradient-to-b from-black/70 to-transparent px-16 sm:px-24 lg:px-40"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p className="text-body-sm font-medium text-white sm:text-body">리뷰 이미지</p>
+            <button
+              type="button"
+              onClick={() => setSelectedPhoto(null)}
+              className="flex h-40 w-40 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:h-44 sm:w-44"
+              aria-label="확대 이미지 닫기"
+            >
+              <X size={24} strokeWidth={1.5} />
+            </button>
+          </div>
+
+          <div className="flex h-full w-full items-center justify-center px-16 pb-56 pt-64 sm:px-24 sm:pb-64 lg:px-80 lg:pb-72 lg:pt-72">
+            <img
+              src={selectedPhoto}
+              alt="확대된 리뷰 사진"
+              className="max-h-full max-w-full rounded-sm object-contain shadow-[0_16px_48px_rgba(0,0,0,0.35)]"
+              onClick={(event) => event.stopPropagation()}
+            />
+          </div>
+
+          <p
+            className="text-caption absolute inset-x-0 bottom-20 text-center text-white/60 sm:bottom-24"
+            onClick={(event) => event.stopPropagation()}
+          >
+            화면 바깥을 누르면 닫힙니다
+          </p>
+        </div>
       )}
 
       <Toast message="리뷰가 삭제되었습니다." show={showDeleteToast} onClose={() => setShowDeleteToast(false)} />

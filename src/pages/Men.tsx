@@ -10,6 +10,7 @@ import { useContent } from '../context/ContentContext'
 import { useBestsellers } from '../context/BestsellersContext'
 import { menCategories } from '../mock/categories'
 import type { Product } from '../types'
+import { buildEditorialLink, type EditorialDestination } from '../utils/editorialLink'
 
 const NEW_ARRIVALS_LIMIT = 8
 const BESTSELLER_LIMIT = 5
@@ -35,11 +36,25 @@ function Men() {
     .filter((product): product is Product => product != null)
     .slice(0, BESTSELLER_LIMIT)
 
-  const heroImage = content['men.hero.image_mobile']
-
+  const legacyEditorialImage = content['men.editorial_sub_banner.sub-1.image'] ?? ''
   const editorial = {
-    title: content['men.editorial_sub_banner.sub-1.title'] || 'THE NEW TAILORING',
-    image: content['men.editorial_sub_banner.sub-1.image'] ?? '',
+    title:
+      content['men.editorial_banner.title'] ||
+      content['men.editorial_sub_banner.sub-1.title'] ||
+      'THE NEW TAILORING',
+    subtitle:
+      content['men.editorial_banner.subtitle'] ?? content['men.editorial_sub_banner.sub-1.subtitle'] ?? '',
+    buttonLabel: content['men.editorial_banner.button_label'] || '컬렉션 보기',
+    destination: (content['men.editorial_banner.link_destination'] as EditorialDestination | undefined) ?? 'men',
+    category: content['men.editorial_banner.link_category'] || 'all',
+    subcategory: content['men.editorial_banner.link_subcategory'] ?? '',
+    enabled:
+      content['men.editorial_banner.enabled'] == null
+        ? Boolean(legacyEditorialImage)
+        : content['men.editorial_banner.enabled'] === 'true',
+    imageMobile: content['men.editorial_banner.image_mobile'] || legacyEditorialImage,
+    imageTablet: content['men.editorial_banner.image_tablet'] || legacyEditorialImage,
+    imageDesktop: content['men.editorial_banner.image_desktop'] || legacyEditorialImage,
   }
 
   const menCategoriesWithContent = menCategories.map((category) => ({
@@ -56,13 +71,15 @@ function Men() {
 
       <HomeHero
         to="/men?category=all&sort=new"
-        image={heroImage}
+        imageMobile={content['men.hero.image_mobile'] ?? ''}
+        imageTablet={content['men.hero.image_tablet'] ?? ''}
+        imageDesktop={content['men.hero.image_desktop'] ?? ''}
         title={content['men.hero.title'] ?? '댄디하고 심플한 무드의 새 시즌 컬렉션'}
         subtitle={content['men.hero.subtitle'] || '이번 시즌 새롭게 만나는 NOVERA의 제안'}
         loading={contentLoading}
       />
 
-      <section className="mt-64 px-20 pb-32 md:mt-96 md:px-32 md:pb-48 lg:mt-128 lg:px-80 lg:pb-64 xl:px-140 2xl:px-200">
+      <section className="mt-64 px-20 md:mt-96 md:px-32 lg:mt-128 lg:px-80 xl:px-140 2xl:px-200">
         <div className="mx-auto max-w-1600">
           <CategoryCarousel categories={menCategoriesWithContent} />
         </div>
@@ -71,7 +88,7 @@ function Men() {
             to="/men?category=all"
             className="inline-flex h-[42px] items-center justify-center rounded-sm border border-primary bg-transparent px-24 text-[14px] text-primary no-underline transition-colors hover:bg-surface-muted active:scale-[0.98] md:h-[44px] md:w-[260px]"
           >
-            전체 제품 보기
+            VIEW MORE
           </Link>
         </div>
       </section>
@@ -79,13 +96,18 @@ function Men() {
       <ProductRow title="NEW ARRIVALS" products={newArrivals} featuredHeading />
 
       <EditorialFeature
-        image={editorial.image}
+        imageMobile={editorial.imageMobile}
+        imageTablet={editorial.imageTablet}
+        imageDesktop={editorial.imageDesktop}
         title={editorial.title}
-        to="/men?category=all"
+        subtitle={editorial.subtitle}
+        buttonLabel={editorial.buttonLabel}
+        enabled={editorial.enabled}
+        to={buildEditorialLink(editorial)}
       />
 
       <ProductRow
-        title="MOST LOVED"
+        title="BEST SELLERS"
         moreHref="/men?category=all&sort=best"
         products={bestsellers}
         featuredHeading

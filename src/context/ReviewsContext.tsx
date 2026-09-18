@@ -2,6 +2,13 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from './AuthContext'
 import type { Review } from '../types'
+import {
+  MAX_REVIEW_HEIGHT,
+  MAX_REVIEW_LENGTH,
+  MAX_REVIEW_WEIGHT,
+  MIN_REVIEW_HEIGHT,
+  MIN_REVIEW_WEIGHT,
+} from '../constants/reviewConstraints'
 
 interface AddReviewInput {
   productId: string
@@ -72,13 +79,36 @@ export function ReviewsProvider({ children }: { children: ReactNode }) {
 
   const addReview = async ({ productId, rating, content, photos, purchasedOption, height, weight }: AddReviewInput) => {
     if (!user) return { success: false, message: '로그인이 필요합니다.' }
+    const trimmedContent = content.trim()
+    if (!trimmedContent) return { success: false, message: '리뷰 내용을 입력해주세요.' }
+    if (trimmedContent.length > MAX_REVIEW_LENGTH) {
+      return { success: false, message: `리뷰는 최대 ${MAX_REVIEW_LENGTH}자까지 작성할 수 있습니다.` }
+    }
+    if (
+      height != null &&
+      (!Number.isFinite(height) || height < MIN_REVIEW_HEIGHT || height > MAX_REVIEW_HEIGHT)
+    ) {
+      return {
+        success: false,
+        message: `키는 ${MIN_REVIEW_HEIGHT}~${MAX_REVIEW_HEIGHT}cm 범위로 입력해주세요.`,
+      }
+    }
+    if (
+      weight != null &&
+      (!Number.isFinite(weight) || weight < MIN_REVIEW_WEIGHT || weight > MAX_REVIEW_WEIGHT)
+    ) {
+      return {
+        success: false,
+        message: `몸무게는 ${MIN_REVIEW_WEIGHT}~${MAX_REVIEW_WEIGHT}kg 범위로 입력해주세요.`,
+      }
+    }
 
     const { error } = await supabase.from('reviews').insert({
       product_id: productId,
       user_id: user.id,
       nickname: user.nickname,
       rating,
-      content,
+      content: trimmedContent,
       photos,
       purchased_option: purchasedOption,
       height,

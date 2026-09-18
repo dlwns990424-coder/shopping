@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { ChevronDown, Search, X } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import Button from './Button'
 import ProductCard from './ProductCard'
 import { CATEGORY_TABS as TABS, SUB_CATEGORIES } from '../constants/categoryFilters'
 import { useBestsellers } from '../context/BestsellersContext'
 import type { Gender, Product } from '../types'
+import SortDropdown from './SortDropdown'
 
 const PRODUCTS_PER_PAGE = 12
 
@@ -272,26 +273,14 @@ function CategoryListing({
         </div>
       )}
 
-      <div className="flex items-center justify-between py-16 text-secondary">
+      <div className="flex items-center justify-between py-12 text-secondary md:py-16">
         <span className="text-body-sm">{displayedProducts.length}개 상품</span>
-        <div className="relative">
-          <select
-            value={sortParam}
-            onChange={(e) => navigate(buildUrl({ sort: e.target.value }))}
-            className="text-body-sm appearance-none rounded-sm border border-line py-8 pl-12 pr-36 text-primary"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            size={16}
-            strokeWidth={1.5}
-            className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 text-secondary"
-          />
-        </div>
+        <SortDropdown
+          value={sortParam}
+          options={SORT_OPTIONS.map((option) => ({ value: option.id, label: option.label }))}
+          ariaLabel="상품 정렬 기준"
+          onChange={(value) => navigate(buildUrl({ sort: value }))}
+        />
       </div>
 
       {displayedProducts.length > 0 ? (

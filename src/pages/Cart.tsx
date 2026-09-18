@@ -74,7 +74,7 @@ function Cart() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="flex min-h-560 flex-col items-center justify-center gap-16 px-20 py-64 text-center">
+      <div className="utility-page-min-height flex flex-col items-center justify-center gap-16 px-20 py-64 text-center">
         <Helmet>
           <title>NOVERA | 장바구니</title>
         </Helmet>
@@ -104,13 +104,13 @@ function Cart() {
   const handlePurchase = () => navigate('/order', { state: { items: selectedItems } })
 
   return (
-    <div className="pb-96 lg:pb-0">
+    <div className="utility-page-min-height pb-96 lg:pb-0">
       <Helmet>
         <title>NOVERA | 장바구니</title>
       </Helmet>
 
       <div className="flex flex-col gap-4 px-20 pb-16 pt-32 md:px-32 lg:px-80 lg:pb-24 lg:pt-48 xl:px-140 2xl:px-200">
-        <h1 className="text-h2 hidden lg:block">장바구니</h1>
+        <h1 className="text-h2 hidden md:block">장바구니</h1>
         <p className="text-body-sm text-secondary">총 {cartItems.length}개 상품</p>
       </div>
 

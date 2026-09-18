@@ -3,6 +3,14 @@ import { X } from 'lucide-react'
 import Button from './Button'
 import StarRating from './StarRating'
 import { uploadImage } from '../utils/uploadImage'
+import { useAuth } from '../context/AuthContext'
+import {
+  MAX_REVIEW_HEIGHT,
+  MAX_REVIEW_LENGTH,
+  MAX_REVIEW_WEIGHT,
+  MIN_REVIEW_HEIGHT,
+  MIN_REVIEW_WEIGHT,
+} from '../constants/reviewConstraints'
 
 interface ReviewFormModalProps {
   onCancel: () => void
@@ -21,6 +29,7 @@ interface ReviewFormModalProps {
 const MAX_PHOTOS = 1
 
 function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalProps) {
+  const { user } = useAuth()
   const [rating, setRating] = useState(5)
   const [content, setContent] = useState('')
   const [photos, setPhotos] = useState<string[]>([])
@@ -36,6 +45,10 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
     const files = selected.slice(0, remainingSlots)
     e.target.value = ''
     if (files.length === 0) return
+    if (!user) {
+      setError('로그인 후 리뷰 사진을 첨부할 수 있습니다.')
+      return
+    }
 
     setUploading(true)
     setError(
@@ -44,10 +57,15 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
         : null,
     )
     try {
-      const urls = await Promise.all(files.map((file) => uploadImage(file, 'reviews')))
+      const urls = await Promise.all(files.map((file) => uploadImage(file, `reviews/${user.id}`)))
       setPhotos((prev) => [...prev, ...urls])
     } catch (err) {
-      setError(err instanceof Error ? err.message : '사진 업로드에 실패했습니다.')
+      const message = err instanceof Error ? err.message : ''
+      setError(
+        message.toLowerCase().includes('row-level security')
+          ? '리뷰 사진 업로드 권한을 확인해주세요. 잠시 후 다시 시도해주세요.'
+          : message || '사진 업로드에 실패했습니다.',
+      )
     } finally {
       setUploading(false)
     }
@@ -58,15 +76,34 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
   }
 
   const handleSubmit = async () => {
-    if (!content.trim()) {
+    const trimmedContent = content.trim()
+    if (!trimmedContent) {
       setError('리뷰 내용을 입력해주세요.')
+      return
+    }
+    if (trimmedContent.length > MAX_REVIEW_LENGTH) {
+      setError(`리뷰는 최대 ${MAX_REVIEW_LENGTH}자까지 작성할 수 있습니다.`)
+      return
+    }
+    const heightValue = height.trim() ? Number(height) : null
+    const weightValue = weight.trim() ? Number(weight) : null
+    if (
+      heightValue != null &&
+      (!Number.isFinite(heightValue) || heightValue < MIN_REVIEW_HEIGHT || heightValue > MAX_REVIEW_HEIGHT)
+    ) {
+      setError(`키는 ${MIN_REVIEW_HEIGHT}~${MAX_REVIEW_HEIGHT}cm 범위로 입력해주세요.`)
+      return
+    }
+    if (
+      weightValue != null &&
+      (!Number.isFinite(weightValue) || weightValue < MIN_REVIEW_WEIGHT || weightValue > MAX_REVIEW_WEIGHT)
+    ) {
+      setError(`몸무게는 ${MIN_REVIEW_WEIGHT}~${MAX_REVIEW_WEIGHT}kg 범위로 입력해주세요.`)
       return
     }
     setSubmitting(true)
     setError(null)
-    const heightValue = height.trim() ? Number(height) : null
-    const weightValue = weight.trim() ? Number(weight) : null
-    const result = await onSubmit(rating, content.trim(), photos, heightValue, weightValue)
+    const result = await onSubmit(rating, trimmedContent, photos, heightValue, weightValue)
     setSubmitting(false)
     if (!result.success) {
       setError(result.message ?? '리뷰 등록에 실패했습니다. 잠시 후 다시 시도해주세요.')
@@ -77,7 +114,7 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 px-24">
-      <div className="flex w-full max-w-480 flex-col gap-16 rounded-md bg-surface p-24">
+      <div className="flex max-h-[calc(100dvh-48px)] w-full max-w-480 flex-col gap-16 overflow-y-auto rounded-md bg-surface p-24">
         <div>
           <p className="text-h3">리뷰 작성</p>
           {productName && <p className="text-body-sm mt-4 text-secondary">{productName}</p>}
@@ -93,10 +130,14 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
+            maxLength={MAX_REVIEW_LENGTH}
             rows={4}
             placeholder="상품에 대한 솔직한 후기를 남겨주세요."
             className="text-body-sm rounded-sm border border-line px-12 py-8"
           />
+          <p className="text-caption self-end text-secondary">
+            {content.length}/{MAX_REVIEW_LENGTH}
+          </p>
         </div>
 
         <div className="flex gap-16">
@@ -104,9 +145,13 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
             <label className="text-body-sm text-secondary">키 (cm, 선택)</label>
             <input
               type="number"
+              min={MIN_REVIEW_HEIGHT}
+              max={MAX_REVIEW_HEIGHT}
+              step="0.1"
+              inputMode="decimal"
               value={height}
               onChange={(e) => setHeight(e.target.value)}
-              placeholder="입력하지 않으면 작성하지 않음으로 표시"
+              placeholder={`${MIN_REVIEW_HEIGHT}~${MAX_REVIEW_HEIGHT}`}
               className="text-body-sm rounded-sm border border-line px-12 py-8"
             />
           </div>
@@ -114,9 +159,13 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
             <label className="text-body-sm text-secondary">몸무게 (kg, 선택)</label>
             <input
               type="number"
+              min={MIN_REVIEW_WEIGHT}
+              max={MAX_REVIEW_WEIGHT}
+              step="0.1"
+              inputMode="decimal"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
-              placeholder="입력하지 않으면 작성하지 않음으로 표시"
+              placeholder={`${MIN_REVIEW_WEIGHT}~${MAX_REVIEW_WEIGHT}`}
               className="text-body-sm rounded-sm border border-line px-12 py-8"
             />
           </div>

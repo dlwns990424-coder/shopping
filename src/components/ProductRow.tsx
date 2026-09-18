@@ -15,7 +15,7 @@ function ProductRow({ title, moreHref, products, featuredHeading = false }: Prod
   if (products.length === 0) return null
 
   return (
-    <section className="mt-64 px-20 md:mt-96 md:px-32 lg:mt-128 lg:px-80 xl:px-140 2xl:px-200">
+    <section className="mt-64 px-20 md:mt-80 md:px-32 lg:mt-100 lg:px-80 xl:px-140 2xl:px-200">
       <div
         className={`relative mx-auto mb-24 flex max-w-1600 md:mb-32 lg:mb-40 ${
           featuredHeading ? 'items-end justify-between gap-16' : 'items-center justify-center'
@@ -39,7 +39,7 @@ function ProductRow({ title, moreHref, products, featuredHeading = false }: Prod
                 : 'absolute right-20 text-body-sm text-secondary underline [text-underline-offset:6px] transition-colors hover:text-primary md:right-32 lg:right-40'
             }
           >
-            더보기
+            VIEW MORE
           </Link>
         )}
       </div>

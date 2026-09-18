@@ -99,9 +99,23 @@ function OrderHistory() {
     return success
   }
 
-  const submitReview = async (rating: number, content: string, photos: string[]) => {
+  const submitReview = async (
+    rating: number,
+    content: string,
+    photos: string[],
+    height: number | null,
+    weight: number | null,
+  ) => {
     if (!reviewTarget?.productId) return { success: false, message: '리뷰 등록에 실패했습니다.' }
-    const result = await addReview({ productId: reviewTarget.productId, rating, content, photos })
+    const result = await addReview({
+      productId: reviewTarget.productId,
+      rating,
+      content,
+      photos,
+      purchasedOption: reviewTarget.option || null,
+      height,
+      weight,
+    })
     if (result.success) {
       setReviewTarget(null)
       setShowReviewToast(true)
@@ -172,7 +186,7 @@ function OrderHistory() {
                 상품금액 {formatPrice(orderItemsTotal(order))} + 배송비 {formatPrice(order.shippingFee ?? 0)}
               </span>
             </div>
-            <span className="text-base shrink-0 text-primary">
+            <span className="shrink-0 break-keep text-sm text-primary">
               {order.shippingStatus}
               {order.returnStatus && ` · ${order.returnStatus}`}
             </span>
@@ -201,14 +215,18 @@ function OrderHistory() {
                 key={`${order.id}-${index}`}
                 className="[&:not(:last-of-type)]:border-b [&:not(:last-of-type)]:border-line"
               >
-                <OrderItemRow item={{ ...item, price: formatPrice(item.price) }} linkToProduct />
+                <OrderItemRow
+                  item={{ ...item, price: formatPrice(item.price) }}
+                  linkToProduct
+                  compactTypography
+                />
                 {(showReviewAction || showReturnAction) && (
                   <div className="flex items-center justify-between gap-16 pb-16">
                     <div>
                       {showReviewAction &&
                         (myReview ? (
                           <div className="flex items-center gap-16">
-                            <p className="text-base text-secondary">리뷰 작성 완료</p>
+                            <p className="text-body-sm text-secondary">리뷰 작성 완료</p>
                             <button
                               type="button"
                               onClick={() => setReviewDeleteTargetId(myReview.id)}
@@ -229,14 +247,14 @@ function OrderHistory() {
                         <button
                           type="button"
                           onClick={() => setReturnTargetId(order.id)}
-                          className="cursor-pointer border-none bg-transparent p-0 text-base text-secondary hover:text-primary"
+                          className="text-body-sm cursor-pointer border-none bg-transparent p-0 text-secondary hover:text-primary"
                         >
                           반품 신청
                         </button>
                       ) : (
                         <div className="flex flex-col items-end gap-4">
-                          <span className="text-base text-disabled">반품 신청</span>
-                          <p className="text-base text-secondary">
+                          <span className="text-body-sm text-disabled">반품 신청</span>
+                          <p className="text-body-sm text-secondary">
                             반품 가능 기간({RETURN_WINDOW_DAYS}일)이 지났습니다.
                           </p>
                         </div>

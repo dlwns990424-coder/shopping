@@ -57,7 +57,8 @@ function SearchOverlay({ open, onClose, compactHeader = false }: SearchOverlayPr
           compactHeader ? 'search-overlay-offset-back' : 'search-overlay-offset-brand'
         }`}
       >
-        <div className="mx-auto max-w-640 px-20 py-24 md:px-32 lg:px-80 xl:px-140 2xl:px-200">
+        <div className="px-20 py-24 md:px-32 lg:px-80 xl:px-140 2xl:px-200">
+          <div className="mx-auto w-full max-w-960">
           <div className="flex items-center gap-8">
             <div className="relative flex-1">
               <Search
@@ -160,6 +161,7 @@ function SearchOverlay({ open, onClose, compactHeader = false }: SearchOverlayPr
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
     </>

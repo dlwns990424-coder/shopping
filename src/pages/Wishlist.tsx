@@ -51,7 +51,7 @@ function Wishlist() {
 
   if (items.length === 0) {
     return (
-      <div className="flex min-h-560 flex-col items-center justify-center gap-16 px-20 py-64 text-center">
+      <div className="utility-page-min-height flex flex-col items-center justify-center gap-16 px-20 py-64 text-center">
         <Helmet>
           <title>NOVERA | 위시리스트</title>
         </Helmet>
@@ -66,11 +66,11 @@ function Wishlist() {
   }
 
   return (
-    <div className="page-section">
+    <div className="page-section utility-page-min-height">
       <Helmet>
         <title>NOVERA | 위시리스트</title>
       </Helmet>
-      <h1 className="text-h1 mb-24 hidden lg:block lg:text-h2">찜한 상품</h1>
+      <h1 className="text-h2 mb-24 hidden md:block">위시리스트</h1>
       <div className="mb-16 flex items-center justify-between">
         {selectionMode ? (
           <Checkbox

@@ -1,213 +1,505 @@
 import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import Button from '../../components/Button'
+import ConfirmModal from '../../components/ConfirmModal'
 import ImageCropModal from '../../components/ImageCropModal'
+import { PRODUCT_CATEGORIES, SUB_CATEGORIES } from '../../constants/categoryFilters'
+import { buildEditorialLink, type EditorialDestination } from '../../utils/editorialLink'
 import { uploadImage } from '../../utils/uploadImage'
 
-// CATEGORY 캐러셀과 NEW ARRIVALS 사이에 노출되는 에디토리얼 서브배너 3장(sub-1~3) —
-// 카드 1장당 이미지 1장(4:5) + 타이틀 + 서브타이틀. page(men/women)별로 완전히 독립된
-// site_content 행(men.editorial_sub_banner.sub-N.*, women.editorial_sub_banner.sub-N.*)을 쓴다.
-const IMAGE_ASPECT = 4 / 5
-const SLOT_IDS = ['sub-1', 'sub-2', 'sub-3'] as const
-type SlotId = (typeof SLOT_IDS)[number]
+type EditorialImageField = 'image_mobile' | 'image_tablet' | 'image_desktop'
+type PreviewMode = 'mobile' | 'tablet' | 'desktop'
 
-interface SlotData {
+interface EditorialBannerData {
   title: string
   subtitle: string
-  image: string
+  buttonLabel: string
+  destination: EditorialDestination
+  category: string
+  subcategory: string
+  enabled: boolean
+  imageMobile: string
+  imageTablet: string
+  imageDesktop: string
 }
-
-const EMPTY_SLOT: SlotData = { title: '', subtitle: '', image: '' }
 
 interface EditorialBannerManagerProps {
   page: 'men' | 'women'
 }
 
-function SlotEditor({
-  label,
-  data,
-  onTextSaved,
-  onImageSaved,
-  keyFor,
-}: {
+interface CropConfig {
+  field: EditorialImageField
+  dataField: 'imageMobile' | 'imageTablet' | 'imageDesktop'
   label: string
-  data: SlotData
-  onTextSaved: (title: string, subtitle: string) => void
-  onImageSaved: (url: string) => void
-  keyFor: (field: string) => string
-}) {
-  const [editingText, setEditingText] = useState(false)
-  const [draftTitle, setDraftTitle] = useState('')
-  const [draftSubtitle, setDraftSubtitle] = useState('')
-  const [uploading, setUploading] = useState(false)
-  const [cropFile, setCropFile] = useState<File | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  const startEditText = () => {
-    setEditingText(true)
-    setDraftTitle(data.title)
-    setDraftSubtitle(data.subtitle)
-  }
-
-  const saveText = async () => {
-    const { error: titleError } = await supabase.from('site_content').update({ value: draftTitle }).eq('key', keyFor('title'))
-    const { error: subtitleError } = await supabase
-      .from('site_content')
-      .update({ value: draftSubtitle })
-      .eq('key', keyFor('subtitle'))
-    if (titleError || subtitleError) {
-      setError((titleError ?? subtitleError)!.message)
-      return
-    }
-    onTextSaved(draftTitle, draftSubtitle)
-    setEditingText(false)
-  }
-
-  const handleImageSelect = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (!file) return
-    setCropFile(file)
-  }
-
-  const handleCropConfirm = async (blob: Blob) => {
-    setCropFile(null)
-    setUploading(true)
-    setError(null)
-
-    try {
-      const croppedFile = new File([blob], `editorial-${keyFor('image')}.jpg`, { type: blob.type })
-      const url = await uploadImage(croppedFile, 'content')
-      const { error } = await supabase.from('site_content').update({ value: url }).eq('key', keyFor('image'))
-      if (error) throw error
-      onImageSaved(url)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '이미지 업로드에 실패했습니다.')
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-12 rounded-sm border border-line p-12">
-      <p className="text-body-sm font-medium">{label}</p>
-      {error && <p className="text-body-sm text-point">{error}</p>}
-
-      <div className="flex flex-col gap-4">
-        <span className="text-caption text-secondary">이미지 (4:5)</span>
-        {data.image ? (
-          <img src={data.image} alt={label} className="h-160 w-128 rounded-sm border border-line object-cover" />
-        ) : (
-          <div className="flex h-160 w-128 items-center justify-center rounded-sm border border-dashed border-line">
-            <span className="text-caption text-secondary">없음</span>
-          </div>
-        )}
-        <Button as="label" variant="secondary" size="small" className="w-fit cursor-pointer" aria-disabled={uploading}>
-          {uploading ? '업로드 중...' : '이미지 변경'}
-          <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} disabled={uploading} />
-        </Button>
-      </div>
-
-      {editingText ? (
-        <div className="flex flex-col gap-8">
-          <input
-            value={draftTitle}
-            onChange={(e) => setDraftTitle(e.target.value)}
-            placeholder="타이틀"
-            className="text-body-sm rounded-sm border border-line px-8 py-4"
-          />
-          <input
-            value={draftSubtitle}
-            onChange={(e) => setDraftSubtitle(e.target.value)}
-            placeholder="서브타이틀"
-            className="text-body-sm rounded-sm border border-line px-8 py-4"
-          />
-          <div className="flex gap-8">
-            <Button size="small" onClick={saveText}>
-              저장
-            </Button>
-            <Button size="small" variant="secondary" onClick={() => setEditingText(false)}>
-              취소
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex items-center gap-8">
-          <div className="flex-1">
-            <p className="text-body-sm font-medium">{data.title || '(타이틀 없음)'}</p>
-            <p className="text-caption text-secondary">{data.subtitle || '(서브타이틀 없음)'}</p>
-          </div>
-          <button type="button" onClick={startEditText} className="text-body-sm text-secondary hover:text-point">
-            수정
-          </button>
-        </div>
-      )}
-
-      {cropFile && (
-        <ImageCropModal
-          file={cropFile}
-          aspect={IMAGE_ASPECT}
-          onCancel={() => setCropFile(null)}
-          onConfirm={handleCropConfirm}
-        />
-      )}
-    </div>
-  )
+  aspect: number
+  recommendedWidth: number
+  recommendedHeight: number
+  previewClass: string
+  safeZoneWidthRatio: number
+  safeZoneHeightRatio: number
+  textZone: { left: number; top: number; width: number; height: number }
 }
 
-function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
-  const keyPrefix = `${page}.editorial_sub_banner`
-  const keyFor = (slot: SlotId, field: string) => `${keyPrefix}.${slot}.${field}`
+const CROP_CONFIGS: Record<PreviewMode, CropConfig> = {
+  mobile: {
+    field: 'image_mobile',
+    dataField: 'imageMobile',
+    label: '모바일 · 4:5',
+    aspect: 4 / 5,
+    recommendedWidth: 1200,
+    recommendedHeight: 1500,
+    previewClass: 'aspect-[4/5] max-w-[360px]',
+    safeZoneWidthRatio: 0.86,
+    safeZoneHeightRatio: 0.84,
+    textZone: { left: 0.06, top: 0.58, width: 0.88, height: 0.28 },
+  },
+  tablet: {
+    field: 'image_tablet',
+    dataField: 'imageTablet',
+    label: '태블릿 · 4:3',
+    aspect: 4 / 3,
+    recommendedWidth: 1600,
+    recommendedHeight: 1200,
+    previewClass: 'aspect-[4/3] max-w-[640px]',
+    safeZoneWidthRatio: 0.84,
+    safeZoneHeightRatio: 0.82,
+    textZone: { left: 0.06, top: 0.58, width: 0.7, height: 0.28 },
+  },
+  desktop: {
+    field: 'image_desktop',
+    dataField: 'imageDesktop',
+    label: '데스크톱 · 12:5',
+    aspect: 12 / 5,
+    recommendedWidth: 1920,
+    recommendedHeight: 800,
+    previewClass: 'aspect-[12/5] max-w-full',
+    safeZoneWidthRatio: 0.76,
+    safeZoneHeightRatio: 0.82,
+    textZone: { left: 0.07, top: 0.56, width: 0.56, height: 0.3 },
+  },
+}
 
-  const [slots, setSlots] = useState<Record<SlotId, SlotData>>({
-    'sub-1': EMPTY_SLOT,
-    'sub-2': EMPTY_SLOT,
-    'sub-3': EMPTY_SLOT,
-  })
+const DEFAULT_DATA: EditorialBannerData = {
+  title: 'THE NEW TAILORING',
+  subtitle: '',
+  buttonLabel: '컬렉션 보기',
+  destination: 'men',
+  category: 'all',
+  subcategory: '',
+  enabled: false,
+  imageMobile: '',
+  imageTablet: '',
+  imageDesktop: '',
+}
+
+const FIELD_META = {
+  title: { label: '타이틀', order: 410 },
+  subtitle: { label: '설명', order: 411 },
+  button_label: { label: '버튼 문구', order: 412 },
+  link_destination: { label: '버튼 이동 페이지', order: 413 },
+  link_category: { label: '버튼 이동 카테고리', order: 414 },
+  link_subcategory: { label: '버튼 이동 세부 카테고리', order: 415 },
+  enabled: { label: '노출 여부', order: 416 },
+  image_mobile: { label: '모바일 이미지', order: 417 },
+  image_tablet: { label: '태블릿 이미지', order: 418 },
+  image_desktop: { label: '데스크톱 이미지', order: 419 },
+} as const
+
+function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
+  const keyPrefix = `${page}.editorial_banner`
+  const pageLabel = page === 'men' ? 'MEN' : 'WOMEN'
+  const pageDefaultData = { ...DEFAULT_DATA, destination: page }
+  const [data, setData] = useState<EditorialBannerData>(pageDefaultData)
+  const [draft, setDraft] = useState<EditorialBannerData>(pageDefaultData)
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [uploadingField, setUploadingField] = useState<EditorialImageField | null>(null)
+  const [previewMode, setPreviewMode] = useState<PreviewMode>('desktop')
+  const [cropTarget, setCropTarget] = useState<{ file: File; config: CropConfig } | null>(null)
+  const [removeTarget, setRemoveTarget] = useState<CropConfig | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+
+  const rowFor = useCallback(
+    (field: keyof typeof FIELD_META, value: string) => ({
+      key: `${keyPrefix}.${field}`,
+      page,
+      label: `${pageLabel} 에디토리얼 ${FIELD_META[field].label}`,
+      value,
+      display_order: FIELD_META[field].order + (page === 'women' ? 20 : 0),
+    }),
+    [keyPrefix, page, pageLabel],
+  )
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from('site_content').select('key, value').like('key', `${keyPrefix}.%`)
+    setLoading(true)
+    setError(null)
+    const newKeys = Object.keys(FIELD_META).map((field) => `${keyPrefix}.${field}`)
+    const legacyPrefix = `${page}.editorial_sub_banner.sub-1`
+    const legacyKeys = [`${legacyPrefix}.title`, `${legacyPrefix}.subtitle`, `${legacyPrefix}.image`]
+    const { data: rows, error: loadError } = await supabase
+      .from('site_content')
+      .select('key, value')
+      .in('key', [...newKeys, ...legacyKeys])
 
-    const next: Record<SlotId, SlotData> = {
-      'sub-1': { ...EMPTY_SLOT },
-      'sub-2': { ...EMPTY_SLOT },
-      'sub-3': { ...EMPTY_SLOT },
+    if (loadError) {
+      setError(loadError.message)
+      setLoading(false)
+      return
     }
-    for (const row of data ?? []) {
-      const match = row.key.match(/^.+\.(sub-[123])\.(.+)$/)
-      if (!match) continue
-      const [, slot, field] = match as [string, SlotId, string]
-      if (field === 'title') next[slot].title = row.value
-      else if (field === 'subtitle') next[slot].subtitle = row.value
-      else if (field === 'image') next[slot].image = row.value
+
+    const values = new Map((rows ?? []).map((row) => [row.key, row.value]))
+    const legacyImage = values.get(`${legacyPrefix}.image`) ?? ''
+    const next: EditorialBannerData = {
+      title: values.get(`${keyPrefix}.title`) || values.get(`${legacyPrefix}.title`) || DEFAULT_DATA.title,
+      subtitle: values.get(`${keyPrefix}.subtitle`) ?? values.get(`${legacyPrefix}.subtitle`) ?? '',
+      buttonLabel: values.get(`${keyPrefix}.button_label`) ?? DEFAULT_DATA.buttonLabel,
+      destination: (values.get(`${keyPrefix}.link_destination`) as EditorialDestination | undefined) ?? page,
+      category: values.get(`${keyPrefix}.link_category`) || 'all',
+      subcategory: values.get(`${keyPrefix}.link_subcategory`) ?? '',
+      enabled: (values.get(`${keyPrefix}.enabled`) ?? (legacyImage ? 'true' : 'false')) === 'true',
+      imageMobile: values.get(`${keyPrefix}.image_mobile`) || legacyImage,
+      imageTablet: values.get(`${keyPrefix}.image_tablet`) || legacyImage,
+      imageDesktop: values.get(`${keyPrefix}.image_desktop`) || legacyImage,
     }
-    setSlots(next)
+    setData(next)
+    setDraft(next)
     setLoading(false)
-  }, [keyPrefix])
+  }, [keyPrefix, page])
 
   useEffect(() => {
     load()
   }, [load])
 
+  const saveSettings = async () => {
+    const title = draft.title.trim()
+    const subtitle = draft.subtitle.trim()
+    const buttonLabel = draft.buttonLabel.trim()
+    if (!title) {
+      setError('타이틀을 입력해주세요.')
+      return
+    }
+    if (title.length > 80) {
+      setError('타이틀은 최대 80자까지 입력할 수 있습니다.')
+      return
+    }
+    if (subtitle.length > 140) {
+      setError('설명은 최대 140자까지 입력할 수 있습니다.')
+      return
+    }
+    if (!buttonLabel || buttonLabel.length > 20) {
+      setError('버튼 문구는 1~20자로 입력해주세요.')
+      return
+    }
+    if (draft.enabled && !draft.imageMobile && !draft.imageTablet && !draft.imageDesktop) {
+      setError('배너를 노출하려면 이미지를 한 장 이상 등록해주세요.')
+      return
+    }
+
+    setSaving(true)
+    setError(null)
+    setSaved(false)
+    const rows = [
+      rowFor('title', title),
+      rowFor('subtitle', subtitle),
+      rowFor('button_label', buttonLabel),
+      rowFor('link_destination', draft.destination),
+      rowFor('link_category', draft.category),
+      rowFor('link_subcategory', draft.category === 'all' ? '' : draft.subcategory),
+      rowFor('enabled', String(draft.enabled)),
+    ]
+    const { error: saveError } = await supabase.from('site_content').upsert(rows, { onConflict: 'key' })
+    setSaving(false)
+    if (saveError) {
+      setError(saveError.message)
+      return
+    }
+
+    const next = { ...draft, title, subtitle, buttonLabel }
+    setData(next)
+    setDraft(next)
+    setSaved(true)
+  }
+
+  const handleImageSelect = (config: CropConfig, event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (file) setCropTarget({ file, config })
+  }
+
+  const saveImageValue = async (config: CropConfig, value: string) => {
+    const { error: saveError } = await supabase
+      .from('site_content')
+      .upsert(rowFor(config.field, value), { onConflict: 'key' })
+    if (saveError) throw saveError
+    setData((current) => ({ ...current, [config.dataField]: value }))
+    setDraft((current) => ({ ...current, [config.dataField]: value }))
+  }
+
+  const handleCropConfirm = async (blob: Blob) => {
+    if (!cropTarget) return
+    const { config } = cropTarget
+    setCropTarget(null)
+    setUploadingField(config.field)
+    setError(null)
+    setSaved(false)
+
+    try {
+      const file = new File([blob], `${page}-editorial-${config.field}.jpg`, { type: blob.type })
+      const url = await uploadImage(file, 'content')
+      await saveImageValue(config, url)
+      setSaved(true)
+    } catch (uploadError) {
+      setError(uploadError instanceof Error ? uploadError.message : '이미지 업로드에 실패했습니다.')
+    } finally {
+      setUploadingField(null)
+    }
+  }
+
+  const confirmRemoveImage = async () => {
+    if (!removeTarget) return
+    const config = removeTarget
+    setRemoveTarget(null)
+    setUploadingField(config.field)
+    setError(null)
+    try {
+      await saveImageValue(config, '')
+      setSaved(true)
+    } catch (removeError) {
+      setError(removeError instanceof Error ? removeError.message : '이미지 제거에 실패했습니다.')
+    } finally {
+      setUploadingField(null)
+    }
+  }
+
   if (loading) return <p className="text-body-sm text-secondary">불러오는 중...</p>
 
+  const previewConfig = CROP_CONFIGS[previewMode]
+  const previewImage = draft[previewConfig.dataField] || draft.imageDesktop || draft.imageTablet || draft.imageMobile
+  const subcategoryOptions = draft.category === 'all' ? [] : (SUB_CATEGORIES[draft.category] ?? [])
+  const previewHref = buildEditorialLink({
+    destination: draft.destination,
+    category: draft.category,
+    subcategory: draft.subcategory,
+  })
+
   return (
-    <div className="flex flex-col gap-16">
-      <p className="text-caption text-secondary">
-        CATEGORY 캐러셀과 NEW ARRIVALS 사이에 노출되는 에디토리얼 배너 2장입니다. 클릭 시 전체 성별 상품
-        리스팅으로 이동합니다(목적지는 코드에 고정).
-      </p>
-      {SLOT_IDS.map((slot, index) => (
-        <SlotEditor
-          key={slot}
-          label={`배너 ${index + 1}`}
-          data={slots[slot]}
-          keyFor={(field) => keyFor(slot, field)}
-          onTextSaved={(title, subtitle) => setSlots((prev) => ({ ...prev, [slot]: { ...prev[slot], title, subtitle } }))}
-          onImageSaved={(url) => setSlots((prev) => ({ ...prev, [slot]: { ...prev[slot], image: url } }))}
+    <div className="flex flex-col gap-20 rounded-sm border border-line p-16 lg:p-20">
+      <div className="flex flex-col gap-4">
+        <p className="text-body-sm font-medium">{pageLabel} 에디토리얼 배너</p>
+        <p className="text-caption text-secondary">
+          BEST SELLERS 위에 노출되는 배너입니다. 저장 후 사용자 페이지를 새로고침하면 반영됩니다.
+        </p>
+      </div>
+
+      {error && <p className="text-body-sm text-point">{error}</p>}
+      {saved && <p className="text-body-sm text-secondary">저장되었습니다.</p>}
+
+      <div className="flex flex-wrap gap-8">
+        {(Object.keys(CROP_CONFIGS) as PreviewMode[]).map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => setPreviewMode(mode)}
+            className={`rounded-sm border px-12 py-6 text-body-sm ${
+              previewMode === mode ? 'border-primary bg-primary text-surface' : 'border-line text-secondary'
+            }`}
+          >
+            {CROP_CONFIGS[mode].label}
+          </button>
+        ))}
+      </div>
+
+      <div className={`relative w-full overflow-hidden rounded-sm bg-surface-muted ${previewConfig.previewClass}`}>
+        {previewImage ? (
+          <img src={previewImage} alt="" className="absolute inset-0 h-full w-full object-cover object-center" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-body-sm text-secondary">이미지 없음</div>
+        )}
+        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/65 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 z-10 p-16 text-surface md:p-24">
+          <p className="font-display whitespace-pre-line text-[22px] font-medium leading-[1.15] md:text-[28px]">
+            {draft.title || '타이틀'}
+          </p>
+          {draft.subtitle && <p className="mt-8 whitespace-pre-line text-[16px] leading-[1.6] text-surface/85">{draft.subtitle}</p>}
+          {draft.buttonLabel && (
+            <span className="mt-16 inline-flex h-36 items-center border border-surface px-16 text-body-sm">
+              {draft.buttonLabel}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-16 lg:grid-cols-3">
+        {(Object.keys(CROP_CONFIGS) as PreviewMode[]).map((mode) => {
+          const config = CROP_CONFIGS[mode]
+          const image = draft[config.dataField]
+          const uploading = uploadingField === config.field
+          return (
+            <div key={mode} className="flex flex-col gap-8 rounded-sm border border-line p-12">
+              <div>
+                <p className="text-body-sm font-medium">{config.label}</p>
+                <p className="text-caption text-secondary">
+                  권장 {config.recommendedWidth}×{config.recommendedHeight}px 이상
+                </p>
+              </div>
+              {image ? (
+                <img src={image} alt={`${config.label} 미리보기`} className="aspect-[4/3] w-full bg-surface-muted object-cover" />
+              ) : (
+                <div className="flex aspect-[4/3] items-center justify-center border border-dashed border-line text-caption text-secondary">
+                  등록된 이미지 없음
+                </div>
+              )}
+              <div className="flex flex-wrap gap-8">
+                <Button as="label" variant="secondary" size="small" className="cursor-pointer" aria-disabled={uploading}>
+                  {uploading ? '처리 중...' : image ? '이미지 변경' : '이미지 등록'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={(event) => handleImageSelect(config, event)}
+                  />
+                </Button>
+                {image && (
+                  <Button variant="secondary" size="small" disabled={uploading} onClick={() => setRemoveTarget(config)}>
+                    제거
+                  </Button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
+        <label className="flex flex-col gap-6 md:col-span-2">
+          <span className="text-body-sm text-secondary">타이틀 (최대 80자, 줄바꿈 가능)</span>
+          <textarea
+            value={draft.title}
+            maxLength={80}
+            rows={2}
+            onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
+            className="text-body-sm rounded-sm border border-line px-12 py-8"
+          />
+        </label>
+        <label className="flex flex-col gap-6 md:col-span-2">
+          <span className="text-body-sm text-secondary">설명 (최대 140자, 줄바꿈 가능)</span>
+          <textarea
+            value={draft.subtitle}
+            maxLength={140}
+            rows={3}
+            onChange={(event) => setDraft((current) => ({ ...current, subtitle: event.target.value }))}
+            className="text-body-sm rounded-sm border border-line px-12 py-8"
+          />
+        </label>
+        <label className="flex flex-col gap-6">
+          <span className="text-body-sm text-secondary">버튼 문구 (최대 20자)</span>
+          <input
+            value={draft.buttonLabel}
+            maxLength={20}
+            onChange={(event) => setDraft((current) => ({ ...current, buttonLabel: event.target.value }))}
+            className="text-body-sm rounded-sm border border-line px-12 py-8"
+          />
+        </label>
+        <fieldset className="grid grid-cols-1 gap-12 rounded-sm border border-line p-12 md:col-span-2 md:grid-cols-3">
+          <legend className="px-4 text-body-sm font-medium">버튼 이동 설정</legend>
+          <label className="flex flex-col gap-6">
+            <span className="text-body-sm text-secondary">이동 페이지</span>
+            <select
+              value={draft.destination}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  destination: event.target.value as EditorialDestination,
+                }))
+              }
+              className="text-body-sm h-40 rounded-sm border border-line bg-surface px-12"
+            >
+              <option value="men">MEN</option>
+              <option value="women">WOMEN</option>
+              <option value="all">전체 상품</option>
+            </select>
+          </label>
+          <label className="flex flex-col gap-6">
+            <span className="text-body-sm text-secondary">대분류</span>
+            <select
+              value={draft.category}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, category: event.target.value, subcategory: '' }))
+              }
+              className="text-body-sm h-40 rounded-sm border border-line bg-surface px-12"
+            >
+              <option value="all">전체 상품</option>
+              {PRODUCT_CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-6">
+            <span className="text-body-sm text-secondary">세부 카테고리</span>
+            <select
+              value={draft.subcategory}
+              disabled={draft.category === 'all'}
+              onChange={(event) => setDraft((current) => ({ ...current, subcategory: event.target.value }))}
+              className="text-body-sm h-40 rounded-sm border border-line bg-surface px-12 disabled:bg-surface-muted disabled:text-disabled"
+            >
+              <option value="">전체</option>
+              {subcategoryOptions.map((subcategory) => (
+                <option key={subcategory} value={subcategory}>
+                  {subcategory}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="text-caption break-all text-secondary md:col-span-3">
+            이동 경로: {previewHref}
+          </p>
+        </fieldset>
+        <label className="flex items-center gap-8 self-end py-8 text-body-sm">
+          <input
+            type="checkbox"
+            checked={draft.enabled}
+            onChange={(event) => setDraft((current) => ({ ...current, enabled: event.target.checked }))}
+          />
+          사용자 페이지에 노출
+        </label>
+      </div>
+
+      <div className="flex flex-wrap gap-8">
+        <Button onClick={saveSettings} disabled={saving}>
+          {saving ? '저장 중...' : '문구·버튼·노출 설정 저장'}
+        </Button>
+        <Button variant="secondary" onClick={() => setDraft(data)} disabled={saving}>
+          변경 취소
+        </Button>
+      </div>
+
+      {cropTarget && (
+        <ImageCropModal
+          file={cropTarget.file}
+          aspect={cropTarget.config.aspect}
+          targetLabel={cropTarget.config.label}
+          recommendedWidth={cropTarget.config.recommendedWidth}
+          recommendedHeight={cropTarget.config.recommendedHeight}
+          safeZoneWidthRatio={cropTarget.config.safeZoneWidthRatio}
+          safeZoneHeightRatio={cropTarget.config.safeZoneHeightRatio}
+          textZone={cropTarget.config.textZone}
+          onCancel={() => setCropTarget(null)}
+          onConfirm={handleCropConfirm}
         />
-      ))}
+      )}
+
+      {removeTarget && (
+        <ConfirmModal
+          message={`${removeTarget.label} 이미지를 제거할까요?`}
+          confirmLabel="제거"
+          onConfirm={confirmRemoveImage}
+          onCancel={() => setRemoveTarget(null)}
+        />
+      )}
     </div>
   )
 }

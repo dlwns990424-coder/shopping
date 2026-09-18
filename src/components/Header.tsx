@@ -102,6 +102,7 @@ function Header() {
   const isTransparent = isHeroPage && !scrolled && !searchOpen && !hovered
   const bottomNavMode = getBottomNavMode(location.pathname, Boolean(searchParams.get('category')))
   const compactHeader = getCompactHeaderConfig(location.pathname, searchParams)
+  const tabletGlobalHeader = Boolean(compactHeader?.tabletGlobalHeader)
 
   const handleBack = () => {
     if (searchOpen) {
@@ -138,14 +139,19 @@ function Header() {
   }, [isHeroPage])
 
   const navLinkClass = (active: boolean) =>
-    `border-b py-4 text-sm font-medium no-underline transition-colors ${
+    `flex h-full min-w-64 items-center justify-center text-sm font-medium no-underline transition-colors ${
       isTransparent
         ? active
-          ? 'border-white text-white'
-          : 'border-transparent text-white/70 hover:border-white hover:text-white'
+          ? 'text-white'
+          : 'text-white/70 hover:text-white'
         : active
-          ? 'border-primary text-primary hover:border-primary hover:text-primary'
-          : 'border-transparent text-disabled hover:border-primary hover:text-primary'
+          ? 'text-primary'
+          : 'text-disabled hover:text-primary'
+    }`
+
+  const navIndicatorClass = (active: boolean) =>
+    `relative flex h-full items-center after:absolute after:inset-x-0 after:bottom-0 after:h-px after:transition-colors ${
+      active ? (isTransparent ? 'after:bg-white' : 'after:bg-primary') : 'after:bg-transparent'
     }`
 
   const genderTabClass = (active: boolean) =>
@@ -163,7 +169,7 @@ function Header() {
     >
       <div
         aria-hidden
-        className={`pointer-events-none absolute inset-x-0 top-0 -z-10 hidden h-[160px] bg-gradient-to-b from-black/20 to-transparent transition-opacity duration-300 md:block ${
+        className={`pointer-events-none absolute inset-x-0 top-0 -z-10 hidden h-[160px] bg-gradient-to-b from-black/35 to-transparent transition-opacity duration-300 md:block ${
           isTransparent ? 'opacity-100' : 'opacity-0'
         }`}
       />
@@ -173,7 +179,9 @@ function Header() {
           type="button"
           onClick={handleBack}
           aria-label="뒤로가기"
-          className="relative z-10 -ml-12 flex h-44 w-44 shrink-0 items-center justify-center text-primary transition-transform active:scale-90 md:ml-0 lg:hidden"
+          className={`relative z-10 -ml-12 flex h-44 w-44 shrink-0 items-center justify-center text-primary transition-transform active:scale-90 md:ml-0 ${
+            tabletGlobalHeader ? 'md:hidden' : 'lg:hidden'
+          }`}
         >
           <ArrowLeft size={22} strokeWidth={1.5} />
         </button>
@@ -181,7 +189,13 @@ function Header() {
 
       <Link
         to="/"
-        className={`${compactHeader ? 'hidden lg:inline-flex' : 'inline-flex'} shrink-0 items-center`}
+        className={`${
+          compactHeader
+            ? tabletGlobalHeader
+              ? 'hidden md:inline-flex'
+              : 'hidden lg:inline-flex'
+            : 'inline-flex'
+        } shrink-0 items-center`}
       >
         <img
           src="/images/brand/novera-logo-header.png"
@@ -195,7 +209,9 @@ function Header() {
       {compactHeader?.breadcrumb ? (
         <nav
           aria-label="현재 상품 분류"
-          className="relative z-10 -ml-8 flex min-w-0 flex-1 items-center gap-6 text-sm font-semibold text-primary lg:hidden"
+          className={`relative z-10 -ml-8 min-w-0 flex-1 items-center gap-6 text-sm font-semibold text-primary ${
+            tabletGlobalHeader ? 'flex md:hidden' : 'flex lg:hidden'
+          }`}
         >
           <Link to={compactHeader.breadcrumb.rootPath} className="shrink-0 text-primary no-underline">
             {compactHeader.breadcrumb.rootLabel}
@@ -209,24 +225,36 @@ function Header() {
         <p
           className={
             compactHeader.alignTitleLeft
-              ? 'relative z-10 -ml-8 flex min-w-0 flex-1 items-center truncate text-sm font-semibold text-primary lg:hidden'
-              : 'pointer-events-none absolute inset-x-76 bottom-0 flex h-48 items-center justify-center truncate px-8 text-center text-sm font-semibold text-primary md:h-54 lg:hidden'
+              ? `relative z-10 -ml-8 min-w-0 flex-1 items-center truncate text-sm font-semibold text-primary ${
+                  tabletGlobalHeader ? 'flex md:hidden' : 'flex lg:hidden'
+                }`
+              : `pointer-events-none absolute inset-x-76 bottom-0 h-48 items-center justify-center truncate px-8 text-center text-sm font-semibold text-primary md:h-54 ${
+                  tabletGlobalHeader ? 'flex md:hidden' : 'flex lg:hidden'
+                }`
           }
         >
           {compactHeader.title}
         </p>
       ) : null}
 
-      <nav className={`${compactHeader ? 'hidden lg:flex' : 'hidden md:flex'} flex-1 gap-24`}>
+      <nav
+        className={`${
+          compactHeader ? (tabletGlobalHeader ? 'hidden md:flex' : 'hidden lg:flex') : 'hidden md:flex'
+        } ml-16 h-full flex-1 gap-24 lg:ml-24`}
+      >
         <Link to="/men" className={navLinkClass(activeGender === 'men')}>
-          MEN
+          <span className={navIndicatorClass(activeGender === 'men')}>MEN</span>
         </Link>
         <Link to="/women" className={navLinkClass(activeGender === 'women')}>
-          WOMEN
+          <span className={navIndicatorClass(activeGender === 'women')}>WOMEN</span>
         </Link>
       </nav>
 
-      <div className={`${compactHeader ? 'hidden lg:flex' : 'hidden md:flex'} items-center gap-8`}>
+      <div
+        className={`${
+          compactHeader ? (tabletGlobalHeader ? 'hidden md:flex' : 'hidden lg:flex') : 'hidden md:flex'
+        } items-center gap-8`}
+      >
         <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)} light={isTransparent}>
           <Search size={20} strokeWidth={1.5} />
         </IconButton>
@@ -270,7 +298,11 @@ function Header() {
       )}
 
       {compactHeader?.showShoppingActions && (
-        <div className="relative z-10 -mr-12 ml-auto flex items-center gap-0 md:mr-0 lg:hidden">
+        <div
+          className={`relative z-10 -mr-12 ml-auto items-center gap-0 md:mr-0 ${
+            tabletGlobalHeader ? 'flex md:hidden' : 'flex lg:hidden'
+          }`}
+        >
           <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)} light={false}>
             <Search size={20} strokeWidth={1.5} />
           </IconButton>

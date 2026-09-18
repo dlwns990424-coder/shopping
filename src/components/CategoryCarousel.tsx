@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import CategoryCard from './CategoryCard'
+import CarouselArrowButton from './CarouselArrowButton'
 import type { Category } from '../types'
 
 interface CategoryCarouselProps {
@@ -51,24 +51,25 @@ function CategoryCarousel({ categories }: CategoryCarouselProps) {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => emblaApi?.scrollPrev()}
-        disabled={!canScrollPrev}
-        aria-label="이전 카테고리"
-        className="absolute left-0 top-1/2 hidden h-40 w-40 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface text-primary shadow-md transition-opacity disabled:opacity-30 lg:flex"
-      >
-        <ChevronLeft size={20} strokeWidth={1.5} />
-      </button>
-      <button
-        type="button"
-        onClick={() => emblaApi?.scrollNext()}
-        disabled={!canScrollNext}
-        aria-label="다음 카테고리"
-        className="absolute right-0 top-1/2 hidden h-40 w-40 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface text-primary shadow-md transition-opacity disabled:opacity-30 lg:flex"
-      >
-        <ChevronRight size={20} strokeWidth={1.5} />
-      </button>
+      <div className="pointer-events-none absolute inset-x-0 top-0 hidden lg:block">
+        <div className="w-[11.111%] pl-12" aria-hidden="true">
+          <div className="aspect-[3/4]" />
+        </div>
+        <CarouselArrowButton
+          direction="previous"
+          placement="outside"
+          onClick={() => emblaApi?.scrollPrev()}
+          disabled={!canScrollPrev}
+          label="이전 카테고리"
+        />
+        <CarouselArrowButton
+          direction="next"
+          placement="outside"
+          onClick={() => emblaApi?.scrollNext()}
+          disabled={!canScrollNext}
+          label="다음 카테고리"
+        />
+      </div>
     </div>
   )
 }

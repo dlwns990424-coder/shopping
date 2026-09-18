@@ -12,10 +12,10 @@ interface RecentlyViewedProps {
   collapsible?: boolean
 }
 
-// dense 모드 컬럼 수(2/3/5)에 맞춰 첫 줄 이후를 숨긴다. 브레이크포인트별로
+// dense 모드 컬럼 수(2/3/3/4/5)에 맞춰 첫 줄 이후를 숨긴다. 브레이크포인트별로
 // "몇 개가 1줄인지"가 달라서 아이템 개수 대신 nth-child로 화면 크기별 분기한다.
 const COLLAPSED_GRID_CLASS =
-  '[&>*:nth-child(n+3)]:hidden md:[&>*:nth-child(n+3)]:block md:[&>*:nth-child(n+4)]:hidden lg:[&>*:nth-child(n+4)]:block lg:[&>*:nth-child(n+6)]:hidden'
+  '[&>*:nth-child(n+3)]:hidden md:[&>*:nth-child(n+3)]:block md:[&>*:nth-child(n+4)]:hidden xl:[&>*:nth-child(n+4)]:block xl:[&>*:nth-child(n+5)]:hidden 2xl:[&>*:nth-child(n+5)]:block 2xl:[&>*:nth-child(n+6)]:hidden'
 
 function RecentlyViewed({ excludeId, hideWhenEmpty = false, dense = false, collapsible = false }: RecentlyViewedProps) {
   const { products } = useProducts()
@@ -36,19 +36,24 @@ function RecentlyViewed({ excludeId, hideWhenEmpty = false, dense = false, colla
   const collapsed = collapsible && !expanded
   const needsMoreAt2 = items.length > 2
   const needsMoreAt3 = items.length > 3
+  const needsMoreAt4 = items.length > 4
   const needsMoreAt5 = items.length > 5
 
   return (
     <div>
       <div
-        className={`product-grid gap-y-32 ${dense ? 'lg:grid-cols-5' : ''} ${collapsed ? COLLAPSED_GRID_CLASS : ''}`}
+        className={`product-grid gap-y-32 ${dense ? 'lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5' : ''} ${collapsed ? COLLAPSED_GRID_CLASS : ''}`}
       >
         {items.map((product) => (
           <ProductCard key={product.id} {...product} />
         ))}
       </div>
       {collapsed && needsMoreAt2 && (
-        <div className={`mt-24 flex justify-center ${needsMoreAt3 ? '' : 'md:hidden'} ${needsMoreAt5 ? '' : 'lg:hidden'}`}>
+        <div
+          className={`mt-24 flex justify-center ${needsMoreAt3 ? '' : 'md:hidden'} ${
+            needsMoreAt4 ? '' : 'xl:hidden'
+          } ${needsMoreAt5 ? '' : '2xl:hidden'}`}
+        >
           <Button variant="secondary" size="small" onClick={() => setExpanded(true)}>
             더보기
           </Button>

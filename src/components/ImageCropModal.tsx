@@ -7,9 +7,21 @@ import { getCroppedImageBlob, type CropArea } from '../utils/cropImage'
 interface ImageCropModalProps {
   file: File
   aspect: number
+  targetLabel?: string
+  recommendedWidth?: number
+  recommendedHeight?: number
+  safeZoneWidthRatio?: number
+  safeZoneHeightRatio?: number
   // 히어로 섹션처럼 고정 헤더가 이미지 위에 겹쳐지는 경우, 상단 중 헤더가 항상 가리는
   // 비율(크롭 높이 대비)을 넘기면 그 영역을 별도로 표시한다. 안 넘기면 표시 안 함.
   topDangerZoneRatio?: number
+  // 실제 히어로의 제목과 설명이 놓이는 영역을 크롭 비율에 대한 비율값으로 표시한다.
+  textZone?: {
+    left: number
+    top: number
+    width: number
+    height: number
+  }
   // 기본은 JPEG(대부분의 배너/히어로 이미지). 배경이 투명한 누끼 이미지처럼 투명도를
   // 보존해야 하면 'image/png'로 넘긴다 — JPEG는 알파 채널이 없어 투명 영역이 사라진다.
   outputType?: 'image/jpeg' | 'image/png'
@@ -17,7 +29,20 @@ interface ImageCropModalProps {
   onConfirm: (blob: Blob) => void
 }
 
-function ImageCropModal({ file, aspect, topDangerZoneRatio, outputType, onCancel, onConfirm }: ImageCropModalProps) {
+function ImageCropModal({
+  file,
+  aspect,
+  targetLabel,
+  recommendedWidth,
+  recommendedHeight,
+  safeZoneWidthRatio = 0.7,
+  safeZoneHeightRatio = 0.7,
+  topDangerZoneRatio,
+  textZone,
+  outputType,
+  onCancel,
+  onConfirm,
+}: ImageCropModalProps) {
   // zoom이 정확히 1이면 라이브러리가 이미지를 크롭 박스에 딱 맞는 최소 크기로 놓는데,
   // 이 경우 가로/세로 중 한 축은 이미지 경계와 완전히 일치해서 그 방향으로는 드래그해도
   // 전혀 움직이지 않는다(사용자에게는 "크롭이 고정돼서 안 움직인다"는 버그처럼 보임).
@@ -32,18 +57,36 @@ function ImageCropModal({ file, aspect, topDangerZoneRatio, outputType, onCancel
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(null)
   const [processing, setProcessing] = useState(false)
   const [cropBoxSize, setCropBoxSize] = useState<{ width: number; height: number } | null>(null)
+  const [sourceSize, setSourceSize] = useState<{ width: number; height: number } | null>(null)
 
   // 실제 사이트는 화면 크기에 따라 이 프레임보다 더 타이트하게 잘릴 수 있다(예: hero의
   // h-screen 배경은 브라우저 창의 실제 표시 영역 비율 그대로 적용됨). 그래서 바깥 프레임
   // 안에 "여기 안쪽에만 두면 어떤 화면에서도 안 잘림"을 보여주는 안전영역을 겹쳐 그린다.
-  const SAFE_ZONE_RATIO = 0.7
   const CROP_CONTAINER_HEIGHT = 320
 
   useEffect(() => {
     const url = URL.createObjectURL(file)
+    const image = new Image()
+    image.onload = () => setSourceSize({ width: image.naturalWidth, height: image.naturalHeight })
+    image.src = url
     setImageUrl(url)
-    return () => URL.revokeObjectURL(url)
+    return () => {
+      image.onload = null
+      URL.revokeObjectURL(url)
+    }
   }, [file])
+
+  const maximumCropSize = sourceSize
+    ? sourceSize.width / sourceSize.height > aspect
+      ? { width: Math.floor(sourceSize.height * aspect), height: sourceSize.height }
+      : { width: sourceSize.width, height: Math.floor(sourceSize.width / aspect) }
+    : null
+  const sourceIsSmallerThanRecommended = Boolean(
+    maximumCropSize &&
+      recommendedWidth &&
+      recommendedHeight &&
+      (maximumCropSize.width < recommendedWidth || maximumCropSize.height < recommendedHeight),
+  )
 
   const handleConfirm = async () => {
     if (!imageUrl || !croppedAreaPixels) return
@@ -58,8 +101,31 @@ function ImageCropModal({ file, aspect, topDangerZoneRatio, outputType, onCancel
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 px-24">
-      <div className="flex w-full max-w-480 flex-col gap-16 rounded-md bg-surface p-24">
+      <div className="flex max-h-[calc(100dvh-48px)] w-full max-w-480 flex-col gap-16 overflow-y-auto rounded-md bg-surface p-24">
         <p className="text-h3">보여질 영역 선택</p>
+
+        {(targetLabel || sourceSize) && (
+          <div className="flex flex-wrap gap-x-12 gap-y-4 text-caption text-secondary">
+            {targetLabel && <span>{targetLabel}</span>}
+            {sourceSize && (
+              <span>
+                원본 {sourceSize.width}×{sourceSize.height}px
+              </span>
+            )}
+            {recommendedWidth && recommendedHeight && (
+              <span>
+                권장 {recommendedWidth}×{recommendedHeight}px 이상
+              </span>
+            )}
+          </div>
+        )}
+
+        {sourceIsSmallerThanRecommended && maximumCropSize && (
+          <p className="rounded-sm bg-point-tint px-12 py-8 text-caption text-point">
+            이 원본에서 확보 가능한 최대 크롭은 약 {maximumCropSize.width}×{maximumCropSize.height}px입니다.
+            권장 크기보다 작아 큰 화면에서 선명도가 낮아질 수 있습니다.
+          </p>
+        )}
 
         <div
           className="relative w-full overflow-hidden rounded-sm bg-surface-muted"
@@ -81,8 +147,8 @@ function ImageCropModal({ file, aspect, topDangerZoneRatio, outputType, onCancel
             <div
               className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 border border-dashed border-surface"
               style={{
-                width: cropBoxSize.width * SAFE_ZONE_RATIO,
-                height: cropBoxSize.height * SAFE_ZONE_RATIO,
+                width: cropBoxSize.width * safeZoneWidthRatio,
+                height: cropBoxSize.height * safeZoneHeightRatio,
                 boxShadow: '0 0 0 1px rgba(0,0,0,0.4)',
               }}
             />
@@ -99,11 +165,27 @@ function ImageCropModal({ file, aspect, topDangerZoneRatio, outputType, onCancel
               <span className="text-caption pt-2 text-surface">헤더에 가려짐</span>
             </div>
           )}
+          {cropBoxSize && textZone && (
+            <div
+              className="pointer-events-none absolute flex items-end border border-dashed border-surface bg-black/20 p-4"
+              style={{
+                left: `calc(50% - ${cropBoxSize.width / 2}px + ${cropBoxSize.width * textZone.left}px)`,
+                top:
+                  (CROP_CONTAINER_HEIGHT - cropBoxSize.height) / 2 +
+                  cropBoxSize.height * textZone.top,
+                width: cropBoxSize.width * textZone.width,
+                height: cropBoxSize.height * textZone.height,
+              }}
+            >
+              <span className="text-caption text-surface">제목·설명 영역</span>
+            </div>
+          )}
         </div>
         <p className="text-caption text-secondary">
           안쪽 점선 안에 얼굴 등 핵심 요소를 두면 화면 크기와 상관없이 항상 보입니다. 상하좌우로 잘 안
           움직이면 확대를 조금 더 올려주세요.
           {topDangerZoneRatio && ' 어두운 상단 띠 안에는 얼굴 등 중요한 부분을 두지 마세요(헤더에 가려집니다).'}
+          {textZone && ' 제목·설명 표시 영역에서는 글자가 잘 읽히도록 복잡한 피사체를 피해주세요.'}
         </p>
 
         <div className="flex items-center gap-12">

@@ -37,24 +37,69 @@ const SECTION_LABELS: Record<string, string> = {
   category_shorts: '카테고리 - 반바지',
 }
 
+interface CropSettings {
+  aspect: number
+  targetLabel?: string
+  recommendedWidth?: number
+  recommendedHeight?: number
+  safeZoneWidthRatio?: number
+  safeZoneHeightRatio?: number
+  topDangerZoneRatio?: number
+  textZone?: {
+    left: number
+    top: number
+    width: number
+    height: number
+  }
+}
+
 // key는 "page.section.나머지" 형태(예: home.event_banner.men-outer.label) — 두 번째 조각을 섹션으로 취급
 function sectionOf(key: string) {
   return key.split('.')[1] ?? ''
 }
 
-// 히어로는 화면 크기에 따라 실제로 잘리는 비율이 크게 달라서 모바일용/데스크톱용 이미지를
-// 따로 받는다(_mobile/_desktop 접미사). 카테고리 카드는 화면 크기와 무관하게 이미지 1장만
+// 히어로는 화면 크기에 따라 실제로 잘리는 비율이 크게 달라서 모바일/태블릿/데스크톱 이미지를
+// 따로 받는다. 카테고리 카드는 화면 크기와 무관하게 이미지 1장만
 // 받는다(CategoryCard가 전 구간에서 동일하게 3:4를 쓰도록 통일했으므로, 이 비율 그대로 크롭한
 // 이미지가 어느 화면에서도 잘리는 부분 없이 그대로 표시된다).
 // 데스크톱(`lg:`)은 h-screen이라 실제 비율은 방문자 화면 크기에 따라 달라지는 근사값일 뿐이지만,
 // 가장 흔한 모니터 비율(16:9)을 기준으로 잡는다.
 const DESKTOP_SCREEN_ASPECT = 16 / 9
-// 히어로는 태블릿 구간(md~lg)에서 정사각형(aspect-square)을 쓰므로 별도 크롭이 필요하다.
-const RESPONSIVE_ASPECT: Record<string, { mobile: number; desktop: number; tablet?: number }> = {
-  hero: { mobile: 3 / 4, desktop: DESKTOP_SCREEN_ASPECT, tablet: 1 },
+const HERO_CROP_SETTINGS: Record<'mobile' | 'tablet' | 'desktop', CropSettings> = {
+  mobile: {
+    aspect: 3 / 4,
+    targetLabel: '모바일 · 3:4',
+    recommendedWidth: 1200,
+    recommendedHeight: 1600,
+    safeZoneWidthRatio: 0.9,
+    safeZoneHeightRatio: 0.86,
+    textZone: { left: 0.05, top: 0.55, width: 0.9, height: 0.25 },
+  },
+  tablet: {
+    aspect: 1,
+    targetLabel: '태블릿 · 1:1',
+    recommendedWidth: 1600,
+    recommendedHeight: 1600,
+    safeZoneWidthRatio: 0.85,
+    safeZoneHeightRatio: 0.82,
+    topDangerZoneRatio: 0.2,
+    textZone: { left: 0.04, top: 0.55, width: 0.68, height: 0.25 },
+  },
+  desktop: {
+    aspect: DESKTOP_SCREEN_ASPECT,
+    targetLabel: '데스크톱 기준 · 16:9',
+    recommendedWidth: 1920,
+    recommendedHeight: 1080,
+    // 실제 화면은 4:3~울트라와이드까지 달라진다. 중앙 70%는 object-cover의 추가 잘림을
+    // 고려해 얼굴과 핵심 피사체를 두는 공통 안전 영역으로 사용한다.
+    safeZoneWidthRatio: 0.7,
+    safeZoneHeightRatio: 0.7,
+    topDangerZoneRatio: 0.2,
+    textZone: { left: 0.08, top: 0.55, width: 0.55, height: 0.25 },
+  },
 }
 const FIXED_ASPECT = 2 / 3
-const RESPONSIVE_SECTIONS = new Set(Object.keys(RESPONSIVE_ASPECT))
+const RESPONSIVE_SECTIONS = new Set(['hero'])
 
 const CATEGORY_ASPECT = 3 / 4
 const CATEGORY_SECTIONS = new Set([
@@ -71,22 +116,16 @@ const CATEGORY_SECTIONS = new Set([
   'category_shorts',
 ])
 
-// 히어로 섹션은 고정 헤더(모바일 h-48, 그 아래 그라디언트는 160px까지)가 이미지 위에 겹쳐진다.
-// 크롭 높이 대비 대략적인 비율(여유를 좀 둔 값) — 이 안에는 얼굴 등 중요한 요소를 두면 안 됨.
-// 모바일 크롭 높이가 h-screen 기준일 때보다 짧아져서(aspect-[3/4]) 같은 절대 픽셀(그라디언트
-// 160px)이 차지하는 비중이 커졌으므로 비율을 올려잡음.
-const HERO_HEADER_ZONE_RATIO = 0.2
-
 // null이면 "모바일/데스크톱으로 나뉘어야 하는데 아직 안 나뉜 비정상 상태"라는 뜻.
 // 이 경우 잘못된 비율(예: 2:3)로 조용히 넘기지 않고 화면에서 바로 경고를 띄운다.
-function aspectForKey(key: string): number | null {
+function cropSettingsForKey(key: string): CropSettings | null {
   const section = sectionOf(key)
-  if (key.endsWith('_mobile')) return RESPONSIVE_ASPECT[section]?.mobile ?? null
-  if (key.endsWith('_tablet')) return RESPONSIVE_ASPECT[section]?.tablet ?? null
-  if (key.endsWith('_desktop')) return RESPONSIVE_ASPECT[section]?.desktop ?? null
+  if (section === 'hero' && key.endsWith('_mobile')) return HERO_CROP_SETTINGS.mobile
+  if (section === 'hero' && key.endsWith('_tablet')) return HERO_CROP_SETTINGS.tablet
+  if (section === 'hero' && key.endsWith('_desktop')) return HERO_CROP_SETTINGS.desktop
   if (RESPONSIVE_SECTIONS.has(section)) return null
-  if (CATEGORY_SECTIONS.has(section)) return CATEGORY_ASPECT
-  return FIXED_ASPECT
+  if (CATEGORY_SECTIONS.has(section)) return { aspect: CATEGORY_ASPECT }
+  return { aspect: FIXED_ASPECT }
 }
 
 function ContentManage() {
@@ -102,8 +141,7 @@ function ContentManage() {
   const [cropTarget, setCropTarget] = useState<{
     key: string
     file: File
-    aspect: number
-    topDangerZoneRatio?: number
+    settings: CropSettings
   } | null>(null)
 
   const loadRows = async () => {
@@ -153,14 +191,13 @@ function ContentManage() {
     e.target.value = ''
     if (!file) return
 
-    const aspect = aspectForKey(key)
-    if (aspect === null) {
+    const settings = cropSettingsForKey(key)
+    if (settings === null) {
       setError('이 섹션은 모바일/데스크톱 이미지로 나뉘어야 합니다. SQL 마이그레이션이 실행됐는지 확인해주세요.')
       return
     }
 
-    const topDangerZoneRatio = sectionOf(key) === 'hero' ? HERO_HEADER_ZONE_RATIO : undefined
-    setCropTarget({ key, file, aspect, topDangerZoneRatio })
+    setCropTarget({ key, file, settings })
   }
 
   const handleCropCancel = () => setCropTarget(null)
@@ -199,8 +236,8 @@ function ContentManage() {
     loadRows()
   }
 
-  // editorial_sub_banner는 전용 매니저(EditorialBannerManager)가 전담하므로 범용 렌더링에서 제외.
-  const groupedByPage = rows.filter((row) => sectionOf(row.key) !== 'editorial_sub_banner')
+  // 에디토리얼의 신규/레거시 키는 전용 매니저(EditorialBannerManager)가 전담하므로 범용 렌더링에서 제외.
+  const groupedByPage = rows.filter((row) => !['editorial_banner', 'editorial_sub_banner'].includes(sectionOf(row.key)))
     .reduce<Record<string, Record<string, ContentRow[]>>>((pages, row) => {
       const section = sectionOf(row.key)
       const page = (pages[row.page] ??= {})
@@ -223,13 +260,20 @@ function ContentManage() {
               const isImage = /\.image(_mobile|_tablet|_desktop)?$/.test(row.key)
 
               if (isImage) {
-                const aspect = aspectForKey(row.key)
+                const cropSettings = cropSettingsForKey(row.key)
 
                 return (
                   <div key={row.key} className="flex flex-col gap-12 rounded-md border border-line p-16">
                     <p className="text-caption text-secondary">{row.label}</p>
 
-                    {aspect === null && (
+                    {cropSettings?.recommendedWidth && cropSettings.recommendedHeight && (
+                      <p className="text-caption text-secondary">
+                        {cropSettings.targetLabel} · 권장 원본 {cropSettings.recommendedWidth}×
+                        {cropSettings.recommendedHeight}px 이상
+                      </p>
+                    )}
+
+                    {cropSettings === null && (
                       <p className="text-caption text-point">
                         이 섹션은 모바일/데스크톱 이미지로 나뉘어야 합니다. SQL 마이그레이션이 실행됐는지 확인해주세요.
                       </p>
@@ -250,7 +294,7 @@ function ContentManage() {
                     )}
 
                     <div className="flex items-center gap-12">
-                      {aspect !== null && (
+                      {cropSettings !== null && (
                         <Button
                           as="label"
                           variant="secondary"
@@ -294,7 +338,7 @@ function ContentManage() {
                       className="text-body-sm w-full flex-1 rounded-sm border border-line px-12 py-8"
                     />
                   ) : (
-                    <p className="text-body-sm flex-1">{row.value}</p>
+                    <p className="text-body-sm whitespace-pre-line flex-1">{row.value}</p>
                   )}
 
                   {editingKey === row.key ? (
@@ -414,8 +458,14 @@ function ContentManage() {
       {cropTarget && (
         <ImageCropModal
           file={cropTarget.file}
-          aspect={cropTarget.aspect}
-          topDangerZoneRatio={cropTarget.topDangerZoneRatio}
+          aspect={cropTarget.settings.aspect}
+          targetLabel={cropTarget.settings.targetLabel}
+          recommendedWidth={cropTarget.settings.recommendedWidth}
+          recommendedHeight={cropTarget.settings.recommendedHeight}
+          safeZoneWidthRatio={cropTarget.settings.safeZoneWidthRatio}
+          safeZoneHeightRatio={cropTarget.settings.safeZoneHeightRatio}
+          topDangerZoneRatio={cropTarget.settings.topDangerZoneRatio}
+          textZone={cropTarget.settings.textZone}
           onCancel={handleCropCancel}
           onConfirm={handleCropConfirm}
         />

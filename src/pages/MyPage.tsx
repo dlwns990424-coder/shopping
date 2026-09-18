@@ -23,24 +23,20 @@ function MyPage() {
   }
 
   return (
-    <div className="page-section flex flex-col gap-32 pt-16 md:pt-24 lg:pt-64">
+    <div className="page-section utility-page-min-height flex flex-col gap-32 pt-16 md:pt-24 lg:pt-64">
       <Helmet>
         <title>NOVERA | 마이페이지</title>
       </Helmet>
-      <h1 className="text-h1 max-w-1000 hidden lg:block lg:text-h2">마이페이지</h1>
+      <h1 className="text-h2 max-w-1000 hidden md:block">마이페이지</h1>
 
-      {/* lg 미만: 사이드바가 콘텐츠 위에 쌓이는 기존 방식 그대로.
-          lg 이상: 사이드바는 왼쪽에 절대위치로 고정하고, 콘텐츠는 사이드바 유무와 무관하게
-          "화면 전체 폭" 기준으로 가운데 정렬한다(그리드 1fr 트랙 안에서의 중앙정렬과 달리
-          사이드바 옆에 어중간한 빈 공간이 남는 느낌이 없음). 대신 좁은 데스크톱 폭(lg)에서
-          콘텐츠가 사이드바와 겹치지 않도록, 화면이 좁을수록 콘텐츠 최대폭도 단계적으로
-          줄어들게 해서(lg→xl→2xl 갈수록 넓어짐) 겹칠 여지 자체를 없앤다. */}
+      {/* 데스크톱 사이드 탭은 기존처럼 페이지 왼쪽에 고정하고,
+          본문만 사이드바 오른쪽의 남은 폭을 사용하도록 한다. */}
       <div className="flex flex-col gap-32 lg:relative lg:block">
         <div className="lg:absolute lg:left-0 lg:top-0 lg:w-200">
           <MyPageNav activeTab={activeTab} onLogout={() => setShowLogoutConfirm(true)} />
         </div>
 
-        <div className="mx-auto min-h-0 lg:max-w-450 lg:min-h-600 xl:max-w-700 2xl:max-w-950">
+        <div className="min-h-0 min-w-0 w-full lg:ml-248 lg:min-h-600 lg:w-auto 2xl:mx-auto 2xl:max-w-900">
           {activeTab === 'orders' && <OrderHistory />}
           {activeTab === 'recent' && <RecentlyViewed dense />}
           {activeTab !== 'orders' && activeTab !== 'recent' && <AccountSettingsForm />}

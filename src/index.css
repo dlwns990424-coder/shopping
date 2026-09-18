@@ -295,6 +295,22 @@
     @apply px-20 pb-0 pt-32 md:px-32 md:pt-48 lg:px-80 xl:px-140 2xl:px-200 lg:pt-64;
   }
 
+  .utility-page-min-height {
+    min-height: calc(100svh - var(--mobile-header-height));
+  }
+
+  @media (min-width: 768px) {
+    .utility-page-min-height {
+      min-height: calc(100svh - var(--tablet-header-height));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .utility-page-min-height {
+      min-height: calc(100svh - 60px);
+    }
+  }
+
   .page-section:last-of-type {
     @apply pb-32 md:pb-48 lg:pb-64;
   }

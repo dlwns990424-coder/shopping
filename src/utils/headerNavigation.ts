@@ -3,6 +3,7 @@ export interface CompactHeaderConfig {
   fallbackPath: string
   showShoppingActions: boolean
   alignTitleLeft?: boolean
+  tabletGlobalHeader?: boolean
   breadcrumb?: {
     rootLabel: string
     rootPath: string
@@ -80,8 +81,9 @@ export function getCompactHeaderConfig(
     return {
       title: '장바구니',
       fallbackPath: '/men',
-      showShoppingActions: false,
+      showShoppingActions: true,
       alignTitleLeft: true,
+      tabletGlobalHeader: true,
     }
   }
 
@@ -89,8 +91,9 @@ export function getCompactHeaderConfig(
     return {
       title: '위시리스트',
       fallbackPath: '/men',
-      showShoppingActions: false,
+      showShoppingActions: true,
       alignTitleLeft: true,
+      tabletGlobalHeader: true,
     }
   }
 
@@ -115,8 +118,9 @@ export function getCompactHeaderConfig(
     return {
       title: '마이페이지',
       fallbackPath: !tab || tab === 'orders' ? '/men' : '/mypage?tab=orders',
-      showShoppingActions: false,
+      showShoppingActions: true,
       alignTitleLeft: true,
+      tabletGlobalHeader: true,
     }
   }
 
