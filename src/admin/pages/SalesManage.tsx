@@ -143,7 +143,7 @@ function SalesManage() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-16 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-4">
         {kpis.map((kpi) => (
           <div key={kpi.label} className="rounded-sm border border-line px-20 py-16">
             <p className="text-body-sm text-secondary">{kpi.label}</p>

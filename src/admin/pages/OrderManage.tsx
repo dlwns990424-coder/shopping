@@ -321,6 +321,7 @@ function OrderManage() {
                             <OrderItemRow
                               key={`${order.id}-${index}`}
                               item={{ ...item, price: formatPrice(item.price) }}
+                              responsive={false}
                             />
                           ))}
                         </div>

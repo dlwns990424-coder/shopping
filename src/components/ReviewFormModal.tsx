@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from 'react'
+import { useEffect, useState, type ChangeEvent } from 'react'
 import { X } from 'lucide-react'
 import Button from './Button'
 import StarRating from './StarRating'
@@ -38,6 +38,14 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [])
 
   const handlePhotoSelect = async (e: ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files ?? [])
@@ -113,8 +121,8 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
   const canSubmit = !uploading && !submitting
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 px-24">
-      <div className="flex max-h-[calc(100dvh-48px)] w-full max-w-480 flex-col gap-16 overflow-y-auto rounded-md bg-surface p-24">
+    <div className="fixed inset-0 z-modal flex items-end overflow-y-auto bg-black/50 md:items-center md:justify-center md:px-24 md:py-24">
+      <div className="flex max-h-[calc(100dvh-var(--safe-area-top)-var(--safe-area-bottom))] w-full max-w-480 flex-col gap-16 overflow-y-auto rounded-t-lg bg-surface px-20 pb-[calc(20px+var(--safe-area-bottom))] pt-20 md:rounded-md md:p-24">
         <div>
           <p className="text-h3">리뷰 작성</p>
           {productName && <p className="text-body-sm mt-4 text-secondary">{productName}</p>}
@@ -141,7 +149,7 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
         </div>
 
         <div className="flex gap-16">
-          <div className="flex flex-1 flex-col gap-8">
+          <div className="flex min-w-0 flex-1 flex-col gap-8">
             <label className="text-body-sm text-secondary">키 (cm, 선택)</label>
             <input
               type="number"
@@ -152,10 +160,10 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
               value={height}
               onChange={(e) => setHeight(e.target.value)}
               placeholder={`${MIN_REVIEW_HEIGHT}~${MAX_REVIEW_HEIGHT}`}
-              className="text-body-sm rounded-sm border border-line px-12 py-8"
+              className="text-body-sm min-w-0 rounded-sm border border-line px-12 py-8"
             />
           </div>
-          <div className="flex flex-1 flex-col gap-8">
+          <div className="flex min-w-0 flex-1 flex-col gap-8">
             <label className="text-body-sm text-secondary">몸무게 (kg, 선택)</label>
             <input
               type="number"
@@ -166,7 +174,7 @@ function ReviewFormModal({ onCancel, onSubmit, productName }: ReviewFormModalPro
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
               placeholder={`${MIN_REVIEW_WEIGHT}~${MAX_REVIEW_WEIGHT}`}
-              className="text-body-sm rounded-sm border border-line px-12 py-8"
+              className="text-body-sm min-w-0 rounded-sm border border-line px-12 py-8"
             />
           </div>
         </div>

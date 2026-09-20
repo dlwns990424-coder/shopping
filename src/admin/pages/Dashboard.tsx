@@ -39,7 +39,7 @@ function Dashboard() {
       </Helmet>
       <h1 className="text-h1">대시보드</h1>
 
-      <div className="grid grid-cols-2 gap-16 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-5">
         {kpis.map((kpi) => (
           <div
             key={kpi.label}

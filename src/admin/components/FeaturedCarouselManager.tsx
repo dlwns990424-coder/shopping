@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { GripVertical } from 'lucide-react'
+import { ChevronDown, ChevronUp, GripVertical } from 'lucide-react'
 import { supabase } from '../../lib/supabaseClient'
 
 interface FeaturedProduct {
@@ -114,6 +114,30 @@ function FeaturedCarouselManager({ gender, label }: FeaturedCarouselManagerProps
     load()
   }
 
+  const handleMove = async (id: string, direction: -1 | 1) => {
+    const fromIndex = order.indexOf(id)
+    const toIndex = fromIndex + direction
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= order.length) return
+
+    const next = [...order]
+    const [movedId] = next.splice(fromIndex, 1)
+    next.splice(toIndex, 0, movedId)
+    setOrder(next)
+
+    const slots = featured.map((product) => product.featured_order ?? 0)
+    const updates = next
+      .map((productId, index) => ({ id: productId, featured_order: slots[index] }))
+      .filter((update) => update.featured_order !== byId.get(update.id)?.featured_order)
+    const results = await Promise.all(
+      updates.map((update) =>
+        supabase.from('products').update({ featured_order: update.featured_order }).eq('id', update.id),
+      ),
+    )
+    const failed = results.find((result) => result.error)
+    if (failed?.error) setError(failed.error.message)
+    load()
+  }
+
   if (loading) return <p className="text-body-sm text-secondary">불러오는 중...</p>
 
   return (
@@ -122,12 +146,12 @@ function FeaturedCarouselManager({ gender, label }: FeaturedCarouselManagerProps
       {error && <p className="text-body-sm text-point">{error}</p>}
 
       <div className="flex flex-col gap-8">
-        <p className="text-caption text-secondary">노출 중 (행을 드래그하면 순서를 바꿀 수 있습니다)</p>
+        <p className="text-caption text-secondary">노출 중 (드래그하거나 이동 버튼으로 순서를 바꿀 수 있습니다)</p>
         {featured.length === 0 ? (
           <p className="text-body-sm text-secondary">캐러셀에 노출 중인 상품이 없습니다.</p>
         ) : (
           <div className="flex flex-col gap-4">
-            {featured.map((product) => (
+            {featured.map((product, productIndex) => (
               <div
                 key={product.id}
                 onDragOver={(e) => e.preventDefault()}
@@ -140,10 +164,30 @@ function FeaturedCarouselManager({ gender, label }: FeaturedCarouselManagerProps
                   draggable
                   onDragStart={() => handleDragStart(product.id)}
                   onDragEnd={handleDragEnd}
-                  className="inline-flex cursor-grab text-secondary active:cursor-grabbing"
+                  className="hidden cursor-grab text-secondary active:cursor-grabbing md:inline-flex"
                 >
                   <GripVertical size={16} strokeWidth={1.5} />
                 </span>
+                <div className="flex shrink-0 flex-col md:hidden">
+                  <button
+                    type="button"
+                    aria-label={`${product.name} 위로 이동`}
+                    disabled={productIndex === 0}
+                    className="flex h-24 w-24 items-center justify-center text-secondary disabled:text-disabled"
+                    onClick={() => handleMove(product.id, -1)}
+                  >
+                    <ChevronUp size={14} strokeWidth={1.5} />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`${product.name} 아래로 이동`}
+                    disabled={productIndex === featured.length - 1}
+                    className="flex h-24 w-24 items-center justify-center text-secondary disabled:text-disabled"
+                    onClick={() => handleMove(product.id, 1)}
+                  >
+                    <ChevronDown size={14} strokeWidth={1.5} />
+                  </button>
+                </div>
                 <img
                   src={product.image}
                   alt={product.name}

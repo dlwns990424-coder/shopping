@@ -1,6 +1,6 @@
 import { useState, type MouseEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, Heart } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import type { Product } from '../types'
 import { useWishlist } from '../context/WishlistContext'
 import { useCart } from '../context/CartContext'
@@ -10,6 +10,7 @@ import { formatPrice } from '../utils/formatPrice'
 import Button from './Button'
 import Checkbox from './Checkbox'
 import ConfirmModal from './ConfirmModal'
+import WishlistSizeModal from './WishlistSizeModal'
 
 interface WishlistCardProps {
   product: Product
@@ -24,7 +25,7 @@ function WishlistCard({ product, selectionMode, selected, onToggleSelect, onAdde
   const { addItem } = useCart()
   const { user } = useAuth()
   const { openLoginModal } = useAuthModal()
-  const [size, setSize] = useState('')
+  const [selectingSize, setSelectingSize] = useState(false)
   const [confirmingRemove, setConfirmingRemove] = useState(false)
 
   const handleRemoveClick = (e: MouseEvent) => {
@@ -38,13 +39,17 @@ function WishlistCard({ product, selectionMode, selected, onToggleSelect, onAdde
     setConfirmingRemove(false)
   }
 
-  const handleAdd = () => {
-    if (!size) return
+  const handleOpenSize = () => {
     if (!user) {
       openLoginModal()
       return
     }
+    setSelectingSize(true)
+  }
+
+  const handleAdd = (size: string) => {
     addItem(product, size)
+    setSelectingSize(false)
     onAdded()
   }
 
@@ -81,30 +86,17 @@ function WishlistCard({ product, selectionMode, selected, onToggleSelect, onAdde
         </div>
       </Link>
 
-      <div className="flex flex-col gap-8 lg:flex-row">
-        <div className="relative w-full lg:w-72 lg:shrink-0">
-          <select
-            value={size}
-            onChange={(e) => setSize(e.target.value)}
-            className="text-body-sm h-36 w-full appearance-none rounded-sm border border-line pl-12 pr-24"
-          >
-            <option value="">사이즈</option>
-            {product.sizes.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            size={14}
-            strokeWidth={1.5}
-            className="pointer-events-none absolute right-6 top-1/2 -translate-y-1/2 text-secondary"
-          />
-        </div>
-        <Button size="small" variant="secondary" className="w-full lg:flex-1" onClick={handleAdd} disabled={!size}>
-          장바구니 담기
-        </Button>
-      </div>
+      <Button size="large" variant="secondary" className="h-44 w-full !py-0" onClick={handleOpenSize}>
+        장바구니 담기
+      </Button>
+
+      {selectingSize && (
+        <WishlistSizeModal
+          product={product}
+          onConfirm={handleAdd}
+          onCancel={() => setSelectingSize(false)}
+        />
+      )}
 
       {confirmingRemove && (
         <ConfirmModal

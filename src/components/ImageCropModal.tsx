@@ -88,6 +88,14 @@ function ImageCropModal({
       (maximumCropSize.width < recommendedWidth || maximumCropSize.height < recommendedHeight),
   )
 
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [])
+
   const handleConfirm = async () => {
     if (!imageUrl || !croppedAreaPixels) return
     setProcessing(true)
@@ -100,8 +108,8 @@ function ImageCropModal({
   }
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/50 px-24">
-      <div className="flex max-h-[calc(100dvh-48px)] w-full max-w-480 flex-col gap-16 overflow-y-auto rounded-md bg-surface p-24">
+    <div className="fixed inset-0 z-modal flex items-end overflow-y-auto bg-black/50 md:items-center md:justify-center md:px-24 md:py-24">
+      <div className="flex max-h-[calc(100dvh-var(--safe-area-top)-var(--safe-area-bottom))] w-full max-w-480 flex-col gap-16 overflow-y-auto rounded-t-lg bg-surface px-20 pb-[calc(20px+var(--safe-area-bottom))] pt-20 md:rounded-md md:p-24">
         <p className="text-h3">보여질 영역 선택</p>
 
         {(targetLabel || sourceSize) && (

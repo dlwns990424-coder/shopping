@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { ChevronDown, GripVertical, Star } from 'lucide-react'
+import { ChevronDown, ChevronUp, GripVertical, Star } from 'lucide-react'
 import { supabase } from '../../lib/supabaseClient'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
@@ -145,6 +145,33 @@ function ProductManage() {
     )
     const failed = results.find((result) => result.error)
     if (failed?.error) setError(failed.error.message)
+  }
+
+  const handleMove = async (id: string, direction: -1 | 1) => {
+    const fromIndex = filteredProducts.findIndex((product) => product.id === id)
+    const toIndex = fromIndex + direction
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= filteredProducts.length) return
+
+    const slots = filteredProducts.map((product) => product.sort_order)
+    const reordered = [...filteredProducts]
+    const [moved] = reordered.splice(fromIndex, 1)
+    reordered.splice(toIndex, 0, moved)
+    const nextFiltered = reordered.map((product, index) => ({ ...product, sort_order: slots[index] }))
+    const filteredIds = new Set(filteredProducts.map((product) => product.id))
+    let cursor = 0
+    setProducts((prev) => prev.map((product) => (filteredIds.has(product.id) ? nextFiltered[cursor++] : product)))
+
+    const updates = nextFiltered
+      .filter((product) => product.sort_order !== filteredProducts.find((item) => item.id === product.id)?.sort_order)
+      .map((product) => ({ id: product.id, sort_order: product.sort_order }))
+    const results = await Promise.all(
+      updates.map((update) => supabase.from('products').update({ sort_order: update.sort_order }).eq('id', update.id)),
+    )
+    const failed = results.find((result) => result.error)
+    if (failed?.error) {
+      setError(failed.error.message)
+      loadProducts()
+    }
   }
 
   const openCreateForm = () => {
@@ -334,7 +361,7 @@ function ProductManage() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-16 rounded-sm border border-line bg-surface p-20">
       <h2 className="text-h3 font-bold">{editingId ? '상품 수정' : '상품 추가'}</h2>
 
-      <div className="grid grid-cols-2 gap-16">
+      <div className="grid grid-cols-1 gap-16 md:grid-cols-2">
         <Input
           label="상품명"
           value={form.name}
@@ -422,7 +449,7 @@ function ProductManage() {
 
         <div className="flex flex-col gap-8">
           <label className="text-caption text-secondary">상품 이미지</label>
-          <div className="flex items-center gap-16">
+          <div className="flex flex-col items-start gap-16 sm:flex-row sm:items-center">
             {form.image ? (
               <img
                 src={form.image}
@@ -453,7 +480,7 @@ function ProductManage() {
           </div>
         </div>
 
-        <div className="col-span-2 flex flex-col gap-8">
+        <div className="flex flex-col gap-8 md:col-span-2">
           <label className="text-caption text-secondary">
             상세 이미지 (PDP에 노출, 최대 {MAX_DETAIL_IMAGES}장)
           </label>
@@ -496,9 +523,9 @@ function ProductManage() {
           </div>
         </div>
 
-        <div className="col-span-2 flex flex-col gap-8">
+        <div className="flex flex-col gap-8 md:col-span-2">
           <label className="text-caption text-secondary">호버 이미지 (선택, 상품카드에 마우스 올리면 노출)</label>
-          <div className="flex items-center gap-16">
+          <div className="flex flex-col items-start gap-16 sm:flex-row sm:items-center">
             {form.hover_image ? (
               <img
                 src={form.hover_image}
@@ -702,7 +729,7 @@ function ProductManage() {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.map((product) => (
+              {filteredProducts.map((product, productIndex) => (
                 <Fragment key={product.id}>
                 <tr
                   onDragOver={(e) => e.preventDefault()}
@@ -716,10 +743,30 @@ function ProductManage() {
                       draggable
                       onDragStart={() => handleDragStart(product.id)}
                       onDragEnd={handleDragEnd}
-                      className="inline-flex cursor-grab text-secondary active:cursor-grabbing"
+                      className="hidden cursor-grab text-secondary active:cursor-grabbing md:inline-flex"
                     >
                       <GripVertical size={16} strokeWidth={1.5} />
                     </span>
+                    <div className="flex flex-col md:hidden">
+                      <button
+                        type="button"
+                        aria-label={`${product.name} 위로 이동`}
+                        disabled={productIndex === 0}
+                        className="flex h-24 w-24 items-center justify-center text-secondary disabled:text-disabled"
+                        onClick={() => handleMove(product.id, -1)}
+                      >
+                        <ChevronUp size={14} strokeWidth={1.5} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`${product.name} 아래로 이동`}
+                        disabled={productIndex === filteredProducts.length - 1}
+                        className="flex h-24 w-24 items-center justify-center text-secondary disabled:text-disabled"
+                        onClick={() => handleMove(product.id, 1)}
+                      >
+                        <ChevronDown size={14} strokeWidth={1.5} />
+                      </button>
+                    </div>
                   </td>
                   <td className="py-8 pr-16">
                     <img
