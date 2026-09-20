@@ -13,7 +13,7 @@ interface DaumPostcodeOptions {
 
 declare global {
   interface Window {
-    daum: {
+    daum?: {
       Postcode: new (options: DaumPostcodeOptions) => { open: () => void }
     }
   }

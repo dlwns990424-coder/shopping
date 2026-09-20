@@ -22,6 +22,8 @@ import { formatPrice } from '../utils/formatPrice'
 import { animateScrollTo } from '../utils/animateScrollTo'
 import { SHIPPING_FEE } from '../constants'
 import { getSizeChartValue, SIZE_CHART_BY_SUBCATEGORY } from '../constants/sizeChart'
+import { clampOrderQuantity, MAX_ORDER_QUANTITY } from '../constants/purchase'
+import { NotFoundContent } from './NotFound'
 
 // 로그인 안 된 상태로 담기/구매를 누르면 로그인 모달→/login→복귀 과정에서 이 페이지가
 // 통째로 재마운트되어 선택한 사이즈·수량이 날아간다. 그 사이만 잠깐 붙잡아두는 용도라
@@ -59,7 +61,7 @@ function pickRelatedProducts(pools: Product[][], count: number): Product[] {
 function ProductDetail() {
   const { productId } = useParams()
   const navigate = useNavigate()
-  const { addItem } = useCart()
+  const { items: cartItems, addItem } = useCart()
   const { isWishlisted, toggle } = useWishlist()
   const { user } = useAuth()
   const { openLoginModal } = useAuthModal()
@@ -70,6 +72,7 @@ function ProductDetail() {
   const [sizeError, setSizeError] = useState(false)
   const [quantity, setQuantity] = useState(1)
   const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState('장바구니에 담았습니다.')
   const [activeAnchor, setActiveAnchor] = useState<ProductDetailAnchor>('productInfo')
   const scrollingToAnchorRef = useRef<ProductDetailAnchor | null>(null)
 
@@ -147,7 +150,7 @@ function ProductDetail() {
             sessionStorage.removeItem(PENDING_SELECTION_KEY)
             setSelectedSize(saved.selectedSize)
             setSizeError(false)
-            setQuantity(saved.quantity)
+            setQuantity(clampOrderQuantity(saved.quantity))
             return
           }
         }
@@ -191,9 +194,11 @@ function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="page-section">
-        <p className="text-body-lg">상품을 찾을 수 없습니다.</p>
-      </div>
+      <NotFoundContent
+        title="상품을 찾을 수 없습니다."
+        message="판매가 종료되었거나 존재하지 않는 상품입니다."
+        documentTitle="상품을 찾을 수 없습니다 | NOVERA"
+      />
     )
   }
 
@@ -256,7 +261,15 @@ function ProductDetail() {
       scrollToSizeSection()
       return
     }
+    const cartItemId = `${product.id}-${product.color.label}-${selectedSize}`
+    const existingQuantity = cartItems.find((item) => item.id === cartItemId)?.quantity ?? 0
+    const reachesMaximum = existingQuantity + quantity > MAX_ORDER_QUANTITY
     addItem(product, selectedSize, quantity)
+    setToastMessage(
+      reachesMaximum
+        ? `동일 옵션은 최대 ${MAX_ORDER_QUANTITY}개까지 담을 수 있어 수량을 조정했습니다.`
+        : '장바구니에 담았습니다.',
+    )
     setShowToast(true)
   }
 
@@ -314,7 +327,7 @@ function ProductDetail() {
           aria-label={isWishlisted(product.id) ? '찜 해제' : '위시리스트 추가'}
           aria-pressed={isWishlisted(product.id)}
         >
-          <Heart size={20} strokeWidth={1.5} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} />
+          <Heart size={20} strokeWidth={2} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} />
         </button>
       </div>
 
@@ -350,7 +363,10 @@ function ProductDetail() {
       {selectedSize && (
         <div className="flex flex-col items-start gap-12">
           <p className="text-body-lg">수량</p>
-          <QuantityStepper value={quantity} onChange={setQuantity} />
+          <QuantityStepper value={quantity} onChange={setQuantity} max={MAX_ORDER_QUANTITY} />
+          <p className="text-caption text-secondary">
+            동일 상품·사이즈는 최대 {MAX_ORDER_QUANTITY}개까지 구매할 수 있습니다.
+          </p>
         </div>
       )}
     </>
@@ -642,7 +658,7 @@ function ProductDetail() {
         </section>
       )}
 
-      <Toast message="장바구니에 담았습니다." show={showToast} onClose={() => setShowToast(false)} />
+      <Toast message={toastMessage} show={showToast} onClose={() => setShowToast(false)} />
     </div>
   )
 }

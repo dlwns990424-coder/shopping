@@ -4,6 +4,7 @@ import Button from './Button'
 import QuantityStepper from './QuantityStepper'
 import { formatPrice } from '../utils/formatPrice'
 import type { CartItem, Product } from '../types'
+import { MAX_ORDER_QUANTITY } from '../constants/purchase'
 
 interface CartOptionModalProps {
   item: CartItem
@@ -55,12 +56,13 @@ function CartOptionModal({ item, product, unitPrice, onConfirm, onCancel }: Cart
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-option-title"
-        className="w-full animate-[bottom-sheet-in_0.25s_ease-out_forwards] rounded-t-lg bg-surface shadow-lg md:max-w-[480px] md:animate-none md:rounded-lg"
+        className="flex max-h-[calc(100dvh-16px-env(safe-area-inset-top))] w-full flex-col overflow-hidden rounded-t-lg bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg animate-[bottom-sheet-in_0.25s_ease-out_forwards] md:max-h-[calc(100dvh-48px)] md:max-w-[480px] md:animate-none md:rounded-lg md:pb-0"
       >
         <h2 id="cart-option-title" className="sr-only">
           옵션 변경
         </h2>
 
+        <div className="min-h-0 overflow-y-auto">
         <div className="flex flex-col gap-16 p-20 md:p-24">
           <div className="relative">
             <select
@@ -84,12 +86,14 @@ function CartOptionModal({ item, product, unitPrice, onConfirm, onCancel }: Cart
           </div>
 
           <div className="flex items-center justify-between rounded-sm bg-surface-muted px-16 py-16">
-            <QuantityStepper value={quantity} onChange={setQuantity} />
+            <QuantityStepper value={quantity} onChange={setQuantity} max={MAX_ORDER_QUANTITY} />
             <p className="text-price font-semibold text-primary">{formatPrice(unitPrice * quantity)}</p>
           </div>
+          <p className="text-caption text-secondary">동일 상품·사이즈는 최대 {MAX_ORDER_QUANTITY}개까지 가능합니다.</p>
+        </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-8 border-t border-line p-20 pt-12 md:p-24 md:pt-12">
+        <div className="grid shrink-0 grid-cols-2 gap-8 border-t border-line p-20 pt-12 md:p-24 md:pt-12">
           <Button variant="secondary" size="large" className="h-44 w-full !py-0" onClick={onCancel}>
             취소
           </Button>

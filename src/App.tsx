@@ -15,6 +15,7 @@ import ScrollToTop from './components/ScrollToTop'
 import InitialAuthLoading from './components/InitialAuthLoading'
 import RequireAuth from './components/RequireAuth'
 import RequireAdmin from './components/RequireAdmin'
+import GuestRoute from './components/GuestRoute'
 
 import UserLayout from './layouts/UserLayout'
 import AdminLayout from './layouts/AdminLayout'
@@ -63,8 +64,10 @@ function App() {
                               <Route path="/shop" element={<Shop />} />
                               <Route path="/products/:productId" element={<ProductDetail />} />
                               <Route path="/wishlist" element={<Wishlist />} />
-                              <Route path="/login" element={<Login />} />
-                              <Route path="/signup" element={<Signup />} />
+                              <Route element={<GuestRoute />}>
+                                <Route path="/login" element={<Login />} />
+                                <Route path="/signup" element={<Signup />} />
+                              </Route>
 
                               <Route element={<RequireAuth />}>
                                 <Route path="/cart" element={<Cart />} />

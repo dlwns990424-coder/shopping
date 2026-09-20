@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { CartItem, Product } from '../types'
 import { safeSetItem } from '../utils/storage'
 import { useAuth } from './AuthContext'
+import { clampOrderQuantity } from '../constants/purchase'
 
 interface CartContextValue {
   items: CartItem[]
@@ -21,7 +22,12 @@ function cartKey(userId: string) {
 
 function readCart(userId: string): CartItem[] {
   try {
-    return JSON.parse(localStorage.getItem(cartKey(userId)) ?? '[]') || []
+    const parsed = JSON.parse(localStorage.getItem(cartKey(userId)) ?? '[]')
+    if (!Array.isArray(parsed)) return []
+    return (parsed as CartItem[]).map((item) => ({
+      ...item,
+      quantity: clampOrderQuantity(item.quantity),
+    }))
   } catch {
     return []
   }
@@ -34,7 +40,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (authLoading) return
-    setItems(userId ? readCart(userId) : [])
+    if (!userId) {
+      setItems([])
+      return
+    }
+
+    const nextItems = readCart(userId)
+    setItems(nextItems)
+    safeSetItem(cartKey(userId), nextItems)
   }, [userId, authLoading])
 
   const updateItems = (updater: (prev: CartItem[]) => CartItem[]) => {
@@ -49,12 +62,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = (product: Product, size: string, quantity = 1) => {
     const id = `${product.id}-${product.color.label}-${size}`
     const option = `${product.color.label} · ${size}`
+    const safeQuantity = clampOrderQuantity(quantity)
 
     updateItems((prev) => {
       const existing = prev.find((item) => item.id === id)
       if (existing) {
         return prev.map((item) =>
-          item.id === id ? { ...item, size, quantity: item.quantity + quantity } : item
+          item.id === id
+            ? { ...item, size, quantity: clampOrderQuantity(item.quantity + safeQuantity) }
+            : item
         )
       }
       return [
@@ -66,7 +82,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           option,
           size,
           price: product.salePrice ?? product.price,
-          quantity,
+          quantity: safeQuantity,
           image: product.image,
         },
       ]
@@ -87,14 +103,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
           .filter((item) => item.id !== id)
           .map((item) =>
             item.id === nextId
-              ? { ...item, size, quantity: Math.min(99, item.quantity + quantity) }
+              ? { ...item, size, quantity: clampOrderQuantity(item.quantity + quantity) }
               : item,
           )
       }
 
       return prev.map((item) =>
         item.id === id
-          ? { ...item, id: nextId, option: `${colorLabel} · ${size}`, size, quantity }
+          ? { ...item, id: nextId, option: `${colorLabel} · ${size}`, size, quantity: clampOrderQuantity(quantity) }
           : item,
       )
     })

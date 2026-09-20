@@ -1,6 +1,6 @@
-import { forwardRef, useEffect, useState, type ReactNode } from 'react'
+import { forwardRef, useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Search, Heart, ShoppingBag, User } from 'lucide-react'
+import { ArrowLeft, Search, Heart, Home, ShoppingBag, User } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useAuthModal } from '../context/AuthModalContext'
 import { useCart } from '../context/CartContext'
@@ -96,6 +96,7 @@ function Header() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [hovered, setHovered] = useState(false)
+  const closeSearch = useCallback(() => setSearchOpen(false), [])
 
   const isHeroPage =
     (location.pathname === '/men' || location.pathname === '/women') && !searchParams.get('category')
@@ -103,6 +104,8 @@ function Header() {
   const bottomNavMode = getBottomNavMode(location.pathname, Boolean(searchParams.get('category')))
   const compactHeader = getCompactHeaderConfig(location.pathname, searchParams)
   const tabletGlobalHeader = Boolean(compactHeader?.tabletGlobalHeader)
+  const showMobileHomeButton = bottomNavMode === 'hidden'
+  const mobileHomePath = activeGender ? `/${activeGender}` : '/men'
 
   const handleBack = () => {
     if (searchOpen) {
@@ -228,7 +231,13 @@ function Header() {
               ? `relative z-10 -ml-8 min-w-0 flex-1 items-center truncate text-sm font-semibold text-primary ${
                   tabletGlobalHeader ? 'flex md:hidden' : 'flex lg:hidden'
                 }`
-              : `pointer-events-none absolute inset-x-76 bottom-0 h-48 items-center justify-center truncate px-8 text-center text-sm font-semibold text-primary md:h-54 ${
+              : `pointer-events-none absolute bottom-0 h-48 items-center justify-center truncate px-8 text-center text-sm font-semibold text-primary md:inset-x-76 md:h-54 ${
+                  showMobileHomeButton
+                    ? compactHeader.showShoppingActions
+                      ? 'left-52 right-112'
+                      : 'left-52 right-68'
+                    : 'inset-x-76'
+                } ${
                   tabletGlobalHeader ? 'flex md:hidden' : 'flex lg:hidden'
                 }`
           }
@@ -282,6 +291,11 @@ function Header() {
 
       {!compactHeader && (
         <div className="-mr-12 ml-auto flex items-center gap-0 md:hidden">
+          {showMobileHomeButton && (
+            <IconButton label="홈" to={mobileHomePath} light={false}>
+              <Home size={20} strokeWidth={1.5} />
+            </IconButton>
+          )}
           <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)} light={false}>
             <Search size={20} strokeWidth={1.5} />
           </IconButton>
@@ -297,24 +311,37 @@ function Header() {
         </div>
       )}
 
-      {compactHeader?.showShoppingActions && (
+      {compactHeader && (showMobileHomeButton || compactHeader.showShoppingActions) && (
         <div
           className={`relative z-10 -mr-12 ml-auto items-center gap-0 md:mr-0 ${
             tabletGlobalHeader ? 'flex md:hidden' : 'flex lg:hidden'
           }`}
         >
-          <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)} light={false}>
-            <Search size={20} strokeWidth={1.5} />
-          </IconButton>
-          <IconButton
-            label="장바구니"
-            to={user ? '/cart' : undefined}
-            onClick={user ? undefined : openLoginModal}
-            light={false}
-            badgeCount={user ? cartCount : 0}
-          >
-            <ShoppingBag size={20} strokeWidth={1.5} />
-          </IconButton>
+          {showMobileHomeButton && (
+            <span className="inline-flex md:hidden">
+              <IconButton label="홈" to={mobileHomePath} light={false}>
+                <Home size={20} strokeWidth={1.5} />
+              </IconButton>
+            </span>
+          )}
+          {compactHeader.showShoppingActions && (
+            <>
+              <span className={showMobileHomeButton ? 'hidden md:inline-flex' : 'inline-flex'}>
+                <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)} light={false}>
+                  <Search size={20} strokeWidth={1.5} />
+                </IconButton>
+              </span>
+              <IconButton
+                label="장바구니"
+                to={user ? '/cart' : undefined}
+                onClick={user ? undefined : openLoginModal}
+                light={false}
+                badgeCount={user ? cartCount : 0}
+              >
+                <ShoppingBag size={20} strokeWidth={1.5} />
+              </IconButton>
+            </>
+          )}
         </div>
       )}
 
@@ -331,7 +358,7 @@ function Header() {
 
       <SearchOverlay
         open={searchOpen}
-        onClose={() => setSearchOpen(false)}
+        onClose={closeSearch}
         compactHeader={Boolean(compactHeader)}
       />
 

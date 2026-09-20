@@ -8,6 +8,7 @@ import { CATEGORY_TABS as TABS, SUB_CATEGORIES } from '../constants/categoryFilt
 import { useBestsellers } from '../context/BestsellersContext'
 import type { Gender, Product } from '../types'
 import SortDropdown from './SortDropdown'
+import { filterProductsByQuery } from '../utils/productSearch'
 
 const PRODUCTS_PER_PAGE = 12
 
@@ -109,9 +110,7 @@ function CategoryListing({
   const genderProducts =
     effectiveGender === 'all' ? products : products.filter((product) => product.gender === effectiveGender)
 
-  const searchedProducts = isSearching
-    ? genderProducts.filter((product) => product.name.includes(qParam.trim()))
-    : genderProducts
+  const searchedProducts = isSearching ? filterProductsByQuery(genderProducts, qParam) : genderProducts
 
   const categoryProducts =
     categoryParam === 'all'
@@ -180,9 +179,9 @@ function CategoryListing({
           isSearching ? 'pt-32 md:pt-48' : 'pt-16 md:pt-24 lg:pt-48'
         }`}
       >
-      <div className={isSearching ? 'mb-24' : 'lg:mb-24'}>
+      <div className={isSearching ? 'mb-20 md:mb-24' : 'lg:mb-24'}>
         {isSearching ? (
-          <p className="text-caption mb-8 tracking-[0.08em] text-secondary">NOVERA | {genderLabel}</p>
+          <p className="text-caption mb-6 tracking-[0.08em] text-secondary">검색 결과</p>
         ) : (
           <nav
             aria-label="현재 상품 분류"
@@ -198,11 +197,11 @@ function CategoryListing({
         <h1
           className={
             isSearching
-              ? 'text-[40px] font-bold leading-[1.25] tracking-[-0.02em]'
+              ? 'text-xl font-bold leading-[1.3] tracking-[-0.02em] md:text-2xl'
               : 'text-h2 sr-only lg:not-sr-only'
           }
         >
-          {title}
+          {isSearching ? `“${qParam}”` : title}
         </h1>
       </div>
 
@@ -216,7 +215,7 @@ function CategoryListing({
           <input
             value={queryInput}
             onChange={(e) => handleQueryChange(e.target.value)}
-            placeholder="상품명을 검색해보세요"
+            placeholder="상품명, 카테고리, 색상을 검색해보세요"
             className="text-sm w-full rounded-sm border border-line py-12 pl-44 pr-40 text-primary outline-none focus:border-primary"
           />
           {queryInput && (

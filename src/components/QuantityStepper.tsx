@@ -1,4 +1,5 @@
 import { useEffect, useState, type ChangeEvent, type FocusEvent, type KeyboardEvent } from 'react'
+import { MAX_ORDER_QUANTITY } from '../constants/purchase'
 
 interface QuantityStepperProps {
   value: number
@@ -10,7 +11,7 @@ interface QuantityStepperProps {
 const BUTTON_CLASSES =
   'h-32 w-32 border-none bg-surface text-base text-primary cursor-pointer disabled:cursor-default disabled:text-disabled'
 
-function QuantityStepper({ value, onChange, min = 1, max = 99 }: QuantityStepperProps) {
+function QuantityStepper({ value, onChange, min = 1, max = MAX_ORDER_QUANTITY }: QuantityStepperProps) {
   const [text, setText] = useState(String(value))
 
   // 부모가 value를 바꾸면(상품 변경 시 초기화 등) 입력창도 같이 맞춘다.

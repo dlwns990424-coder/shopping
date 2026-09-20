@@ -7,11 +7,13 @@ import CartOptionModal from '../components/CartOptionModal'
 import Checkbox from '../components/Checkbox'
 import ConfirmModal from '../components/ConfirmModal'
 import Button from '../components/Button'
+import Toast from '../components/Toast'
 import { useCart } from '../context/CartContext'
 import { useProducts } from '../context/ProductsContext'
 import { SHIPPING_FEE } from '../constants'
 import { formatPrice } from '../utils/formatPrice'
 import type { CartItem } from '../types'
+import { MAX_ORDER_QUANTITY } from '../constants/purchase'
 
 function Cart() {
   const navigate = useNavigate()
@@ -23,6 +25,7 @@ function Cart() {
   const [confirmingRemoveSelected, setConfirmingRemoveSelected] = useState(false)
   const [optionTargetId, setOptionTargetId] = useState<string | null>(null)
   const [summaryOpen, setSummaryOpen] = useState(false)
+  const [quantityNotice, setQuantityNotice] = useState('')
 
   // CartContext는 로그인 확인 후 localStorage에서 비동기로 아이템을 채우기 때문에,
   // /cart 새로고침·직링크 진입 시 최초 렌더에는 cartItems가 아직 비어있을 수 있다.
@@ -271,6 +274,13 @@ function Cart() {
           onConfirm={(size, quantity) => {
             const colorLabel = optionTarget.option.split(' · ')[0] || optionTargetProduct.color.label
             const nextId = `${optionTargetProduct.id}-${colorLabel}-${size}`
+            const existingQuantity =
+              cartItems.find((item) => item.id === nextId && item.id !== optionTarget.id)?.quantity ?? 0
+            if (existingQuantity + quantity > MAX_ORDER_QUANTITY) {
+              setQuantityNotice(
+                `동일 옵션은 최대 ${MAX_ORDER_QUANTITY}개까지 담을 수 있어 수량을 조정했습니다.`,
+              )
+            }
             setSelectedIds((prev) => {
               const wasSelected = prev.includes(optionTarget.id)
               const next = prev.filter((id) => id !== optionTarget.id)
@@ -301,6 +311,12 @@ function Cart() {
           onCancel={() => setConfirmingRemoveSelected(false)}
         />
       )}
+
+      <Toast
+        message={quantityNotice}
+        show={Boolean(quantityNotice)}
+        onClose={() => setQuantityNotice('')}
+      />
     </div>
   )
 }

@@ -10,6 +10,7 @@ import WishlistCard from '../components/WishlistCard'
 import { useProducts } from '../context/ProductsContext'
 import { useWishlist } from '../context/WishlistContext'
 import { subjectJosa } from '../utils/josa'
+import { MAX_ORDER_QUANTITY } from '../constants/purchase'
 
 function Wishlist() {
   const navigate = useNavigate()
@@ -120,7 +121,13 @@ function Wishlist() {
             selectionMode={selectionMode}
             selected={selectedIds.includes(product.id)}
             onToggleSelect={() => toggleOne(product.id)}
-            onAdded={() => notify(`${product.name}${subjectJosa(product.name)} 장바구니에 담겼습니다.`)}
+            onAdded={(capped) =>
+              notify(
+                capped
+                  ? `동일 옵션은 최대 ${MAX_ORDER_QUANTITY}개까지 담을 수 있습니다.`
+                  : `${product.name}${subjectJosa(product.name)} 장바구니에 담겼습니다.`,
+              )
+            }
           />
         ))}
       </div>

@@ -217,7 +217,7 @@ function MobileMainNav({ gender, user, openLoginModal, mode }: MobileMainNavProp
             <input
               value={drawerQuery}
               onChange={(e) => setDrawerQuery(e.target.value)}
-              placeholder="상품명을 검색해보세요"
+              placeholder="상품명, 카테고리, 색상을 검색해보세요"
               className="h-40 w-full rounded-sm border border-line bg-surface pl-40 pr-12 text-sm text-primary outline-none focus:border-primary"
             />
           </form>
