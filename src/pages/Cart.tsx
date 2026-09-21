@@ -123,7 +123,7 @@ function Cart() {
         <title>NOVERA | 장바구니</title>
       </Helmet>
 
-      <div className="flex flex-col gap-4 px-20 pb-16 pt-32 md:px-32 lg:px-80 lg:pb-24 lg:pt-48 xl:px-140 2xl:px-200">
+      <div className="page-section flex flex-col gap-4 pb-16 lg:pb-24">
         <h1 className="text-h2 hidden md:block">장바구니</h1>
         <p className="text-body-sm text-secondary">총 {cartItems.length}개 상품</p>
       </div>

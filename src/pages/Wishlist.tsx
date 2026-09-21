@@ -72,7 +72,7 @@ function Wishlist() {
       <Helmet>
         <title>NOVERA | 위시리스트</title>
       </Helmet>
-      <h1 className="text-h2 mb-24 hidden md:block">위시리스트</h1>
+      <h1 className="text-h2 mb-16 hidden md:block">위시리스트</h1>
       <div className="mb-16 flex items-center justify-between">
         {selectionMode ? (
           <Checkbox

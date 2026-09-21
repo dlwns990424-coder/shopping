@@ -24,7 +24,7 @@ function ProductRow({ title, moreHref, products, featuredHeading = false }: Prod
         <h2
           className={
             featuredHeading
-              ? 'font-display min-w-0 text-left text-[24px] font-medium leading-[1.15] tracking-[0.035em] text-primary md:text-[30px] lg:text-[36px]'
+              ? 'font-display min-w-0 text-left text-[24px] font-medium leading-[1.15] tracking-[0.01em] text-primary md:text-[30px] lg:text-[36px]'
               : 'text-center text-[32px] font-normal leading-[1.3] tracking-[-0.03em] text-primary md:text-[50px]'
           }
         >
