@@ -137,7 +137,7 @@ function OrderHistory() {
   }
 
   if (error && myOrders.length === 0) {
-    return <p className="text-body-sm text-point">{error}</p>
+    return <p className="text-body-sm text-danger">{error}</p>
   }
 
   if (myOrders.length === 0) {

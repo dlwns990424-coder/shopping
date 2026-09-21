@@ -98,7 +98,7 @@ function OrderManage() {
       </Helmet>
       <h1 className="text-h1">주문관리</h1>
 
-      {error && <p className="text-body-sm text-point">{error}</p>}
+      {error && <p className="text-body-sm text-danger">{error}</p>}
 
       <div className="flex flex-wrap items-center gap-8">
         <div className="relative">

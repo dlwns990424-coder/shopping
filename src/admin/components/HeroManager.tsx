@@ -7,28 +7,26 @@ import { PRODUCT_CATEGORIES, SUB_CATEGORIES } from '../../constants/categoryFilt
 import { buildEditorialLink, type EditorialDestination } from '../../utils/editorialLink'
 import { uploadImage } from '../../utils/uploadImage'
 
-type EditorialImageField = 'image_mobile' | 'image_tablet' | 'image_desktop'
+type HeroImageField = 'image_mobile' | 'image_tablet' | 'image_desktop'
 type PreviewMode = 'mobile' | 'tablet' | 'desktop'
 
-interface EditorialBannerData {
+interface HeroData {
   title: string
   subtitle: string
-  buttonLabel: string
   destination: EditorialDestination
   category: string
   subcategory: string
-  enabled: boolean
   imageMobile: string
   imageTablet: string
   imageDesktop: string
 }
 
-interface EditorialBannerManagerProps {
+interface HeroManagerProps {
   page: 'men' | 'women'
 }
 
 interface CropConfig {
-  field: EditorialImageField
+  field: HeroImageField
   dataField: 'imageMobile' | 'imageTablet' | 'imageDesktop'
   label: string
   aspect: number
@@ -37,83 +35,87 @@ interface CropConfig {
   previewClass: string
   safeZoneWidthRatio: number
   safeZoneHeightRatio: number
+  topDangerZoneRatio?: number
   textZone: { left: number; top: number; width: number; height: number }
 }
 
+// 히어로는 화면 크기에 따라 실제로 잘리는 비율이 크게 달라서 모바일/태블릿/데스크톱 이미지를
+// 따로 받는다(예전 ContentManage.tsx의 HERO_CROP_SETTINGS를 그대로 이전).
+const DESKTOP_SCREEN_ASPECT = 16 / 9
 const CROP_CONFIGS: Record<PreviewMode, CropConfig> = {
   mobile: {
     field: 'image_mobile',
     dataField: 'imageMobile',
-    label: '모바일 · 4:5',
-    aspect: 4 / 5,
+    label: '모바일 · 3:4',
+    aspect: 3 / 4,
     recommendedWidth: 1200,
-    recommendedHeight: 1500,
-    previewClass: 'aspect-[4/5] max-w-[360px]',
-    safeZoneWidthRatio: 0.86,
-    safeZoneHeightRatio: 0.84,
-    textZone: { left: 0.06, top: 0.58, width: 0.88, height: 0.28 },
+    recommendedHeight: 1600,
+    previewClass: 'aspect-[3/4] max-w-[360px]',
+    safeZoneWidthRatio: 0.9,
+    safeZoneHeightRatio: 0.86,
+    textZone: { left: 0.05, top: 0.55, width: 0.9, height: 0.25 },
   },
   tablet: {
     field: 'image_tablet',
     dataField: 'imageTablet',
-    label: '태블릿 · 4:3',
-    aspect: 4 / 3,
+    label: '태블릿 · 1:1',
+    aspect: 1,
     recommendedWidth: 1600,
-    recommendedHeight: 1200,
-    previewClass: 'aspect-[4/3] max-w-[640px]',
-    safeZoneWidthRatio: 0.84,
+    recommendedHeight: 1600,
+    previewClass: 'aspect-square max-w-[480px]',
+    safeZoneWidthRatio: 0.85,
     safeZoneHeightRatio: 0.82,
-    textZone: { left: 0.06, top: 0.58, width: 0.7, height: 0.28 },
+    topDangerZoneRatio: 0.2,
+    textZone: { left: 0.04, top: 0.55, width: 0.68, height: 0.25 },
   },
   desktop: {
     field: 'image_desktop',
     dataField: 'imageDesktop',
-    label: '데스크톱 · 12:5',
-    aspect: 12 / 5,
+    label: '데스크톱 기준 · 16:9',
+    aspect: DESKTOP_SCREEN_ASPECT,
     recommendedWidth: 1920,
-    recommendedHeight: 800,
-    previewClass: 'aspect-[12/5] max-w-full',
-    safeZoneWidthRatio: 0.76,
-    safeZoneHeightRatio: 0.82,
-    textZone: { left: 0.07, top: 0.56, width: 0.56, height: 0.3 },
+    recommendedHeight: 1080,
+    previewClass: 'aspect-video max-w-full',
+    // 실제 화면은 4:3~울트라와이드까지 달라진다. 중앙 70%는 object-cover의 추가 잘림을
+    // 고려해 얼굴과 핵심 피사체를 두는 공통 안전 영역으로 사용한다.
+    safeZoneWidthRatio: 0.7,
+    safeZoneHeightRatio: 0.7,
+    topDangerZoneRatio: 0.2,
+    textZone: { left: 0.08, top: 0.55, width: 0.55, height: 0.25 },
   },
 }
 
-const DEFAULT_DATA: EditorialBannerData = {
-  title: 'THE NEW TAILORING',
+const DEFAULT_DATA: HeroData = {
+  title: '',
   subtitle: '',
-  buttonLabel: '컬렉션 보기',
   destination: 'men',
   category: 'all',
   subcategory: '',
-  enabled: false,
   imageMobile: '',
   imageTablet: '',
   imageDesktop: '',
 }
 
 const FIELD_META = {
-  title: { label: '타이틀', order: 410 },
-  subtitle: { label: '설명', order: 411 },
-  button_label: { label: '버튼 문구', order: 412 },
-  link_destination: { label: '버튼 이동 페이지', order: 413 },
-  link_category: { label: '버튼 이동 카테고리', order: 414 },
-  link_subcategory: { label: '버튼 이동 세부 카테고리', order: 415 },
-  enabled: { label: '노출 여부', order: 416 },
-  image_mobile: { label: '모바일 이미지', order: 417 },
-  image_tablet: { label: '태블릿 이미지', order: 418 },
-  image_desktop: { label: '데스크톱 이미지', order: 419 },
+  title: { label: '타이틀', order: 300 },
+  subtitle: { label: '설명', order: 301 },
+  link_destination: { label: '클릭 시 이동 페이지', order: 302 },
+  link_category: { label: '클릭 시 이동 카테고리', order: 303 },
+  link_subcategory: { label: '클릭 시 이동 세부 카테고리', order: 304 },
+  image_mobile: { label: '모바일 이미지', order: 305 },
+  image_tablet: { label: '태블릿 이미지', order: 306 },
+  image_desktop: { label: '데스크톱 이미지', order: 307 },
 } as const
 
-function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
-  const keyPrefix = `${page}.editorial_banner`
+function HeroManager({ page }: HeroManagerProps) {
+  const keyPrefix = `${page}.hero`
   const pageLabel = page === 'men' ? 'MEN' : 'WOMEN'
   const pageDefaultData = { ...DEFAULT_DATA, destination: page }
-  const [data, setData] = useState<EditorialBannerData>(pageDefaultData)
-  const [draft, setDraft] = useState<EditorialBannerData>(pageDefaultData)
+  const [data, setData] = useState<HeroData>(pageDefaultData)
+  const [draft, setDraft] = useState<HeroData>(pageDefaultData)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [uploadingField, setUploadingField] = useState<EditorialImageField | null>(null)
+  const [uploadingField, setUploadingField] = useState<HeroImageField | null>(null)
   const [previewMode, setPreviewMode] = useState<PreviewMode>('desktop')
   const [cropTarget, setCropTarget] = useState<{ file: File; config: CropConfig } | null>(null)
   const [removeTarget, setRemoveTarget] = useState<CropConfig | null>(null)
@@ -124,7 +126,7 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
     (field: keyof typeof FIELD_META, value: string) => ({
       key: `${keyPrefix}.${field}`,
       page,
-      label: `${pageLabel} 에디토리얼 ${FIELD_META[field].label}`,
+      label: `${pageLabel} 히어로 ${FIELD_META[field].label}`,
       value,
       display_order: FIELD_META[field].order + (page === 'women' ? 20 : 0),
     }),
@@ -134,13 +136,11 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
-    const newKeys = Object.keys(FIELD_META).map((field) => `${keyPrefix}.${field}`)
-    const legacyPrefix = `${page}.editorial_sub_banner.sub-1`
-    const legacyKeys = [`${legacyPrefix}.title`, `${legacyPrefix}.subtitle`, `${legacyPrefix}.image`]
+    const keys = Object.keys(FIELD_META).map((field) => `${keyPrefix}.${field}`)
     const { data: rows, error: loadError } = await supabase
       .from('site_content')
       .select('key, value')
-      .in('key', [...newKeys, ...legacyKeys])
+      .in('key', keys)
 
     if (loadError) {
       setError(loadError.message)
@@ -149,18 +149,15 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
     }
 
     const values = new Map((rows ?? []).map((row) => [row.key, row.value]))
-    const legacyImage = values.get(`${legacyPrefix}.image`) ?? ''
-    const next: EditorialBannerData = {
-      title: values.get(`${keyPrefix}.title`) || values.get(`${legacyPrefix}.title`) || DEFAULT_DATA.title,
-      subtitle: values.get(`${keyPrefix}.subtitle`) ?? values.get(`${legacyPrefix}.subtitle`) ?? '',
-      buttonLabel: values.get(`${keyPrefix}.button_label`) ?? DEFAULT_DATA.buttonLabel,
+    const next: HeroData = {
+      title: values.get(`${keyPrefix}.title`) ?? '',
+      subtitle: values.get(`${keyPrefix}.subtitle`) ?? '',
       destination: (values.get(`${keyPrefix}.link_destination`) as EditorialDestination | undefined) ?? page,
       category: values.get(`${keyPrefix}.link_category`) || 'all',
       subcategory: values.get(`${keyPrefix}.link_subcategory`) ?? '',
-      enabled: (values.get(`${keyPrefix}.enabled`) ?? (legacyImage ? 'true' : 'false')) === 'true',
-      imageMobile: values.get(`${keyPrefix}.image_mobile`) || legacyImage,
-      imageTablet: values.get(`${keyPrefix}.image_tablet`) || legacyImage,
-      imageDesktop: values.get(`${keyPrefix}.image_desktop`) || legacyImage,
+      imageMobile: values.get(`${keyPrefix}.image_mobile`) ?? '',
+      imageTablet: values.get(`${keyPrefix}.image_tablet`) ?? '',
+      imageDesktop: values.get(`${keyPrefix}.image_desktop`) ?? '',
     }
     setData(next)
     setDraft(next)
@@ -174,7 +171,6 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
   const saveSettings = async () => {
     const title = draft.title.trim()
     const subtitle = draft.subtitle.trim()
-    const buttonLabel = draft.buttonLabel.trim()
     if (!title) {
       setError('타이틀을 입력해주세요.')
       return
@@ -187,14 +183,6 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
       setError('설명은 최대 140자까지 입력할 수 있습니다.')
       return
     }
-    if (!buttonLabel || buttonLabel.length > 20) {
-      setError('버튼 문구는 1~20자로 입력해주세요.')
-      return
-    }
-    if (draft.enabled && !draft.imageMobile && !draft.imageTablet && !draft.imageDesktop) {
-      setError('배너를 노출하려면 이미지를 한 장 이상 등록해주세요.')
-      return
-    }
 
     setSaving(true)
     setError(null)
@@ -202,11 +190,9 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
     const rows = [
       rowFor('title', title),
       rowFor('subtitle', subtitle),
-      rowFor('button_label', buttonLabel),
       rowFor('link_destination', draft.destination),
       rowFor('link_category', draft.category),
       rowFor('link_subcategory', draft.category === 'all' ? '' : draft.subcategory),
-      rowFor('enabled', String(draft.enabled)),
     ]
     const { error: saveError } = await supabase.from('site_content').upsert(rows, { onConflict: 'key' })
     setSaving(false)
@@ -215,7 +201,7 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
       return
     }
 
-    const next = { ...draft, title, subtitle, buttonLabel }
+    const next = { ...draft, title, subtitle }
     setData(next)
     setDraft(next)
     setSaved(true)
@@ -245,7 +231,7 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
     setSaved(false)
 
     try {
-      const file = new File([blob], `${page}-editorial-${config.field}.jpg`, { type: blob.type })
+      const file = new File([blob], `${page}-hero-${config.field}.jpg`, { type: blob.type })
       const url = await uploadImage(file, 'content')
       await saveImageValue(config, url)
       setSaved(true)
@@ -286,9 +272,10 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
   return (
     <div className="flex flex-col gap-20 rounded-sm border border-line p-16 lg:p-20">
       <div className="flex flex-col gap-4">
-        <p className="text-body-sm font-medium">{pageLabel} 에디토리얼 배너</p>
+        <p className="text-body-sm font-medium">{pageLabel} 히어로</p>
         <p className="text-caption text-secondary">
-          BEST SELLERS 위에 노출되는 배너입니다. 저장 후 사용자 페이지를 새로고침하면 반영됩니다.
+          페이지 최상단 배너입니다. 버튼 없이 섹션 전체를 클릭하면 아래 설정한 경로로 이동합니다. 저장 후
+          사용자 페이지를 새로고침하면 반영됩니다.
         </p>
       </div>
 
@@ -316,17 +303,12 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-body-sm text-secondary">이미지 없음</div>
         )}
-        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/65 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 z-10 p-16 text-surface md:p-24">
-          <p className="font-display whitespace-pre-line text-[22px] font-medium leading-[1.15] md:text-[28px]">
+          <p className="font-display whitespace-pre-line text-[22px] font-medium leading-[1.15] tracking-[0.025em] md:text-[28px]">
             {draft.title || '타이틀'}
           </p>
           {draft.subtitle && <p className="mt-8 whitespace-pre-line text-[16px] leading-[1.6] text-surface">{draft.subtitle}</p>}
-          {draft.buttonLabel && (
-            <span className="mt-16 inline-flex h-36 items-center border border-surface px-16 text-body-sm">
-              {draft.buttonLabel}
-            </span>
-          )}
         </div>
       </div>
 
@@ -388,22 +370,13 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
           <textarea
             value={draft.subtitle}
             maxLength={140}
-            rows={3}
+            rows={2}
             onChange={(event) => setDraft((current) => ({ ...current, subtitle: event.target.value }))}
             className="text-body-sm rounded-sm border border-line px-12 py-8"
           />
         </label>
-        <label className="flex flex-col gap-6">
-          <span className="text-body-sm text-secondary">버튼 문구 (최대 20자)</span>
-          <input
-            value={draft.buttonLabel}
-            maxLength={20}
-            onChange={(event) => setDraft((current) => ({ ...current, buttonLabel: event.target.value }))}
-            className="text-body-sm rounded-sm border border-line px-12 py-8"
-          />
-        </label>
         <fieldset className="grid grid-cols-1 gap-12 rounded-sm border border-line p-12 md:col-span-2 md:grid-cols-3">
-          <legend className="px-4 text-body-sm font-medium">버튼 이동 설정</legend>
+          <legend className="px-4 text-body-sm font-medium">클릭 시 이동 설정</legend>
           <label className="flex flex-col gap-6">
             <span className="text-body-sm text-secondary">이동 페이지</span>
             <select
@@ -458,19 +431,11 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
             이동 경로: {previewHref}
           </p>
         </fieldset>
-        <label className="flex items-center gap-8 self-end py-8 text-body-sm">
-          <input
-            type="checkbox"
-            checked={draft.enabled}
-            onChange={(event) => setDraft((current) => ({ ...current, enabled: event.target.checked }))}
-          />
-          사용자 페이지에 노출
-        </label>
       </div>
 
       <div className="flex flex-wrap gap-8">
         <Button onClick={saveSettings} disabled={saving}>
-          {saving ? '저장 중...' : '문구·버튼·노출 설정 저장'}
+          {saving ? '저장 중...' : '문구·이동 설정 저장'}
         </Button>
         <Button variant="secondary" onClick={() => setDraft(data)} disabled={saving}>
           변경 취소
@@ -486,6 +451,7 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
           recommendedHeight={cropTarget.config.recommendedHeight}
           safeZoneWidthRatio={cropTarget.config.safeZoneWidthRatio}
           safeZoneHeightRatio={cropTarget.config.safeZoneHeightRatio}
+          topDangerZoneRatio={cropTarget.config.topDangerZoneRatio}
           textZone={cropTarget.config.textZone}
           onCancel={() => setCropTarget(null)}
           onConfirm={handleCropConfirm}
@@ -504,4 +470,4 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
   )
 }
 
-export default EditorialBannerManager
+export default HeroManager

@@ -40,7 +40,7 @@ function ConfirmModal({
         <p id="confirm-modal-message" className="text-body-lg">
           {message}
         </p>
-        {error && <p className="text-body-sm text-point">{error}</p>}
+        {error && <p className="text-body-sm text-danger">{error}</p>}
         <div className="mt-8 flex flex-col gap-8">
           <Button variant="primary" size="medium" className="w-full !py-8" onClick={onConfirm} disabled={confirming}>
             {confirming ? '처리 중...' : confirmLabel}

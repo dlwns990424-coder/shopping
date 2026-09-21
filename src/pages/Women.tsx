@@ -66,6 +66,12 @@ function Women() {
     image: content[`women.category_${category.id}.image`] || category.image,
   }))
 
+  const heroLink = buildEditorialLink({
+    destination: (content['women.hero.link_destination'] as EditorialDestination | undefined) ?? 'women',
+    category: content['women.hero.link_category'] || 'all',
+    subcategory: content['women.hero.link_subcategory'] ?? '',
+  })
+
   return (
     <div className="pb-124 md:pb-96 lg:pb-128">
       <Helmet>
@@ -73,7 +79,7 @@ function Women() {
       </Helmet>
 
       <HomeHero
-        to="/women?category=all&sort=new"
+        to={heroLink}
         imageMobile={content['women.hero.image_mobile'] ?? ''}
         imageTablet={content['women.hero.image_tablet'] ?? ''}
         imageDesktop={content['women.hero.image_desktop'] ?? ''}

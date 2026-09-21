@@ -44,7 +44,7 @@ function BannerCard({
 function EditorialSubBanners({
   banners,
   titleClassName = 'text-body-lg font-medium',
-  subtitleClassName = 'text-caption text-surface/80',
+  subtitleClassName = 'text-caption text-on-dark-secondary',
 }: EditorialSubBannersProps) {
   const [emblaRef] = useEmblaCarousel({
     align: 'start',

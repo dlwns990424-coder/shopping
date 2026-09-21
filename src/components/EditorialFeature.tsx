@@ -43,7 +43,7 @@ function EditorialFeature({
             {title}
           </h2>
           {subtitle && (
-            <p className="mt-12 max-w-[560px] whitespace-pre-line text-[16px] leading-[1.6] text-surface/85 drop-shadow">
+            <p className="mt-12 max-w-[560px] whitespace-pre-line text-[16px] leading-[1.6] text-surface drop-shadow">
               {subtitle}
             </p>
           )}

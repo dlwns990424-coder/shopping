@@ -24,8 +24,6 @@ interface ProductRow {
   color_label: string
   color_hex: string
   sizes: string[]
-  featured: boolean
-  featured_order: number | null
   description: string
   created_at: string
 }
@@ -44,8 +42,6 @@ function toProduct(row: ProductRow): Product {
     hoverImage: row.hover_image,
     color: { label: row.color_label, hex: row.color_hex },
     sizes: row.sizes ?? [],
-    featured: row.featured,
-    featuredOrder: row.featured_order,
     description: row.description,
     createdAt: row.created_at,
   }

@@ -19,6 +19,12 @@
   --color-secondary: #6b6b6b;
   --color-disabled: #b0b0b0;
 
+  /* 어두운 배경(히어로 이미지·푸터·라이트박스) 위에서 쓰는 텍스트 위계 —
+     라이트 배경의 primary/secondary/disabled 3단과 같은 역할, 흰색 불투명도로 표현 */
+  --color-on-dark-primary: rgb(255 255 255 / 90%);
+  --color-on-dark-secondary: rgb(255 255 255 / 65%);
+  --color-on-dark-disabled: rgb(255 255 255 / 40%);
+
   --color-point: #45697a;
   --color-point-hover: #36525f;
   --color-point-tint: #eaf0f2;
@@ -265,6 +271,12 @@
 
   .text-h3 {
     @apply text-xl font-medium leading-[1.3] tracking-[-0.02em];
+  }
+
+  /* 페이지 안에서 반복되는 서브섹션 제목(사이즈 가이드/추천 상품/최근 본 상품/리뷰 등) 전용 —
+     페이지 최상단 제목(.text-h1/.text-h2)과는 역할이 다르다. */
+  .text-section-title {
+    @apply text-xl font-bold lg:text-2xl;
   }
 
   .text-body-lg {

@@ -401,7 +401,7 @@ function ProductDetail() {
   const sizeChartFields = SIZE_CHART_BY_SUBCATEGORY[product.subCategory] ?? []
   const sizeAndMaterialBlock = (
     <div className="flex flex-col gap-16">
-      <h2 className="text-xl font-bold lg:text-2xl">사이즈 가이드</h2>
+      <h2 className="text-section-title">사이즈 가이드</h2>
       <p className="text-body text-secondary lg:text-body-lg">
         소재 특성 및 측정 방법에 따라 약 1-3cm의 오차가 발생할 수 있으며, 이는 불량 사유에 해당하지 않는 점 참고
         부탁드립니다.
@@ -544,7 +544,7 @@ function ProductDetail() {
           className="scroll-mt-[calc(var(--mobile-header-height)+40px)] md:scroll-mt-[calc(var(--tablet-header-height)+40px)] md:pt-16"
         >
           <div className="page-section__header">
-            <h2 className="text-xl font-bold">추천 상품</h2>
+            <h2 className="text-section-title">추천 상품</h2>
           </div>
           <div className="product-grid">
             {relatedProducts.map((item) => (
@@ -640,7 +640,7 @@ function ProductDetail() {
 
       <section data-anchor="related" className="page-section hidden lg:block lg:scroll-mt-130">
         <div className="page-section__header">
-          <h2 className="text-xl font-bold lg:text-2xl">추천 상품</h2>
+          <h2 className="text-section-title">추천 상품</h2>
         </div>
         <div className="product-grid">
           {relatedProducts.map((item) => (
@@ -652,7 +652,7 @@ function ProductDetail() {
       {hasOtherRecentlyViewed && (
         <section className="page-section">
           <div className="page-section__header">
-            <h2 className="text-xl font-bold lg:text-2xl">최근 본 상품</h2>
+            <h2 className="text-section-title">최근 본 상품</h2>
           </div>
           <RecentlyViewed excludeId={product.id} hideWhenEmpty dense collapsible />
         </section>

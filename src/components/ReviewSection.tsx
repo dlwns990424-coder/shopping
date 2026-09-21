@@ -130,7 +130,7 @@ function ReviewSection({ productId }: ReviewSectionProps) {
   return (
     <>
       <div className="flex items-center justify-between gap-16">
-        <h2 className="text-xl font-bold lg:text-2xl">리뷰</h2>
+        <h2 className="text-section-title">리뷰</h2>
         {!user && (
           <Button variant="secondary" size="small" onClick={handleWriteClick}>
             내 리뷰 작성하기
@@ -272,11 +272,11 @@ function ReviewSection({ productId }: ReviewSectionProps) {
             className="absolute inset-x-0 top-0 z-10 flex h-64 items-center justify-between bg-gradient-to-b from-black/70 to-transparent px-16 sm:px-24 lg:px-40"
             onClick={(event) => event.stopPropagation()}
           >
-            <p className="text-body-sm font-medium text-white sm:text-body">리뷰 이미지</p>
+            <p className="text-body-sm font-medium text-on-dark-primary sm:text-body">리뷰 이미지</p>
             <button
               type="button"
               onClick={() => setSelectedPhoto(null)}
-              className="flex h-40 w-40 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:h-44 sm:w-44"
+              className="flex h-40 w-40 items-center justify-center rounded-full border border-white/20 bg-white/10 text-on-dark-primary backdrop-blur-sm transition-colors hover:bg-white/20 sm:h-44 sm:w-44"
               aria-label="확대 이미지 닫기"
             >
               <X size={24} strokeWidth={1.5} />
@@ -293,7 +293,7 @@ function ReviewSection({ productId }: ReviewSectionProps) {
           </div>
 
           <p
-            className="text-caption absolute inset-x-0 bottom-20 text-center text-white/60 sm:bottom-24"
+            className="text-caption absolute inset-x-0 bottom-20 text-center text-on-dark-secondary sm:bottom-24"
             onClick={(event) => event.stopPropagation()}
           >
             화면 바깥을 누르면 닫힙니다

@@ -86,7 +86,7 @@ function BestsellerManager() {
         최근 {BEST_DAYS}일 판매수량 기준 TOP {SNAPSHOT_LIMIT}. Home/Men/Women의 베스트 행은 여기 저장된 스냅샷을
         그대로 보여주므로, 새 주문이 쌓여도 아래 버튼을 눌러야 반영됩니다.
       </p>
-      {error && <p className="text-body-sm text-point">{error}</p>}
+      {error && <p className="text-body-sm text-danger">{error}</p>}
 
       <div className="flex items-center gap-12">
         <Button size="small" onClick={refresh} disabled={refreshing}>

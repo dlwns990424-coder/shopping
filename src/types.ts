@@ -18,8 +18,6 @@ export interface Product {
   hoverImage: string | null
   color: ProductColor
   sizes: string[]
-  featured: boolean
-  featuredOrder: number | null
   description: string
   createdAt: string
 }

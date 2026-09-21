@@ -214,7 +214,7 @@ function MemberManage() {
       </Helmet>
       <h1 className="text-h1">회원관리</h1>
 
-      {actionError && <p className="text-body-sm text-point">{actionError}</p>}
+      {actionError && <p className="text-body-sm text-danger">{actionError}</p>}
 
       <div className="flex gap-8">
         <button
@@ -580,7 +580,7 @@ function MemberManage() {
               value={editForm.phone}
               onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
             />
-            {editError && <p className="text-body-sm text-point">{editError}</p>}
+            {editError && <p className="text-body-sm text-danger">{editError}</p>}
             <div className="mt-8 flex flex-col gap-8">
               <Button type="submit" variant="primary" size="large" className="w-full">
                 저장

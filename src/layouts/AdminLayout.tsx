@@ -137,7 +137,7 @@ function AdminLayout() {
         {renderNavLinks()}
       </aside>
 
-      <aside className="hidden w-240 shrink-0 overflow-y-auto border-r border-line bg-surface p-24 lg:block">
+      <aside className="hidden w-240 shrink-0 overflow-y-auto border-r border-line bg-surface p-24 lg:sticky lg:top-0 lg:block lg:h-svh">
         {renderNavLinks()}
       </aside>
 

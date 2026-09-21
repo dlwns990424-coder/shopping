@@ -219,7 +219,7 @@ function SalesManage() {
           {productsLoading ? (
             <p className="text-body-sm text-secondary">불러오는 중...</p>
           ) : productsError ? (
-            <p className="text-body-sm text-point">{productsError}</p>
+            <p className="text-body-sm text-danger">{productsError}</p>
           ) : categoryBreakdown.length === 0 ? (
             <p className="text-body-sm text-secondary">해당 기간에 매출이 없습니다.</p>
           ) : (

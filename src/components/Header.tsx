@@ -57,7 +57,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconB
     </>
   )
   const className = `relative inline-flex h-44 w-44 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-colors active:scale-90 ${
-    light ? 'text-white hover:text-white/70' : 'text-primary hover:text-disabled'
+    light ? 'text-on-dark-primary hover:text-on-dark-secondary' : 'text-primary hover:text-disabled'
   }`
 
   if (to) {
@@ -145,8 +145,8 @@ function Header() {
     `flex h-full min-w-64 items-center justify-center text-sm font-medium no-underline transition-colors ${
       isTransparent
         ? active
-          ? 'text-white'
-          : 'text-white/70 hover:text-white'
+          ? 'text-on-dark-primary'
+          : 'text-on-dark-secondary hover:text-on-dark-primary'
         : active
           ? 'text-primary'
           : 'text-disabled hover:text-primary'

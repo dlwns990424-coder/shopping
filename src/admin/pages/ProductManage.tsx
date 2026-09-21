@@ -674,7 +674,7 @@ function ProductManage() {
         </Button>
       </div>
 
-      {error && <p className="text-body-sm text-point">{error}</p>}
+      {error && <p className="text-body-sm text-danger">{error}</p>}
 
       <div className="flex flex-wrap items-center gap-8">
         <div className="relative">

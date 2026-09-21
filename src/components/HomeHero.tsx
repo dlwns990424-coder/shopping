@@ -60,9 +60,9 @@ function HomeHero({ to, imageMobile, imageTablet, imageDesktop, title, subtitle,
 
       {mediaReady && (
         <>
-          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/35 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute inset-x-0 bottom-[20%] z-10 px-20 text-surface md:px-32 lg:px-80 xl:px-140 2xl:px-200">
-            <h1 className="whitespace-pre-line font-display text-[32px] font-medium leading-[1.2] tracking-[-0.02em] text-surface drop-shadow-md md:text-[38px] lg:text-[44px]">
+            <h1 className="whitespace-pre-line font-display text-[32px] font-medium leading-[1.2] tracking-[0.025em] text-surface drop-shadow-md md:text-[38px] lg:text-[44px]">
               {title}
             </h1>
             <p className="mt-12 text-[18px] font-light text-surface drop-shadow-md">{subtitle}</p>

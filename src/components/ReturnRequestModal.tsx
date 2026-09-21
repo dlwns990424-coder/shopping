@@ -142,7 +142,7 @@ function ReturnRequestModal({ onCancel, onSubmit }: ReturnRequestModalProps) {
           </div>
         </div>
 
-        {error && <p className="text-body-sm text-point">{error}</p>}
+        {error && <p className="text-body-sm text-danger">{error}</p>}
 
         <div className="mt-8 flex flex-col gap-8">
           <Button variant="primary" size="large" className="w-full" onClick={handleSubmit} disabled={!canSubmit}>

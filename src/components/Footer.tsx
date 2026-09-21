@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronDown } from 'lucide-react'
 
-const footerHeadingClass = 'text-[13px] font-medium tracking-[0.14em] text-white/90'
-const footerItemClass = 'text-[13px] leading-[1.7] text-white/60'
+const footerHeadingClass = 'text-[13px] font-medium tracking-[0.14em] text-on-dark-primary'
+const footerItemClass = 'text-[13px] leading-[1.7] text-on-dark-secondary'
 
 type FooterSectionKey = 'shop' | 'customer' | 'company' | 'social'
 
@@ -32,7 +32,7 @@ function FooterSectionHeading({ id, contentId, label, open, onToggle }: FooterSe
       <ChevronDown
         size={14}
         strokeWidth={1.5}
-        className={`shrink-0 text-white/40 transition-transform md:hidden ${open ? 'rotate-180' : ''}`}
+        className={`shrink-0 text-on-dark-disabled transition-transform md:hidden ${open ? 'rotate-180' : ''}`}
       />
     </button>
   )
@@ -133,7 +133,7 @@ function Footer({ reserveBottomNavSpace = false }: FooterProps) {
               />
               <div
                 id="footer-company-content"
-                className={`${openSections.has('company') ? 'mt-14 flex' : 'hidden'} flex-col gap-4 text-[12px] leading-[1.75] text-white/55 md:mt-14 md:flex md:text-[13px]`}
+                className={`${openSections.has('company') ? 'mt-14 flex' : 'hidden'} flex-col gap-4 text-[12px] leading-[1.75] text-on-dark-secondary md:mt-14 md:flex md:text-[13px]`}
               >
                 <p>(주)노베라 · 대표 이준</p>
                 <p>사업자등록번호 000-00-00000</p>
@@ -164,7 +164,7 @@ function Footer({ reserveBottomNavSpace = false }: FooterProps) {
       </div>
 
       <div className="border-t border-white/15">
-        <div className="px-20 py-20 text-[11px] leading-[1.5] text-white/45 md:px-32 lg:px-80 xl:px-140 2xl:px-200">
+        <div className="px-20 py-20 text-[11px] leading-[1.5] text-on-dark-disabled md:px-32 lg:px-80 xl:px-140 2xl:px-200">
           <p>
             © {new Date().getFullYear()} NOVERA · Developed by 이준
           </p>
