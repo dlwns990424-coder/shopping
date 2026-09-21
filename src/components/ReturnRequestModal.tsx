@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import Button from './Button'
 import { uploadImage } from '../utils/uploadImage'
 import { useModalA11y } from '../hooks/useModalA11y'
+import { useAuth } from '../context/AuthContext'
 
 interface ReturnRequestModalProps {
   onCancel: () => void
@@ -13,6 +14,7 @@ const RETURN_REASONS = ['단순변심', '사이즈가 안 맞음', '상품 불�
 const MAX_PHOTOS = 4
 
 function ReturnRequestModal({ onCancel, onSubmit }: ReturnRequestModalProps) {
+  const { user } = useAuth()
   const [reason, setReason] = useState(RETURN_REASONS[0])
   const [detail, setDetail] = useState('')
   const [photos, setPhotos] = useState<string[]>([])
@@ -37,7 +39,7 @@ function ReturnRequestModal({ onCancel, onSubmit }: ReturnRequestModalProps) {
         : null,
     )
     try {
-      const urls = await Promise.all(files.map((file) => uploadImage(file, 'returns')))
+      const urls = await Promise.all(files.map((file) => uploadImage(file, `returns/${user.id}`)))
       setPhotos((prev) => [...prev, ...urls])
     } catch (err) {
       setError(err instanceof Error ? err.message : '사진 업로드에 실패했습니다.')
