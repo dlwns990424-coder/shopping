@@ -268,7 +268,7 @@ function Header() {
           <Search size={20} strokeWidth={1.5} />
         </IconButton>
         <IconButton label="위시리스트" to="/wishlist" light={isTransparent}>
-          <Heart size={20} strokeWidth={1.5} />
+          <Heart size={20} strokeWidth={1} />
         </IconButton>
         <IconButton
           label="장바구니"

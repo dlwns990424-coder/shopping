@@ -327,7 +327,7 @@ function ProductDetail() {
           aria-label={isWishlisted(product.id) ? '찜 해제' : '위시리스트 추가'}
           aria-pressed={isWishlisted(product.id)}
         >
-          <Heart size={20} strokeWidth={2} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} />
+          <Heart size={20} strokeWidth={1} fill={isWishlisted(product.id) ? 'currentColor' : 'none'} />
         </button>
       </div>
 

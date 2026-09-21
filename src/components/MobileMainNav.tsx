@@ -169,7 +169,7 @@ function MobileMainNav({ gender, user, openLoginModal, mode }: MobileMainNavProp
         <Link to="/wishlist" className={tabClass(isWishlistActive)}>
           <Heart
             size={20}
-            strokeWidth={1.5}
+            strokeWidth={1}
             fill={isWishlistActive ? 'black' : 'none'}
             stroke={isWishlistActive ? 'black' : 'currentColor'}
           />

@@ -5,12 +5,9 @@ import { Heart } from 'lucide-react'
 import Button from '../components/Button'
 import Checkbox from '../components/Checkbox'
 import ConfirmModal from '../components/ConfirmModal'
-import Toast from '../components/Toast'
 import WishlistCard from '../components/WishlistCard'
 import { useProducts } from '../context/ProductsContext'
 import { useWishlist } from '../context/WishlistContext'
-import { subjectJosa } from '../utils/josa'
-import { MAX_ORDER_QUANTITY } from '../constants/purchase'
 
 function Wishlist() {
   const navigate = useNavigate()
@@ -21,15 +18,8 @@ function Wishlist() {
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [confirmingRemoveSelected, setConfirmingRemoveSelected] = useState(false)
-  const [toastMessage, setToastMessage] = useState('')
-  const [showToast, setShowToast] = useState(false)
 
   const allSelected = items.length > 0 && selectedIds.length === items.length
-
-  const notify = (message: string) => {
-    setToastMessage(message)
-    setShowToast(true)
-  }
 
   const exitSelectionMode = () => {
     setSelectionMode(false)
@@ -67,7 +57,7 @@ function Wishlist() {
         <Helmet>
           <title>NOVERA | 위시리스트</title>
         </Helmet>
-        <Heart size={48} strokeWidth={1.2} className="text-disabled" />
+        <Heart size={48} strokeWidth={1} className="text-disabled" />
         <p className="text-h3">아직 찜한 상품이 없습니다</p>
         <p className="text-body text-secondary">마음에 드는 상품을 위시리스트에 담아보세요</p>
         <Button variant="primary" size="large" className="h-44 !py-0" onClick={() => navigate('/')}>
@@ -132,13 +122,6 @@ function Wishlist() {
             selectionMode={selectionMode}
             selected={selectedIds.includes(product.id)}
             onToggleSelect={() => toggleOne(product.id)}
-            onAdded={(capped) =>
-              notify(
-                capped
-                  ? `동일 옵션은 최대 ${MAX_ORDER_QUANTITY}개까지 담을 수 있습니다.`
-                  : `${product.name}${subjectJosa(product.name)} 장바구니에 담겼습니다.`,
-              )
-            }
           />
         ))}
       </div>
@@ -152,8 +135,6 @@ function Wishlist() {
           onCancel={() => setConfirmingRemoveSelected(false)}
         />
       )}
-
-      <Toast message={toastMessage} show={showToast} onClose={() => setShowToast(false)} />
     </div>
   )
 }

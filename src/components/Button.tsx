@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ElementType, ReactNode } from 'react'
+import { forwardRef, type ButtonHTMLAttributes, type ElementType, type ReactNode } from 'react'
 
 type ButtonVariant = 'primary' | 'secondary' | 'text'
 type ButtonSize = 'large' | 'medium' | 'small'
@@ -29,24 +29,21 @@ const SIZE_PADDING_X: Record<ButtonSize, string> = {
   small: 'px-16',
 }
 
-function Button({
-  children,
-  variant = 'primary',
-  size = 'medium',
-  as: Component = 'button',
-  className = '',
-  ...rest
-}: ButtonProps) {
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { children, variant = 'primary', size = 'medium', as: Component = 'button', className = '', ...rest },
+  ref,
+) {
   const paddingX = variant === 'text' ? 'px-4' : SIZE_PADDING_X[size]
 
   return (
     <Component
+      ref={ref}
       className={`inline-flex items-center justify-center rounded-sm border cursor-pointer transition-colors no-underline enabled:active:scale-[0.98] disabled:cursor-default disabled:opacity-50 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${paddingX} ${className}`.trim()}
       {...rest}
     >
       {children}
     </Component>
   )
-}
+})
 
 export default Button

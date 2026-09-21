@@ -56,10 +56,10 @@ function ProductCard({ id, name, price, salePrice, image, hoverImage }: ProductC
           aria-pressed={wishlisted}
           className="absolute right-8 top-8 flex h-32 w-32 items-center justify-center border-none bg-transparent p-0 text-primary active:scale-90 lg:right-12 lg:top-12 lg:h-40 lg:w-40"
         >
-          <span className="flex h-24 w-24 items-center justify-center drop-shadow-[0_0_2px_rgba(255,255,255,0.9)] lg:h-40 lg:w-40">
+          <span className="flex h-24 w-24 items-center justify-center lg:h-40 lg:w-40">
             <Heart
               size={20}
-              strokeWidth={2}
+              strokeWidth={1}
               color={wishlisted ? '#dc2626' : '#1a1a1a'}
               fill={wishlisted ? '#dc2626' : 'none'}
             />

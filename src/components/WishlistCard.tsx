@@ -3,30 +3,19 @@ import { Link } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import type { Product } from '../types'
 import { useWishlist } from '../context/WishlistContext'
-import { useCart } from '../context/CartContext'
-import { useAuth } from '../context/AuthContext'
-import { useAuthModal } from '../context/AuthModalContext'
 import { formatPrice } from '../utils/formatPrice'
-import Button from './Button'
 import Checkbox from './Checkbox'
 import ConfirmModal from './ConfirmModal'
-import WishlistSizeModal from './WishlistSizeModal'
-import { MAX_ORDER_QUANTITY } from '../constants/purchase'
 
 interface WishlistCardProps {
   product: Product
   selectionMode: boolean
   selected: boolean
   onToggleSelect: () => void
-  onAdded: (capped: boolean) => void
 }
 
-function WishlistCard({ product, selectionMode, selected, onToggleSelect, onAdded }: WishlistCardProps) {
+function WishlistCard({ product, selectionMode, selected, onToggleSelect }: WishlistCardProps) {
   const { toggle } = useWishlist()
-  const { items: cartItems, addItem } = useCart()
-  const { user } = useAuth()
-  const { openLoginModal } = useAuthModal()
-  const [selectingSize, setSelectingSize] = useState(false)
   const [confirmingRemove, setConfirmingRemove] = useState(false)
 
   const handleRemoveClick = (e: MouseEvent) => {
@@ -40,24 +29,8 @@ function WishlistCard({ product, selectionMode, selected, onToggleSelect, onAdde
     setConfirmingRemove(false)
   }
 
-  const handleOpenSize = () => {
-    if (!user) {
-      openLoginModal()
-      return
-    }
-    setSelectingSize(true)
-  }
-
-  const handleAdd = (size: string) => {
-    const cartItemId = `${product.id}-${product.color.label}-${size}`
-    const capped = (cartItems.find((item) => item.id === cartItemId)?.quantity ?? 0) >= MAX_ORDER_QUANTITY
-    addItem(product, size)
-    setSelectingSize(false)
-    onAdded(capped)
-  }
-
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12">
       {selectionMode && <Checkbox checked={selected} onChange={onToggleSelect} label="선택" />}
 
       <div className="relative">
@@ -77,12 +50,12 @@ function WishlistCard({ product, selectionMode, selected, onToggleSelect, onAdde
           aria-label="찜 해제"
           className="absolute right-8 top-8 flex h-32 w-32 items-center justify-center border-none bg-transparent p-0 text-primary active:scale-90 lg:right-12 lg:top-12 lg:h-40 lg:w-40"
         >
-          <span className="flex h-24 w-24 items-center justify-center drop-shadow-[0_0_2px_rgba(255,255,255,0.9)] lg:h-40 lg:w-40">
-            <Heart size={20} strokeWidth={2} color="#dc2626" fill="#dc2626" />
+          <span className="flex h-24 w-24 items-center justify-center lg:h-40 lg:w-40">
+            <Heart size={20} strokeWidth={1} color="#dc2626" fill="#dc2626" />
           </span>
         </button>
       </div>
-      <Link to={`/products/${product.id}`} className="mt-12 flex flex-col gap-4 text-inherit no-underline">
+      <Link to={`/products/${product.id}`} className="flex flex-col gap-4 text-inherit no-underline">
         <p className="text-body text-primary">{product.name}</p>
         {product.salePrice != null ? (
           <p className="flex items-center gap-8">
@@ -93,18 +66,6 @@ function WishlistCard({ product, selectionMode, selected, onToggleSelect, onAdde
           <p className="text-sm font-semibold text-primary">{formatPrice(product.price)}</p>
         )}
       </Link>
-
-      <Button size="large" variant="secondary" className="h-44 w-full !py-0" onClick={handleOpenSize}>
-        장바구니 담기
-      </Button>
-
-      {selectingSize && (
-        <WishlistSizeModal
-          product={product}
-          onConfirm={handleAdd}
-          onCancel={() => setSelectingSize(false)}
-        />
-      )}
 
       {confirmingRemove && (
         <ConfirmModal
