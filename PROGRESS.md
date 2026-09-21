@@ -33,6 +33,17 @@
 ## 마지막 갱신
 
 - 날짜: 2026-09-21
+- **이번 세션 — 반응형 점검(위시리스트/장바구니) + 코드 리뷰 기반 수정, 커밋 `691b355`**
+  1. **위시리스트 그리드 브레이크포인트**: `product-grid`가 `md:grid-cols-3`인데 위시리스트만 `lg:grid-cols-6`으로 덮어써서 1024~1112px 구간에서 3열→6열로 급점프하며 가격·"장바구니 담기" 버튼 텍스트가 줄바꿈되던 문제를 `lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6` 단계로 완화.
+  2. **위시리스트·장바구니 로딩/빈 상태 분리**: 아래 "다음 작업 순서" 1번 항목 중 위시리스트·장바구니 부분을 해결. `ProductsContext`(Supabase 상품 목록)·`CartContext`(로그인 확인 후 로컬스토리지 로드)가 비동기로 채워지는 동안 "찜한 상품이 없습니다"/"장바구니가 비어있습니다"가 먼저 보였다가 실제 데이터로 바뀌는 문제. `CartContext`/`WishlistContext`에 진짜 `loading` state를 추가해 `Cart.tsx`/`Wishlist.tsx`가 로딩 중엔 "불러오는 중..."을 보여주도록 분리(처음엔 `authLoading`을 재사용했으나, `InitialAuthLoading`이 이미 인증 로딩 중엔 화면 자체를 안 그리기 때문에 `authLoading`은 마운트 시점에 항상 `false`라 동작하지 않는 죽은 코드였음 — 재검토 후 별도 state로 재수정). **`CategoryListing`/`/shop`의 "N개 상품" 로딩 플래시는 아직 미해결.**
+  3. **검색 결과 텍스트**: `SearchOverlay.tsx`에서 상품명+메타정보가 길면 지저분하게 줄바꿈되던 것에 `truncate`+`min-w-0` 적용.
+  4. **모달 접근성 통일**: `src/hooks/useModalA11y.ts` 신규 — body 스크롤 잠금·Escape 닫기·Tab 포커스트랩·초기 포커스·포커스 복원을 하나로 모음. `SearchOverlay`/`WishlistSizeModal`/`CartOptionModal`/`ReviewFormModal`/`ReturnRequestModal`/`ImageCropModal` 6개에 적용(그중 `ReviewFormModal`/`ReturnRequestModal`/`ImageCropModal`은 포커스트랩·Escape·`role="dialog"`가 아예 없었음). **`ConfirmModal.tsx`는 이 훅이 적용 안 된 채 남아있음** — 아래 "다음 작업 순서" 5번과 직결.
+  5. **관리자 순서 이동 레이스 컨디션**: `FeaturedCarouselManager.tsx`/`ProductManage.tsx`의 `handleMove`가 렌더 시점 state 클로저를 읽어서, 이동 버튼을 빠르게 연타하면 이전 순서 기준으로 잘못 재배열될 수 있던 문제를 이벤트 핸들러 내 동기 갱신 `ref` 기반으로 수정.
+  6. **Header.tsx 죽은 코드 정리**: `/cart`,`/wishlist`(tabletGlobalHeader) 경로에서 부모가 이미 `md:hidden`이라 절대 발동 안 하던 `md:inline-flex` 제거(동작 변화 없음, 왜 안전한지 주석 추가).
+  7. **검증**: `npx tsc --noEmit`, `npm run lint` 매 단계 신규 에러/경고 없음. 브라우저로 위시리스트 렌더링·검색 오버레이 Escape 동작 확인. `CartOptionModal`/`ReviewFormModal`/`ReturnRequestModal`/`ImageCropModal`/`WishlistSizeModal`은 로그인 세션이 없어 실제 인터랙션 확인은 못 했고 코드 검증으로 대체 — **다음 세션에서 로그인 후 한 번 확인 필요**.
+  8. **미확인**: 코드 리뷰에서 `OrderItemRow.tsx`의 `responsive` 기본값이 `true`로 바뀌면서 `Order.tsx`/`OrderComplete.tsx`/`OrderHistory.tsx`가 opt-in 없이 새 그리드 레이아웃을 타게 된 것을 발견(관리자 `OrderManage.tsx`만 `responsive={false}`로 명시적 제외) — 의도된 롤아웃으로 보이나 세 화면이 실제로 잘 보이는지 확인 안 함.
+
+- 날짜: 2026-09-21 (이전 세션)
 - **이번 세션 — 상점 반응형 UX 및 검색·수량·오류 화면 개선 완료**
   1. **구매 수량 규칙**: 동일 상품·사이즈 최대 수량을 `999`개로 통일했다. 상품 상세, 위시리스트 사이즈 선택, 장바구니 옵션 변경, 직접 수량 입력과 기존 저장 데이터 모두 같은 상한을 사용한다. 같은 옵션을 합칠 때 999개를 넘지 않으며 사용자에게 안내 토스트를 표시한다. 장바구니 헤더와 구매 버튼의 개수는 사용자가 정한 대로 총수량이 아닌 **상품 종류 수**를 유지한다.
   2. **공통 검색 확장**: 상품명만 검색하던 로직을 `src/utils/productSearch.ts`로 통합해 상품명·대분류·소분류·색상·성별 키워드를 검색한다. 검색 오버레이의 전체 결과는 성별 통합 `/shop`으로 연결되며 할인가와 취소선 정가를 상품 카드와 동일하게 표시한다.
@@ -51,13 +62,14 @@
   - 위시리스트 용어는 레퍼런스 조사 결과 `위시리스트`로 통일하는 안을 추천했지만 아직 일괄 수정하지 않았다.
   - 관리자 페이지 개선은 아래 사용자 페이지 작업을 마친 뒤 진행한다.
 - **다음 작업 순서**
-  1. 상품·위시리스트·장바구니 데이터 로딩 중 빈 상태가 잠깐 보이는 문제를 로딩 상태와 빈 상태 분리로 해결한다. 현재 색상 검색에서 로딩 직후 `0개 상품`이 잠깐 보였다가 실제 개수로 바뀌는 현상을 브라우저에서 재현했다.
+  1. ~~위시리스트·장바구니~~는 2026-09-21 세션(위 참고)에서 해결. **`CategoryListing`/`/shop`(색상 검색 등)에서 상품 로딩 중 `0개 상품`이 잠깐 보였다가 실제 개수로 바뀌는 현상은 아직 남음** — 같은 방식(`useProducts().loading` 체크)으로 해결 가능.
   2. Products·Content·Bestsellers 오류 상태와 다시 시도 UI를 공통화한다.
   3. 사용자별 임시 주문 키(`shop_checkout_items:{userId}`)를 적용한다.
   4. 버튼 높이를 Compact 32px / Default 44px / Primary 52px 체계로 정리한다.
-  5. Confirm·리뷰·반품 모달의 dialog 의미, 포커스 순환·복귀, Escape, 라벨 연결과 비동기 오류 알림을 정리한다.
-  6. 라우트 코드 분할과 데이터 Provider 범위 축소를 진행한다.
-  7. 주문 가격을 Supabase RPC에서 재계산하는 구조는 실제 결제 기능은 아니지만 포트폴리오의 주문 무결성 개선 항목으로 별도 진행한다.
+  5. `ConfirmModal.tsx`에 `useModalA11y` 적용(dialog 의미, 포커스 순환·복귀, Escape) — 리뷰·반품·옵션변경·검색·사이즈선택 모달은 2026-09-21 세션에서 이미 정리했고, `ConfirmModal`만 아직 스크롤 잠금·Escape·포커스트랩이 전혀 없는 상태로 남음(장바구니·위시리스트·관리자 등 전역에서 가장 많이 쓰이는 모달이라 우선순위 높음). 비동기 오류 알림 정리는 별도 확인 필요.
+  6. `OrderItemRow.tsx`의 `responsive` 기본값이 `true`로 바뀌면서 `Order.tsx`/`OrderComplete.tsx`/`OrderHistory.tsx`가 새 그리드 레이아웃을 타게 된 게 실제로 잘 보이는지 확인(2026-09-21 세션 코드 리뷰에서 발견, 미확인).
+  7. 라우트 코드 분할과 데이터 Provider 범위 축소를 진행한다.
+  8. 주문 가격을 Supabase RPC에서 재계산하는 구조는 실제 결제 기능은 아니지만 포트폴리오의 주문 무결성 개선 항목으로 별도 진행한다.
 
 - **이번 세션 종합 (2026-09-17)**: 삭제되어 있던 `public/images`의 Men/Women 상품 이미지와 히어로 이미지를 복구하고, Women 자켓·블레이저 이미지는 `women/jackets` 아래 기존 영문 파일명 규칙으로 정리했다. Home의 신상품·베스트 타이틀/반응형 크기와 Hero 타이틀을 조정하고 할인상품 섹션을 제거했으며, 상품 카드·상세의 할인가는 원가보다 먼저 보이도록 변경했다. 상품상세 모바일·태블릿 sticky 탭 활성화 오류와 유지 구간을 수정하고 탭/Scroll Top 이동 속도를 단축했다. 모바일 하단 내비게이션 홈 아이콘을 20px 간결한 형태로 교체했다. 장바구니는 상품 상세 이동, 옵션 변경(모바일 bottom sheet/태블릿·데스크톱 modal), 종류 기준 선택 개수, 할인금액, 고정 구매 영역까지 개편했다. 타입 검사·린트·프로덕션 빌드 완료.
 - **후속 UI 작업 메모 (2026-09-17)**: 구매 관련 주요 CTA 높이를 44px로 통일했다. 모바일의 44px 미만 터치 영역(수량 조절, 삭제, 사이즈 선택 등)을 최소 44px로 정리하는 작업은 별도 후속 작업으로 진행한다.
