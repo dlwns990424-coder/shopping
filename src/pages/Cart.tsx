@@ -14,6 +14,9 @@ import { SHIPPING_FEE } from '../constants'
 import { formatPrice } from '../utils/formatPrice'
 import type { CartItem } from '../types'
 import { MAX_ORDER_QUANTITY } from '../constants/purchase'
+import { OUTLINE_SECTION_BUTTON_CLASS } from '../constants/ui'
+
+const COLLAPSED_CART_ITEM_COUNT = 5
 
 function Cart() {
   const navigate = useNavigate()
@@ -146,8 +149,8 @@ function Cart() {
             </button>
           </div>
 
-          <div className={!expanded && cartItems.length > 5 ? 'max-h-840 overflow-hidden' : undefined}>
-            {cartItems.map((item) => (
+          <div>
+            {(expanded ? cartItems : cartItems.slice(0, COLLAPSED_CART_ITEM_COUNT)).map((item) => (
               <CartItemRow
                 key={item.id}
                 item={{ ...item, price: formatPrice(getLivePrice(item)) }}
@@ -159,14 +162,16 @@ function Cart() {
             ))}
           </div>
 
-          {cartItems.length > 5 && !expanded && (
-            <button
-              type="button"
-              onClick={() => setExpanded(true)}
-              className="text-body-sm mt-16 w-full cursor-pointer border-none bg-transparent py-8 text-center text-secondary hover:text-primary"
-            >
-              더보기
-            </button>
+          {cartItems.length > COLLAPSED_CART_ITEM_COUNT && !expanded && (
+            <div className="mt-16 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className={OUTLINE_SECTION_BUTTON_CLASS}
+              >
+                더보기
+              </button>
+            </div>
           )}
         </div>
 

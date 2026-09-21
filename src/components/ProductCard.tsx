@@ -11,9 +11,18 @@ interface ProductCardProps {
   salePrice?: number | null
   image?: string | null
   hoverImage?: string | null
+  wishlistButtonAtEdge?: boolean
 }
 
-function ProductCard({ id, name, price, salePrice, image, hoverImage }: ProductCardProps) {
+function ProductCard({
+  id,
+  name,
+  price,
+  salePrice,
+  image,
+  hoverImage,
+  wishlistButtonAtEdge = false,
+}: ProductCardProps) {
   const { isWishlisted, toggle } = useWishlist()
   const wishlisted = isWishlisted(id)
   const discountPercent = salePrice != null && price > 0 ? Math.round((1 - salePrice / price) * 100) : null
@@ -54,16 +63,19 @@ function ProductCard({ id, name, price, salePrice, image, hoverImage }: ProductC
           onClick={handleToggleWishlist}
           aria-label={wishlisted ? '찜 해제' : '찜하기'}
           aria-pressed={wishlisted}
-          className="absolute right-8 top-8 flex h-32 w-32 items-center justify-center border-none bg-transparent p-0 text-primary active:scale-90 lg:right-12 lg:top-12 lg:h-40 lg:w-40"
+          className={`absolute flex border-none bg-transparent p-0 text-primary active:scale-90 ${
+            wishlistButtonAtEdge
+              ? 'right-0 top-0 h-40 w-40 items-start justify-end'
+              : 'right-8 top-8 h-32 w-32 items-center justify-center lg:right-12 lg:top-12 lg:h-40 lg:w-40'
+          }`}
         >
-          <span className="flex h-24 w-24 items-center justify-center lg:h-40 lg:w-40">
-            <Heart
-              size={20}
-              strokeWidth={1}
-              color={wishlisted ? '#dc2626' : '#1a1a1a'}
-              fill={wishlisted ? '#dc2626' : 'none'}
-            />
-          </span>
+          <Heart
+            size={20}
+            strokeWidth={1}
+            color={wishlisted ? '#dc2626' : '#1a1a1a'}
+            fill={wishlisted ? '#dc2626' : 'none'}
+            className={wishlistButtonAtEdge ? 'mr-4 mt-4' : undefined}
+          />
         </button>
       </div>
       <Link to={`/products/${id}`} className="mt-12 flex flex-col gap-4 text-inherit no-underline">

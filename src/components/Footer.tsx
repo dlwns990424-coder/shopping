@@ -38,7 +38,11 @@ function FooterSectionHeading({ id, contentId, label, open, onToggle }: FooterSe
   )
 }
 
-function Footer() {
+interface FooterProps {
+  reserveBottomNavSpace?: boolean
+}
+
+function Footer({ reserveBottomNavSpace = false }: FooterProps) {
   const [openSections, setOpenSections] = useState<Set<FooterSectionKey>>(new Set())
 
   const toggleSection = (key: FooterSectionKey) => {
@@ -51,7 +55,7 @@ function Footer() {
   }
 
   return (
-    <footer className="mt-auto bg-inverse text-surface">
+    <footer className={`mt-auto bg-inverse text-surface ${reserveBottomNavSpace ? 'footer-with-bottom-nav' : ''}`}>
       <div className="px-20 py-40 md:px-32 md:py-48 lg:px-80 lg:py-64 xl:px-140 2xl:px-200">
         <div className="mx-auto flex max-w-1600 flex-col gap-y-40 md:gap-y-48">
           <div className="flex flex-col items-start">

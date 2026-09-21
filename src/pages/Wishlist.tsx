@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { Heart } from 'lucide-react'
@@ -8,6 +8,30 @@ import ConfirmModal from '../components/ConfirmModal'
 import WishlistCard from '../components/WishlistCard'
 import { useProducts } from '../context/ProductsContext'
 import { useWishlist } from '../context/WishlistContext'
+import { OUTLINE_SECTION_BUTTON_CLASS } from '../constants/ui'
+
+const WISHLIST_PAGE_SIZE = 12
+const WISHLIST_VIEW_STATE_KEY = 'novera:wishlist-view-state'
+
+interface WishlistViewState {
+  visibleCount: number
+  scrollY: number
+}
+
+function readWishlistViewState(): WishlistViewState | null {
+  try {
+    const raw = sessionStorage.getItem(WISHLIST_VIEW_STATE_KEY)
+    if (!raw) return null
+    const value = JSON.parse(raw) as Partial<WishlistViewState>
+    if (typeof value.visibleCount !== 'number' || typeof value.scrollY !== 'number') return null
+    return {
+      visibleCount: Math.max(WISHLIST_PAGE_SIZE, value.visibleCount),
+      scrollY: Math.max(0, value.scrollY),
+    }
+  } catch {
+    return null
+  }
+}
 
 function Wishlist() {
   const navigate = useNavigate()
@@ -18,6 +42,31 @@ function Wishlist() {
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [confirmingRemoveSelected, setConfirmingRemoveSelected] = useState(false)
+  const [restoredViewState] = useState(readWishlistViewState)
+  const [visibleCount, setVisibleCount] = useState(
+    restoredViewState?.visibleCount ?? WISHLIST_PAGE_SIZE,
+  )
+  const hasRestoredViewRef = useRef(false)
+
+  useLayoutEffect(() => {
+    if (
+      hasRestoredViewRef.current ||
+      !restoredViewState ||
+      wishlistLoading ||
+      productsLoading ||
+      items.length === 0
+    ) {
+      return
+    }
+
+    hasRestoredViewRef.current = true
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: restoredViewState.scrollY, left: 0, behavior: 'auto' })
+      sessionStorage.removeItem(WISHLIST_VIEW_STATE_KEY)
+    })
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [items.length, productsLoading, restoredViewState, wishlistLoading])
 
   const allSelected = items.length > 0 && selectedIds.length === items.length
 
@@ -38,6 +87,13 @@ function Wishlist() {
     removeMany(selectedIds)
     setSelectedIds([])
     setConfirmingRemoveSelected(false)
+  }
+
+  const saveViewState = () => {
+    sessionStorage.setItem(
+      WISHLIST_VIEW_STATE_KEY,
+      JSON.stringify({ visibleCount, scrollY: window.scrollY } satisfies WishlistViewState),
+    )
   }
 
   if (wishlistLoading || productsLoading) {
@@ -115,16 +171,29 @@ function Wishlist() {
       </div>
 
       <div className="product-grid gap-y-32 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-        {items.map((product) => (
+        {items.slice(0, visibleCount).map((product) => (
           <WishlistCard
             key={product.id}
             product={product}
             selectionMode={selectionMode}
             selected={selectedIds.includes(product.id)}
             onToggleSelect={() => toggleOne(product.id)}
+            onProductClick={saveViewState}
           />
         ))}
       </div>
+
+      {items.length > visibleCount && (
+        <div className="mt-32 flex justify-center">
+          <button
+            type="button"
+            className={OUTLINE_SECTION_BUTTON_CLASS}
+            onClick={() => setVisibleCount((count) => count + WISHLIST_PAGE_SIZE)}
+          >
+            더보기 ({items.length - visibleCount}개)
+          </button>
+        </div>
+      )}
 
       {confirmingRemoveSelected && (
         <ConfirmModal

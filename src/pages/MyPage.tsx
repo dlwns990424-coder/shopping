@@ -29,16 +29,16 @@ function MyPage() {
       </Helmet>
       <h1 className="text-h2 max-w-1000 hidden md:block">마이페이지</h1>
 
-      {/* 데스크톱 사이드 탭은 기존처럼 페이지 왼쪽에 고정하고,
-          본문만 사이드바 오른쪽의 남은 폭을 사용하도록 한다. */}
-      <div className="flex flex-col gap-32 lg:relative lg:block">
-        <div className="lg:absolute lg:left-0 lg:top-0 lg:w-200">
+      {/* 데스크톱 사이드 탭은 기존 위치와 너비를 유지하고,
+          본문은 별도 그리드 열에 배치해 화면 폭이 줄어도 서로 겹치지 않게 한다. */}
+      <div className="flex flex-col gap-32 lg:grid lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-x-48">
+        <div className="lg:w-200">
           <MyPageNav activeTab={activeTab} onLogout={() => setShowLogoutConfirm(true)} />
         </div>
 
-        <div className="min-h-0 min-w-0 w-full lg:ml-248 lg:min-h-600 lg:w-auto 2xl:mx-auto 2xl:max-w-900">
+        <div className="min-h-0 min-w-0 w-full lg:min-h-600 lg:max-w-900">
           {activeTab === 'orders' && <OrderHistory />}
-          {activeTab === 'recent' && <RecentlyViewed dense />}
+          {activeTab === 'recent' && <RecentlyViewed dense maxColumns={4} />}
           {activeTab !== 'orders' && activeTab !== 'recent' && <AccountSettingsForm />}
         </div>
 

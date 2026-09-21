@@ -101,7 +101,7 @@ function Header() {
   const isHeroPage =
     (location.pathname === '/men' || location.pathname === '/women') && !searchParams.get('category')
   const isTransparent = isHeroPage && !scrolled && !searchOpen && !hovered
-  const bottomNavMode = getBottomNavMode(location.pathname, Boolean(searchParams.get('category')))
+  const bottomNavMode = getBottomNavMode(location.pathname)
   const compactHeader = getCompactHeaderConfig(location.pathname, searchParams)
   const tabletGlobalHeader = Boolean(compactHeader?.tabletGlobalHeader)
   const showMobileHomeButton = bottomNavMode === 'hidden'

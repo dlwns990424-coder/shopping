@@ -9,17 +9,16 @@ function UserLayout() {
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const compactHeader = getCompactHeaderConfig(location.pathname, searchParams)
-  const bottomNavMode = getBottomNavMode(location.pathname, Boolean(searchParams.get('category')))
+  const bottomNavMode = getBottomNavMode(location.pathname)
+  const hasBottomNav = bottomNavMode !== 'hidden'
 
   return (
-    <div
-      className={`flex min-h-svh flex-col ${bottomNavMode === 'hidden' ? '' : 'main-with-bottom-nav'}`}
-    >
+    <div className="flex min-h-svh flex-col">
       <Header />
       <main className={`flex-1 ${compactHeader ? 'main-header-offset-back' : 'main-header-offset-brand'}`}>
         <Outlet />
       </main>
-      <Footer />
+      <Footer reserveBottomNavSpace={hasBottomNav} />
       <ScrollTopButton />
     </div>
   )

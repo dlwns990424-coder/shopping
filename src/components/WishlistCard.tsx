@@ -12,9 +12,10 @@ interface WishlistCardProps {
   selectionMode: boolean
   selected: boolean
   onToggleSelect: () => void
+  onProductClick?: () => void
 }
 
-function WishlistCard({ product, selectionMode, selected, onToggleSelect }: WishlistCardProps) {
+function WishlistCard({ product, selectionMode, selected, onToggleSelect, onProductClick }: WishlistCardProps) {
   const { toggle } = useWishlist()
   const [confirmingRemove, setConfirmingRemove] = useState(false)
 
@@ -38,24 +39,35 @@ function WishlistCard({ product, selectionMode, selected, onToggleSelect }: Wish
           to={`/products/${product.id}`}
           aria-label={`${product.name} 상품 상세보기`}
           className="block text-inherit no-underline"
+          onClick={onProductClick}
         >
           <div
             className="relative aspect-[3/4] w-full overflow-hidden rounded-none bg-surface-muted bg-cover bg-center bg-no-repeat"
             style={product.image ? { backgroundImage: `url(${product.image})` } : undefined}
           />
         </Link>
-        <button
-          type="button"
-          onClick={handleRemoveClick}
-          aria-label="찜 해제"
-          className="absolute right-8 top-8 flex h-32 w-32 items-center justify-center border-none bg-transparent p-0 text-primary active:scale-90 lg:right-12 lg:top-12 lg:h-40 lg:w-40"
-        >
-          <span className="flex h-24 w-24 items-center justify-center lg:h-40 lg:w-40">
-            <Heart size={20} strokeWidth={1} color="#dc2626" fill="#dc2626" />
-          </span>
-        </button>
+        {!selectionMode && (
+          <button
+            type="button"
+            onClick={handleRemoveClick}
+            aria-label="찜 해제"
+            className="absolute right-0 top-0 flex h-40 w-40 items-start justify-end border-none bg-transparent p-0 active:scale-90"
+          >
+            <Heart
+              size={20}
+              strokeWidth={1}
+              color="#dc2626"
+              fill="#dc2626"
+              className="mr-4 mt-4"
+            />
+          </button>
+        )}
       </div>
-      <Link to={`/products/${product.id}`} className="flex flex-col gap-4 text-inherit no-underline">
+      <Link
+        to={`/products/${product.id}`}
+        className="flex flex-col gap-4 text-inherit no-underline"
+        onClick={onProductClick}
+      >
         <p className="text-body text-primary">{product.name}</p>
         {product.salePrice != null ? (
           <p className="flex items-center gap-8">

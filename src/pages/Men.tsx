@@ -11,6 +11,7 @@ import { useBestsellers } from '../context/BestsellersContext'
 import { menCategories } from '../mock/categories'
 import type { Product } from '../types'
 import { buildEditorialLink, type EditorialDestination } from '../utils/editorialLink'
+import { OUTLINE_SECTION_BUTTON_CLASS } from '../constants/ui'
 
 const NEW_ARRIVALS_LIMIT = 8
 const BESTSELLER_LIMIT = 5
@@ -86,7 +87,7 @@ function Men() {
         <div className="mt-32 flex justify-center">
           <Link
             to="/men?category=all"
-            className="inline-flex h-[42px] items-center justify-center rounded-sm border border-primary bg-transparent px-24 text-[14px] text-primary no-underline transition-colors hover:bg-surface-muted active:scale-[0.98] md:h-[44px] md:w-[260px]"
+            className={OUTLINE_SECTION_BUTTON_CLASS}
           >
             전체상품 보기
           </Link>

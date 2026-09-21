@@ -1,10 +1,10 @@
-export type BottomNavMode = 'fixed' | 'scroll-aware' | 'hidden'
+export type BottomNavMode = 'fixed' | 'hidden'
 
 const BOTTOM_NAV_HIDDEN_PATHS = new Set(['/cart', '/order', '/order/complete', '/login', '/signup'])
+const BOTTOM_NAV_FIXED_PATHS = new Set(['/men', '/women', '/shop', '/mypage', '/wishlist'])
 
-export function getBottomNavMode(pathname: string, hasCategoryFilter: boolean): BottomNavMode {
+export function getBottomNavMode(pathname: string): BottomNavMode {
   if (BOTTOM_NAV_HIDDEN_PATHS.has(pathname) || /^\/products\//.test(pathname)) return 'hidden'
-  if (pathname === '/men' || pathname === '/women') return hasCategoryFilter ? 'scroll-aware' : 'fixed'
-  if (pathname === '/shop' || pathname === '/mypage' || pathname === '/wishlist') return 'scroll-aware'
+  if (BOTTOM_NAV_FIXED_PATHS.has(pathname)) return 'fixed'
   return 'hidden'
 }

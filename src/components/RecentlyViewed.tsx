@@ -10,6 +10,7 @@ interface RecentlyViewedProps {
   hideWhenEmpty?: boolean
   dense?: boolean
   collapsible?: boolean
+  maxColumns?: 4 | 5
 }
 
 // dense 모드 컬럼 수(2/3/3/4/5)에 맞춰 첫 줄 이후를 숨긴다. 브레이크포인트별로
@@ -17,7 +18,13 @@ interface RecentlyViewedProps {
 const COLLAPSED_GRID_CLASS =
   '[&>*:nth-child(n+3)]:hidden md:[&>*:nth-child(n+3)]:block md:[&>*:nth-child(n+4)]:hidden xl:[&>*:nth-child(n+4)]:block xl:[&>*:nth-child(n+5)]:hidden 2xl:[&>*:nth-child(n+5)]:block 2xl:[&>*:nth-child(n+6)]:hidden'
 
-function RecentlyViewed({ excludeId, hideWhenEmpty = false, dense = false, collapsible = false }: RecentlyViewedProps) {
+function RecentlyViewed({
+  excludeId,
+  hideWhenEmpty = false,
+  dense = false,
+  collapsible = false,
+  maxColumns = 5,
+}: RecentlyViewedProps) {
   const { products } = useProducts()
   const [expanded, setExpanded] = useState(false)
   // localStorage 동기 읽기라 상태로 캐싱할 이유가 없음 — 캐싱하면 상품 상세를
@@ -38,14 +45,18 @@ function RecentlyViewed({ excludeId, hideWhenEmpty = false, dense = false, colla
   const needsMoreAt3 = items.length > 3
   const needsMoreAt4 = items.length > 4
   const needsMoreAt5 = items.length > 5
+  const denseGridClass =
+    maxColumns === 4
+      ? 'lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4'
+      : 'lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
 
   return (
     <div>
       <div
-        className={`product-grid gap-y-32 ${dense ? 'lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5' : ''} ${collapsed ? COLLAPSED_GRID_CLASS : ''}`}
+        className={`product-grid gap-y-32 ${dense ? denseGridClass : ''} ${collapsed ? COLLAPSED_GRID_CLASS : ''}`}
       >
         {items.map((product) => (
-          <ProductCard key={product.id} {...product} />
+          <ProductCard key={product.id} {...product} wishlistButtonAtEdge />
         ))}
       </div>
       {collapsed && needsMoreAt2 && (

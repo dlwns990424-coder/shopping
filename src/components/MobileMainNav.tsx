@@ -5,7 +5,6 @@ import CategoryCard from './CategoryCard'
 import { menCategories, womenCategories } from '../mock/categories'
 import type { Gender, User } from '../types'
 import type { BottomNavMode } from '../utils/bottomNavMode'
-import { useScrollDirectionVisible } from '../hooks/useScrollDirectionVisible'
 import { useRecentSearch } from '../context/RecentSearchContext'
 
 interface MobileMainNavProps {
@@ -47,7 +46,6 @@ function MobileMainNav({ gender, user, openLoginModal, mode }: MobileMainNavProp
   const [menuGender, setMenuGender] = useState<Gender>(gender)
   const [drawerQuery, setDrawerQuery] = useState('')
   const { addTerm } = useRecentSearch()
-  const navVisible = useScrollDirectionVisible(mode === 'scroll-aware')
   const categoryButtonRef = useRef<HTMLButtonElement | null>(null)
   const drawerRef = useRef<HTMLDivElement | null>(null)
   const closeButtonRef = useRef<HTMLButtonElement | null>(null)
@@ -126,7 +124,8 @@ function MobileMainNav({ gender, user, openLoginModal, mode }: MobileMainNavProp
     }`
 
   const isBestActive = location.pathname === `/${gender}` && searchParams.get('sort') === 'best'
-  const isHomeActive = mode === 'fixed' && !categoryOpen
+  const isHomeActive =
+    location.pathname === `/${gender}` && !searchParams.get('category') && !searchParams.get('sort') && !categoryOpen
   const isWishlistActive = location.pathname === '/wishlist'
   const isMyPageActive = location.pathname === '/mypage'
 
@@ -135,9 +134,7 @@ function MobileMainNav({ gender, user, openLoginModal, mode }: MobileMainNavProp
   return (
     <>
       <nav
-        className={`mobile-main-nav fixed inset-x-0 bottom-0 z-header flex items-stretch border-t border-line/50 bg-surface transition-transform duration-300 md:hidden ${
-          navVisible ? 'translate-y-0' : 'translate-y-full'
-        }`}
+        className="mobile-main-nav fixed inset-x-0 bottom-0 z-header flex items-stretch border-t border-line/50 bg-surface md:hidden"
       >
         <button
           ref={categoryButtonRef}

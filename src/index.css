@@ -189,7 +189,7 @@
     padding-left: max(20px, var(--safe-area-left));
   }
 
-  .main-with-bottom-nav {
+  .footer-with-bottom-nav {
     padding-bottom: var(--mobile-bottom-nav-height);
   }
 
@@ -211,7 +211,7 @@
       max-height: calc(100dvh - var(--tablet-header-height));
     }
 
-    .main-with-bottom-nav {
+    .footer-with-bottom-nav {
       padding-bottom: 0;
     }
 
