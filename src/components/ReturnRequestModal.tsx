@@ -1,7 +1,8 @@
-import { useEffect, useState, type ChangeEvent } from 'react'
+import { useRef, useState, type ChangeEvent } from 'react'
 import { X } from 'lucide-react'
 import Button from './Button'
 import { uploadImage } from '../utils/uploadImage'
+import { useModalA11y } from '../hooks/useModalA11y'
 
 interface ReturnRequestModalProps {
   onCancel: () => void
@@ -18,14 +19,9 @@ function ReturnRequestModal({ onCancel, onSubmit }: ReturnRequestModalProps) {
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const dialogRef = useRef<HTMLDivElement | null>(null)
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = previousOverflow
-    }
-  }, [])
+  useModalA11y(dialogRef, onCancel)
 
   const handlePhotoSelect = async (e: ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files ?? [])
@@ -71,8 +67,16 @@ function ReturnRequestModal({ onCancel, onSubmit }: ReturnRequestModalProps) {
 
   return (
     <div className="fixed inset-0 z-modal flex items-end overflow-y-auto bg-black/50 md:items-center md:justify-center md:px-24 md:py-24">
-      <div className="flex max-h-[calc(100dvh-var(--safe-area-top)-var(--safe-area-bottom))] w-full max-w-480 flex-col gap-16 overflow-y-auto rounded-t-lg bg-surface px-20 pb-[calc(20px+var(--safe-area-bottom))] pt-20 md:rounded-md md:p-24">
-        <p className="text-h3">반품 신청</p>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="return-request-title"
+        className="flex max-h-[calc(100dvh-var(--safe-area-top)-var(--safe-area-bottom))] w-full max-w-480 flex-col gap-16 overflow-y-auto rounded-t-lg bg-surface px-20 pb-[calc(20px+var(--safe-area-bottom))] pt-20 md:rounded-md md:p-24"
+      >
+        <p id="return-request-title" className="text-h3">
+          반품 신청
+        </p>
 
         <div className="flex flex-col gap-8">
           <label className="text-body-sm text-secondary">반품 사유</label>

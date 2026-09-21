@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Cropper from 'react-easy-crop'
 import 'react-easy-crop/react-easy-crop.css'
 import Button from './Button'
 import { getCroppedImageBlob, type CropArea } from '../utils/cropImage'
+import { useModalA11y } from '../hooks/useModalA11y'
 
 interface ImageCropModalProps {
   file: File
@@ -58,6 +59,7 @@ function ImageCropModal({
   const [processing, setProcessing] = useState(false)
   const [cropBoxSize, setCropBoxSize] = useState<{ width: number; height: number } | null>(null)
   const [sourceSize, setSourceSize] = useState<{ width: number; height: number } | null>(null)
+  const dialogRef = useRef<HTMLDivElement | null>(null)
 
   // 실제 사이트는 화면 크기에 따라 이 프레임보다 더 타이트하게 잘릴 수 있다(예: hero의
   // h-screen 배경은 브라우저 창의 실제 표시 영역 비율 그대로 적용됨). 그래서 바깥 프레임
@@ -88,13 +90,7 @@ function ImageCropModal({
       (maximumCropSize.width < recommendedWidth || maximumCropSize.height < recommendedHeight),
   )
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = previousOverflow
-    }
-  }, [])
+  useModalA11y(dialogRef, onCancel)
 
   const handleConfirm = async () => {
     if (!imageUrl || !croppedAreaPixels) return
@@ -109,8 +105,16 @@ function ImageCropModal({
 
   return (
     <div className="fixed inset-0 z-modal flex items-end overflow-y-auto bg-black/50 md:items-center md:justify-center md:px-24 md:py-24">
-      <div className="flex max-h-[calc(100dvh-var(--safe-area-top)-var(--safe-area-bottom))] w-full max-w-480 flex-col gap-16 overflow-y-auto rounded-t-lg bg-surface px-20 pb-[calc(20px+var(--safe-area-bottom))] pt-20 md:rounded-md md:p-24">
-        <p className="text-h3">보여질 영역 선택</p>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="image-crop-title"
+        className="flex max-h-[calc(100dvh-var(--safe-area-top)-var(--safe-area-bottom))] w-full max-w-480 flex-col gap-16 overflow-y-auto rounded-t-lg bg-surface px-20 pb-[calc(20px+var(--safe-area-bottom))] pt-20 md:rounded-md md:p-24"
+      >
+        <p id="image-crop-title" className="text-h3">
+          보여질 영역 선택
+        </p>
 
         {(targetLabel || sourceSize) && (
           <div className="flex flex-wrap gap-x-12 gap-y-4 text-caption text-secondary">

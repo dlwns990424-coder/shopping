@@ -17,7 +17,7 @@ import { MAX_ORDER_QUANTITY } from '../constants/purchase'
 
 function Cart() {
   const navigate = useNavigate()
-  const { items: cartItems, updateItemOption, removeItem, removeItems } = useCart()
+  const { items: cartItems, loading: cartLoading, updateItemOption, removeItem, removeItems } = useCart()
   const { products } = useProducts()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [expanded, setExpanded] = useState(false)
@@ -73,6 +73,17 @@ function Cart() {
     removeItems(selectedIds)
     setSelectedIds([])
     setConfirmingRemoveSelected(false)
+  }
+
+  if (cartLoading) {
+    return (
+      <div className="utility-page-min-height page-section">
+        <Helmet>
+          <title>NOVERA | 장바구니</title>
+        </Helmet>
+        <p className="text-body-lg">불러오는 중...</p>
+      </div>
+    )
   }
 
   if (cartItems.length === 0) {

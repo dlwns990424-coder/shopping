@@ -326,7 +326,13 @@ function Header() {
           )}
           {compactHeader.showShoppingActions && (
             <>
-              <span className={showMobileHomeButton ? 'hidden md:inline-flex' : 'inline-flex'}>
+              {/* tabletGlobalHeader 경로는 이 div 자체가 md 이상에서 사라지므로 md:inline-flex는
+                  절대 발동하지 않는다 — 그 대신 262번째 줄의 태블릿/데스크톱 아이콘 행이 검색을 맡는다. */}
+              <span
+                className={
+                  showMobileHomeButton ? (tabletGlobalHeader ? 'hidden' : 'hidden md:inline-flex') : 'inline-flex'
+                }
+              >
                 <IconButton label="검색" onClick={() => setSearchOpen((prev) => !prev)} light={false}>
                   <Search size={20} strokeWidth={1.5} />
                 </IconButton>

@@ -14,8 +14,8 @@ import { MAX_ORDER_QUANTITY } from '../constants/purchase'
 
 function Wishlist() {
   const navigate = useNavigate()
-  const { ids, removeMany } = useWishlist()
-  const { products } = useProducts()
+  const { ids, loading: wishlistLoading, removeMany } = useWishlist()
+  const { products, loading: productsLoading } = useProducts()
   const items = products.filter((product) => ids.includes(product.id))
 
   const [selectionMode, setSelectionMode] = useState(false)
@@ -48,6 +48,17 @@ function Wishlist() {
     removeMany(selectedIds)
     setSelectedIds([])
     setConfirmingRemoveSelected(false)
+  }
+
+  if (wishlistLoading || productsLoading) {
+    return (
+      <div className="utility-page-min-height page-section">
+        <Helmet>
+          <title>NOVERA | 위시리스트</title>
+        </Helmet>
+        <p className="text-body-lg">불러오는 중...</p>
+      </div>
+    )
   }
 
   if (items.length === 0) {
@@ -113,7 +124,7 @@ function Wishlist() {
         </div>
       </div>
 
-      <div className="product-grid gap-y-32 lg:grid-cols-6">
+      <div className="product-grid gap-y-32 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
         {items.map((product) => (
           <WishlistCard
             key={product.id}

@@ -6,6 +6,7 @@ import { clampOrderQuantity } from '../constants/purchase'
 
 interface CartContextValue {
   items: CartItem[]
+  loading: boolean
   addItem: (product: Product, size: string, quantity?: number) => void
   updateItemOption: (id: string, size: string, quantity: number) => void
   removeItem: (id: string) => void
@@ -37,17 +38,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth()
   const userId = user?.id
   const [items, setItems] = useState<CartItem[]>([])
+  // authLoading은 InitialAuthLoading이 이미 걸러준 뒤라 CartProvider가 마운트될 땐 항상 false다.
+  // 그래서 별도로 "아직 로컬스토리지에서 읽어오기 전"인지를 나타내는 초기화 플래그를 둔다.
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (authLoading) return
     if (!userId) {
       setItems([])
+      setLoading(false)
       return
     }
 
     const nextItems = readCart(userId)
     setItems(nextItems)
     safeSetItem(cartKey(userId), nextItems)
+    setLoading(false)
   }, [userId, authLoading])
 
   const updateItems = (updater: (prev: CartItem[]) => CartItem[]) => {
@@ -125,7 +131,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <CartContext.Provider value={{ items, addItem, updateItemOption, removeItem, removeItems }}>
+    <CartContext.Provider
+      value={{ items, loading, addItem, updateItemOption, removeItem, removeItems }}
+    >
       {children}
     </CartContext.Provider>
   )

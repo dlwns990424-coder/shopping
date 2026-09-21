@@ -22,6 +22,12 @@ function FeaturedCarouselManager({ gender, label }: FeaturedCarouselManagerProps
   const [error, setError] = useState<string | null>(null)
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const dragSlotsRef = useRef<number[]>([])
+  // 이동 버튼을 빠르게 연타하면 handleMove가 재실행되는 사이 order state가 아직 커밋되지 않아
+  // 이전 순서를 기준으로 계산할 수 있다. 커밋 직후 최신값으로 갱신되는 ref를 대신 읽어서 방지한다.
+  const orderRef = useRef<string[]>([])
+  useEffect(() => {
+    orderRef.current = order
+  }, [order])
 
   const load = useCallback(async () => {
     const { data, error } = await supabase
@@ -115,16 +121,18 @@ function FeaturedCarouselManager({ gender, label }: FeaturedCarouselManagerProps
   }
 
   const handleMove = async (id: string, direction: -1 | 1) => {
-    const fromIndex = order.indexOf(id)
+    const currentOrder = orderRef.current
+    const fromIndex = currentOrder.indexOf(id)
     const toIndex = fromIndex + direction
-    if (fromIndex < 0 || toIndex < 0 || toIndex >= order.length) return
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= currentOrder.length) return
 
-    const next = [...order]
+    const next = [...currentOrder]
     const [movedId] = next.splice(fromIndex, 1)
     next.splice(toIndex, 0, movedId)
+    orderRef.current = next
     setOrder(next)
 
-    const slots = featured.map((product) => product.featured_order ?? 0)
+    const slots = currentOrder.map((productId) => byId.get(productId)?.featured_order ?? 0)
     const updates = next
       .map((productId, index) => ({ id: productId, featured_order: slots[index] }))
       .filter((update) => update.featured_order !== byId.get(update.id)?.featured_order)

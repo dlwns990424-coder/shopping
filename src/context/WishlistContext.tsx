@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext'
 
 interface WishlistContextValue {
   ids: string[]
+  loading: boolean
   isWishlisted: (id: string) => boolean
   toggle: (id: string) => void
   removeMany: (ids: string[]) => void
@@ -32,12 +33,16 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth()
   const userId = user?.id
   const [ids, setIds] = useState<string[]>([])
+  // authLoading은 InitialAuthLoading이 이미 걸러준 뒤라 WishlistProvider가 마운트될 땐 항상 false다.
+  // 그래서 별도로 "아직 로컬스토리지에서 읽어오기 전"인지를 나타내는 초기화 플래그를 둔다.
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (authLoading) return
 
     if (!userId) {
       setIds(readWishlist(GUEST_BUCKET))
+      setLoading(false)
       return
     }
 
@@ -53,6 +58,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     } else {
       setIds(accountIds)
     }
+    setLoading(false)
   }, [userId, authLoading])
 
   const bucket = userId ?? GUEST_BUCKET
@@ -77,7 +83,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <WishlistContext.Provider value={{ ids, isWishlisted, toggle, removeMany }}>
+    <WishlistContext.Provider value={{ ids, loading, isWishlisted, toggle, removeMany }}>
       {children}
     </WishlistContext.Provider>
   )

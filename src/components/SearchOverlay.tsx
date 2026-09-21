@@ -4,6 +4,7 @@ import { Search, X } from 'lucide-react'
 import { useProducts } from '../context/ProductsContext'
 import { useRecentSearch } from '../context/RecentSearchContext'
 import { filterProductsByQuery } from '../utils/productSearch'
+import { useModalA11y } from '../hooks/useModalA11y'
 import ProductPrice from './ProductPrice'
 
 const PREVIEW_LIMIT = 6
@@ -20,53 +21,12 @@ function SearchOverlay({ open, onClose, compactHeader = false }: SearchOverlayPr
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const dialogRef = useRef<HTMLDivElement>(null)
-  const previouslyFocusedRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
-    if (!open) {
-      setQuery('')
-      return
-    }
+    if (!open) setQuery('')
+  }, [open])
 
-    previouslyFocusedRef.current = document.activeElement as HTMLElement | null
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    const focusFrame = window.requestAnimationFrame(() => inputRef.current?.focus())
-
-    const handleDocumentKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        onClose()
-        return
-      }
-      if (event.key !== 'Tab') return
-
-      const focusable = Array.from(
-        dialogRef.current?.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
-        ) ?? [],
-      ).filter((element) => element.offsetParent !== null)
-      if (focusable.length === 0) return
-
-      const first = focusable[0]
-      const last = focusable[focusable.length - 1]
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault()
-        last.focus()
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault()
-        first.focus()
-      }
-    }
-
-    document.addEventListener('keydown', handleDocumentKeyDown)
-    return () => {
-      window.cancelAnimationFrame(focusFrame)
-      document.body.style.overflow = previousOverflow
-      document.removeEventListener('keydown', handleDocumentKeyDown)
-      previouslyFocusedRef.current?.focus()
-    }
-  }, [open, onClose])
+  useModalA11y(dialogRef, onClose, open, inputRef)
 
   if (!open) return null
 
@@ -139,8 +99,8 @@ function SearchOverlay({ open, onClose, compactHeader = false }: SearchOverlayPr
                       className="h-56 w-56 shrink-0 rounded-sm bg-surface-muted bg-cover bg-center bg-no-repeat"
                       style={{ backgroundImage: `url(${product.image})` }}
                     />
-                    <div className="flex flex-col gap-2">
-                      <p className="text-body text-primary">
+                    <div className="flex min-w-0 flex-col gap-2">
+                      <p className="text-body truncate text-primary">
                         {product.name}
                         <span className="text-caption ml-8 text-secondary">
                           {product.gender === 'men' ? 'MEN' : 'WOMEN'} · {product.category} · {product.subCategory}

@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import Button from './Button'
 import QuantityStepper from './QuantityStepper'
 import { formatPrice } from '../utils/formatPrice'
 import type { CartItem, Product } from '../types'
 import { MAX_ORDER_QUANTITY } from '../constants/purchase'
+import { useModalA11y } from '../hooks/useModalA11y'
 
 interface CartOptionModalProps {
   item: CartItem
@@ -25,24 +26,11 @@ function CartOptionModal({ item, product, unitPrice, onConfirm, onCancel }: Cart
   }, [item, product.sizes])
   const [selectedSize, setSelectedSize] = useState(initialSize)
   const [quantity, setQuantity] = useState(item.quantity)
+  const dialogRef = useRef<HTMLDivElement | null>(null)
   const selectRef = useRef<HTMLSelectElement | null>(null)
   const hasChanges = selectedSize !== initialSize || quantity !== item.quantity
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    selectRef.current?.focus()
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onCancel()
-    }
-    document.addEventListener('keydown', handleKeyDown)
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [onCancel])
+  useModalA11y(dialogRef, onCancel, true, selectRef)
 
   return (
     <div
@@ -53,6 +41,7 @@ function CartOptionModal({ item, product, unitPrice, onConfirm, onCancel }: Cart
       }}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-option-title"

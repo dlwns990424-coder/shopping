@@ -70,6 +70,12 @@ function ProductManage() {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const dragSlotsRef = useRef<number[]>([])
+  // 이동 버튼을 빠르게 연타하면 handleMove가 재실행되는 사이 products state가 아직 커밋되지
+  // 않아 이전 목록을 기준으로 계산할 수 있다. 커밋 직후 최신값으로 갱신되는 ref를 대신 읽는다.
+  const productsRef = useRef<AdminProduct[]>([])
+  useEffect(() => {
+    productsRef.current = products
+  }, [products])
 
   const loadProducts = async () => {
     const { data, error } = await supabase
@@ -86,12 +92,15 @@ function ProductManage() {
     loadProducts()
   }, [])
 
-  const filteredProducts = products.filter((product) => {
-    if (genderFilter !== 'all' && product.gender !== genderFilter) return false
-    if (categoryFilter !== 'all' && product.category !== categoryFilter) return false
-    if (search && !product.name.includes(search)) return false
-    return true
-  })
+  const filterProducts = (list: AdminProduct[]) =>
+    list.filter((product) => {
+      if (genderFilter !== 'all' && product.gender !== genderFilter) return false
+      if (categoryFilter !== 'all' && product.category !== categoryFilter) return false
+      if (search && !product.name.includes(search)) return false
+      return true
+    })
+
+  const filteredProducts = filterProducts(products)
 
   const handleDragStart = (id: string) => {
     setDraggedId(id)
@@ -148,21 +157,26 @@ function ProductManage() {
   }
 
   const handleMove = async (id: string, direction: -1 | 1) => {
-    const fromIndex = filteredProducts.findIndex((product) => product.id === id)
+    const currentFiltered = filterProducts(productsRef.current)
+    const fromIndex = currentFiltered.findIndex((product) => product.id === id)
     const toIndex = fromIndex + direction
-    if (fromIndex < 0 || toIndex < 0 || toIndex >= filteredProducts.length) return
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= currentFiltered.length) return
 
-    const slots = filteredProducts.map((product) => product.sort_order)
-    const reordered = [...filteredProducts]
+    const slots = currentFiltered.map((product) => product.sort_order)
+    const reordered = [...currentFiltered]
     const [moved] = reordered.splice(fromIndex, 1)
     reordered.splice(toIndex, 0, moved)
     const nextFiltered = reordered.map((product, index) => ({ ...product, sort_order: slots[index] }))
-    const filteredIds = new Set(filteredProducts.map((product) => product.id))
+    const filteredIds = new Set(currentFiltered.map((product) => product.id))
     let cursor = 0
-    setProducts((prev) => prev.map((product) => (filteredIds.has(product.id) ? nextFiltered[cursor++] : product)))
+    const nextProducts = productsRef.current.map((product) =>
+      filteredIds.has(product.id) ? nextFiltered[cursor++] : product,
+    )
+    productsRef.current = nextProducts
+    setProducts(nextProducts)
 
     const updates = nextFiltered
-      .filter((product) => product.sort_order !== filteredProducts.find((item) => item.id === product.id)?.sort_order)
+      .filter((product) => product.sort_order !== currentFiltered.find((item) => item.id === product.id)?.sort_order)
       .map((product) => ({ id: product.id, sort_order: product.sort_order }))
     const results = await Promise.all(
       updates.map((update) => supabase.from('products').update({ sort_order: update.sort_order }).eq('id', update.id)),

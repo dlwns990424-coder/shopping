@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import type { Product } from '../types'
 import Button from './Button'
+import { useModalA11y } from '../hooks/useModalA11y'
 
 interface WishlistSizeModalProps {
   product: Product
@@ -9,57 +10,12 @@ interface WishlistSizeModalProps {
   onCancel: () => void
 }
 
-const FOCUSABLE_SELECTOR =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-
 function WishlistSizeModal({ product, onConfirm, onCancel }: WishlistSizeModalProps) {
   const [selectedSize, setSelectedSize] = useState('')
   const dialogRef = useRef<HTMLDivElement | null>(null)
   const closeButtonRef = useRef<HTMLButtonElement | null>(null)
 
-  useEffect(() => {
-    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    const focusFrame = window.requestAnimationFrame(() => closeButtonRef.current?.focus())
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onCancel()
-        return
-      }
-
-      if (event.key !== 'Tab') return
-
-      const dialog = dialogRef.current
-      if (!dialog) return
-
-      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
-        (element) => element.getClientRects().length > 0,
-      )
-      if (focusable.length === 0) return
-
-      const first = focusable[0]
-      const last = focusable[focusable.length - 1]
-      const activeElement = document.activeElement
-
-      if (event.shiftKey && (activeElement === first || !dialog.contains(activeElement))) {
-        event.preventDefault()
-        last.focus()
-      } else if (!event.shiftKey && (activeElement === last || !dialog.contains(activeElement))) {
-        event.preventDefault()
-        first.focus()
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-    return () => {
-      window.cancelAnimationFrame(focusFrame)
-      document.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = previousOverflow
-      previousFocus?.focus()
-    }
-  }, [onCancel])
+  useModalA11y(dialogRef, onCancel, true, closeButtonRef)
 
   return (
     <div
