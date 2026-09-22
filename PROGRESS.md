@@ -57,7 +57,24 @@
      - **리뷰 작성 제한 보강 이력 재확인**: `020_reviews_block_return.sql`이 `016`의 허점(반품 진행 중인 주문도 리뷰 작성 가능했던 것)을 이후에 막았음을 재확인.
      - **`047_drop_featured_columns.sql` 사용자가 Supabase에서 실행 완료.** RLS 정책(`products` select_all/write_admin_only)은 컬럼과 무관하게 `is_admin()`만 검사하므로 컬럼 삭제와 전혀 상관없음을 재확인.
      - **신규 발견 — `returns/` 스토리지 폴더에 본인 업로드 정책이 없어서 반품 신청 사진 첨부가 실패하는 상태였음**: `images_admin_write`(관리자 전용)만 있고 `044_review_image_storage_policy.sql`의 `reviews/{uid}/` 같은 본인 업로드 예외가 `returns/`엔 없었음(지난 QA에서 "사진 필수라 자동화로 끝까지 못 함"이라 발견이 늦어짐). 즉시 수정: `ReturnRequestModal.tsx`의 업로드 경로를 `returns` → `returns/${user.id}`로 변경(리뷰와 동일 패턴, `useAuth` 추가), `scripts/sql/048_return_image_storage_policy.sql` 신규 작성(**아직 Supabase에서 미실행 — 다음에 실행 필요**). `npx tsc --noEmit`/`npm run lint` 신규 이슈 0건.
-  8. **다음에 할 일**: ① 태블릿 취소 버튼 줄바꿈 수정 ② **`048_return_image_storage_policy.sql` Supabase에서 실행**(안 하면 반품 신청 사진 업로드가 여전히 실패함) ③ Figma 기획서 이어서 작성(핵심 기능 — 상품탐색부터) ④ 위 QA에서 테스트 못 한 나머지(드래그정렬/반품 관리자 처리 화면/콘텐츠이미지저장) 다음에 여유 있을 때 확인.
+  8. **`048` 실행 완료 + 나머지 QA 항목 전부 실사용 검증 완료(사용자가 "2~6번 진행하자" 지시)**:
+     - **태블릿 취소 버튼 줄바꿈**: `OrderManage.tsx` 그 버튼만이 아니라 `Button.tsx` 컴포넌트 자체에 `shrink-0 whitespace-nowrap` 추가해서 근본 수정(사이트 전체 버튼에 동일 클래스의 버그가 재발할 여지 원천 차단). 태블릿(820px)에서 실제 렌더링으로 확인.
+     - **반품 신청 사진 업로드**: `048` 실행 후 spectester로 실제 파일 업로드까지 성공 확인(`returns/{uid}/...` 경로로 정상 저장) → 관리자 접수·환불완료 처리까지 끝까지 확인 → spectester 마이페이지에 반품완료로 반영되는 것까지 재확인.
+     - **상품관리 드래그앤드롭**: HTML5 네이티브 드래그 이벤트를 직접 dispatch하는 방식으로 실제 재현 성공, DB 저장·새로고침 유지 확인 후 원래 순서로 복구.
+     - **콘텐츠관리 이미지 업로드**: 크롭 모달까지 정상 동작 확인(라이브 콘텐츠 보호를 위해 저장은 의도적으로 안 함).
+  9. **사이트 전체 데이터 저장 현황 점검 + "최근 본 상품" 계정 미분리 버그 발견·수정**: 사용자가 "DB에 뭐가 저장되는지, 더 필요한 게 있는지 점검해달라"고 요청 → Supabase 테이블 6개(profiles/orders/reviews/products/site_content/bestseller_snapshot) + localStorage 4종(장바구니/위시리스트/최근검색어/최근본상품) 전체 지도화. **"최근 본 상품"(`recentlyViewed.ts`)만 전역 고정 키(`shop_recently_viewed`)를 써서 같은 브라우저의 여러 계정이 서로의 최근 본 상품을 공유하는 버그 발견** → 장바구니/위시리스트처럼 계정별(+게스트) 키로 즉시 수정(`ProductDetail.tsx`/`RecentlyViewed.tsx` 호출부도 같이 수정, `useMemo` 의존성 배열에 `recentlyViewedBucket` 추가). 카테고리가 DB가 아니라 코드 상수인 비대칭도 이때 같이 발견(아래 11번에서 해결).
+  10. **장바구니/위시리스트 → Supabase 이전 (사용자 승인 후 진행)**:
+      - `scripts/sql/049_cart_items_table.sql`(`cart_items`, 본인 전용 RLS), `scripts/sql/050_wishlist_items_table.sql`(`wishlist_items`, 본인 전용 RLS — 위시리스트는 비로그인 지원이 핵심이라 **게스트는 계속 localStorage로 남기고 로그인 계정만 DB로 이전**하는 하이브리드 구조)
+      - `CartContext.tsx`/`WishlistContext.tsx` 내부 구현 교체(바깥 훅 인터페이스는 동일해서 컴포넌트는 무수정), **예전 localStorage 장바구니/위시리스트가 있으면 최초 로그인 시 자동으로 DB에 1회 이전**하는 마이그레이션 로직 포함
+      - 브라우저로 실제 검증: 장바구니 담기 → `cart_items` 테이블에 정확한 값으로 insert 확인 → 새로고침 유지 확인 → 삭제 → DB에서도 삭제 확인. 위시리스트도 동일하게 찜하기/해제 전부 `wishlist_items` DB 반영 실제 확인. (단 "게스트 위시리스트 → 로그인 시 병합" 시나리오는 로직 검증만 하고 브라우저로 재현은 안 함 — 필요시 다음에 확인)
+  11. **카테고리(대분류/서브카테고리)를 코드 상수 → DB 테이블로 이전**: 관리자가 카테고리 카드 이미지·라벨(site_content)은 바꿀 수 있었지만 카테고리 종류 자체는 코드 배포 없인 못 바꾸던 비대칭 해결.
+      - `scripts/sql/051_categories_table.sql`(`categories`/`subcategories` 테이블, 기존 3개 대분류·11개 서브카테고리 시드 데이터 포함)
+      - `src/context/CategoriesContext.tsx` 신규 — `CategoryListing.tsx`, `ProductManage.tsx`, `HeroManager.tsx`, `EditorialBannerManager.tsx` 4개 파일이 전부 이걸 통해 카테고리를 읽도록 교체(다 쓴 `constants/categoryFilters.ts` 삭제)
+      - `src/admin/components/CategoryManager.tsx` 신규 — 콘텐츠관리에 "카테고리 관리" 섹션 추가, 대분류/서브카테고리 추가·순서변경·삭제 가능
+      - **덤으로 지난번 발견했던 "모바일 카테고리 탭 5개 넘으면 grid-cols-4 깨지는" 잠재 버그도 이 작업 중에 같이 해결**(고정 grid → 개수 무관 `flex` 구조로 변경)
+      - 브라우저로 실제 검증: 카테고리 관리에서 서브카테고리 추가→순서변경(위로 이동)→삭제까지 실제로 해보고 원상복구 확인, 상품관리/히어로/에디토리얼배너 각각의 카테고리·서브카테고리 select가 전부 DB 값(아우터/상의/하의 등)으로 정확히 로드되는 것까지 확인.
+      - 검증: `npx tsc --noEmit`/`npm run lint` 전체 신규 이슈 0건.
+  12. **다음에 할 일**: ① Figma 기획서 이어서 작성(핵심 기능 — 상품탐색부터) ② 게스트 위시리스트→로그인 병합 시나리오 브라우저 재검증(선택) ③ 재고/쿠폰/결제/알림/감사로그는 사용자가 "우선 패스"로 명시적 보류 — 다시 꺼내지 말 것. **아직 커밋 안 함.**
 - **이번 세션 — Figma 재정비(기획서/스타일가이드/디자인시안/IA 4페이지 신규 생성) 시작, 기획서 내용을 채팅에서 사용자와 하나씩 확정하며 진행 중 (Figma에는 아직 기입 안 함, 코드 변경 없음)**
   1. **작업 방식**: 사용자가 "Figma에 바로 작업하지 말고 채팅에서 섹션별로 하나씩 정리해서 확인한 뒤에만 반영"하라고 명시적으로 지시함 — **다음 세션에서도 이 방식 유지할 것**. 옛 참고문서(`project-summary.md`, `docs/planning-for-figma.md`)는 초기 기획 단계 내용이라 실제 구현 현황과 어긋난 부분이 많아(예: "범위 제외"라던 리뷰·위시리스트가 실제로는 구현됨) 그대로 옮기지 않고 현재 실제 사이트 기준으로 새로 정리하는 중.
   2. **결정된 진행 순서**: 기획서 → IA → 스타일가이드 → 디자인시안 순으로 한 페이지씩. **디자인시안 페이지의 정의**: 새 시안 제안이 아니라 "현재 완성된 사이트 화면을 Figma에 as-built로 문서화"하는 페이지로 확정.

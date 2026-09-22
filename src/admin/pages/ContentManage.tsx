@@ -6,6 +6,7 @@ import ConfirmModal from '../../components/ConfirmModal'
 import ImageCropModal from '../../components/ImageCropModal'
 import { uploadImage } from '../../utils/uploadImage'
 import BestsellerManager from '../components/BestsellerManager'
+import CategoryManager from '../components/CategoryManager'
 import EditorialBannerManager from '../components/EditorialBannerManager'
 import HeroManager from '../components/HeroManager'
 
@@ -326,6 +327,11 @@ function ContentManage() {
             <div className="flex flex-col gap-16">
               <h3 className="text-body-sm font-bold text-secondary">베스트 상품 (MEN/WOMEN 공통)</h3>
               <BestsellerManager />
+            </div>
+
+            <div className="flex flex-col gap-16">
+              <h3 className="text-body-sm font-bold text-secondary">카테고리 관리 (MEN/WOMEN 공통)</h3>
+              <CategoryManager />
             </div>
           </div>
 

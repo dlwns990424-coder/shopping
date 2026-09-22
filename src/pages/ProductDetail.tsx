@@ -11,7 +11,7 @@ import RecentlyViewed from '../components/RecentlyViewed'
 import ReviewSection from '../components/ReviewSection'
 import Toast from '../components/Toast'
 import { useProducts } from '../context/ProductsContext'
-import { addRecentlyViewed, getRecentlyViewedIds } from '../utils/recentlyViewed'
+import { addRecentlyViewed, getRecentlyViewedIds, GUEST_BUCKET } from '../utils/recentlyViewed'
 import type { Product } from '../types'
 import { useCart } from '../context/CartContext'
 import { useWishlist } from '../context/WishlistContext'
@@ -64,6 +64,7 @@ function ProductDetail() {
   const { items: cartItems, addItem } = useCart()
   const { isWishlisted, toggle } = useWishlist()
   const { user } = useAuth()
+  const recentlyViewedBucket = user?.id ?? GUEST_BUCKET
   const { openLoginModal } = useAuthModal()
   const { products, loading } = useProducts()
   const { reviews } = useReviews()
@@ -77,8 +78,8 @@ function ProductDetail() {
   const scrollingToAnchorRef = useRef<ProductDetailAnchor | null>(null)
 
   useEffect(() => {
-    if (product) addRecentlyViewed(product.id)
-  }, [product])
+    if (product) addRecentlyViewed(product.id, recentlyViewedBucket)
+  }, [product, recentlyViewedBucket])
 
   // 스크롤 위치에 따라 상단 탭("상품정보"/"사이즈 및 소재"/"리뷰"/"추천")의 활성 표시를 갱신한다.
   // "상품정보"/"사이즈 및 소재"는 모바일/데스크톱 전용 블록에 중복 렌더링되므로 매번 실제로
@@ -169,7 +170,7 @@ function ProductDetail() {
   // 버그가 있었다. product가 바뀔 때만(=다른 상품 페이지로 이동할 때만) 재계산하도록 고정한다.
   const relatedProducts = useMemo(() => {
     if (!product) return []
-    const recentlyViewedIds = new Set(getRecentlyViewedIds())
+    const recentlyViewedIds = new Set(getRecentlyViewedIds(recentlyViewedBucket))
     const candidates = products.filter((item) => item.id !== product.id && item.gender === product.gender)
     const freshCandidates = candidates.filter((item) => !recentlyViewedIds.has(item.id))
     const relatedPools = [
@@ -182,7 +183,7 @@ function ProductDetail() {
       candidates,
     ]
     return pickRelatedProducts(relatedPools, 4)
-  }, [product, products])
+  }, [product, products, recentlyViewedBucket])
 
   if (loading) {
     return (
@@ -202,7 +203,7 @@ function ProductDetail() {
     )
   }
 
-  const hasOtherRecentlyViewed = getRecentlyViewedIds().some((id) => id !== product.id)
+  const hasOtherRecentlyViewed = getRecentlyViewedIds(recentlyViewedBucket).some((id) => id !== product.id)
   const reviewCount = reviews.filter((review) => review.productId === product.id).length
 
   const handleSelectSize = (size: string) => {

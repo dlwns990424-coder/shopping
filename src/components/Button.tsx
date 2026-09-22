@@ -38,7 +38,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   return (
     <Component
       ref={ref}
-      className={`inline-flex items-center justify-center rounded-sm border cursor-pointer transition-colors no-underline enabled:active:scale-[0.98] disabled:cursor-default disabled:opacity-50 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${paddingX} ${className}`.trim()}
+      className={`inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-sm border cursor-pointer transition-colors no-underline enabled:active:scale-[0.98] disabled:cursor-default disabled:opacity-50 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${paddingX} ${className}`.trim()}
       {...rest}
     >
       {children}

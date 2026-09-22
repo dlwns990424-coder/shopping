@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabaseClient'
 import Button from '../../components/Button'
 import ConfirmModal from '../../components/ConfirmModal'
 import ImageCropModal from '../../components/ImageCropModal'
-import { PRODUCT_CATEGORIES, SUB_CATEGORIES } from '../../constants/categoryFilters'
+import { useCategories } from '../../context/CategoriesContext'
 import { buildEditorialLink, type EditorialDestination } from '../../utils/editorialLink'
 import { uploadImage } from '../../utils/uploadImage'
 
@@ -106,6 +106,7 @@ const FIELD_META = {
 } as const
 
 function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
+  const { categoryLabels, subCategoriesByCategory } = useCategories()
   const keyPrefix = `${page}.editorial_banner`
   const pageLabel = page === 'men' ? 'MEN' : 'WOMEN'
   const pageDefaultData = { ...DEFAULT_DATA, destination: page }
@@ -276,7 +277,7 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
 
   const previewConfig = CROP_CONFIGS[previewMode]
   const previewImage = draft[previewConfig.dataField] || draft.imageDesktop || draft.imageTablet || draft.imageMobile
-  const subcategoryOptions = draft.category === 'all' ? [] : (SUB_CATEGORIES[draft.category] ?? [])
+  const subcategoryOptions = draft.category === 'all' ? [] : (subCategoriesByCategory[draft.category] ?? [])
   const previewHref = buildEditorialLink({
     destination: draft.destination,
     category: draft.category,
@@ -431,7 +432,7 @@ function EditorialBannerManager({ page }: EditorialBannerManagerProps) {
               className="text-body-sm h-40 rounded-sm border border-line bg-surface px-12"
             >
               <option value="all">전체 상품</option>
-              {PRODUCT_CATEGORIES.map((category) => (
+              {categoryLabels.map((category) => (
                 <option key={category} value={category}>
                   {category}
                 </option>

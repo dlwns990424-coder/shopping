@@ -9,6 +9,7 @@ import { OrderHistoryProvider } from './context/OrderHistoryContext'
 import { ReviewsProvider } from './context/ReviewsContext'
 import { AuthModalProvider } from './context/AuthModalContext'
 import { ProductsProvider } from './context/ProductsContext'
+import { CategoriesProvider } from './context/CategoriesContext'
 import { ContentProvider } from './context/ContentContext'
 import { BestsellersProvider } from './context/BestsellersContext'
 import ScrollToTop from './components/ScrollToTop'
@@ -46,6 +47,7 @@ function App() {
       <AuthProvider>
         <InitialAuthLoading>
           <ProductsProvider>
+            <CategoriesProvider>
             <ContentProvider>
               <BestsellersProvider>
               <CartProvider>
@@ -99,6 +101,7 @@ function App() {
               </CartProvider>
               </BestsellersProvider>
             </ContentProvider>
+            </CategoriesProvider>
           </ProductsProvider>
         </InitialAuthLoading>
       </AuthProvider>

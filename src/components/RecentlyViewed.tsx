@@ -2,7 +2,8 @@ import { useState } from 'react'
 import ProductCard from './ProductCard'
 import Button from './Button'
 import { useProducts } from '../context/ProductsContext'
-import { getRecentlyViewedIds } from '../utils/recentlyViewed'
+import { useAuth } from '../context/AuthContext'
+import { getRecentlyViewedIds, GUEST_BUCKET } from '../utils/recentlyViewed'
 import type { Product } from '../types'
 
 interface RecentlyViewedProps {
@@ -26,10 +27,11 @@ function RecentlyViewed({
   maxColumns = 5,
 }: RecentlyViewedProps) {
   const { products } = useProducts()
+  const { user } = useAuth()
   const [expanded, setExpanded] = useState(false)
   // localStorage 동기 읽기라 상태로 캐싱할 이유가 없음 — 캐싱하면 상품 상세를
   // SPA 내비게이션으로 옮겨다닐 때(리마운트 없음) 목록이 첫 조회 시점에 고정되는 버그가 있었음.
-  const ids = getRecentlyViewedIds()
+  const ids = getRecentlyViewedIds(user?.id ?? GUEST_BUCKET)
 
   const items = ids
     .filter((id) => id !== excludeId)

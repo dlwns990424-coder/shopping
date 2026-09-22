@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import { Search, X } from 'lucide-react'
 import Button from './Button'
 import ProductCard from './ProductCard'
-import { CATEGORY_TABS as TABS, SUB_CATEGORIES } from '../constants/categoryFilters'
+import { useCategories } from '../context/CategoriesContext'
 import { useBestsellers } from '../context/BestsellersContext'
 import type { Gender, Product } from '../types'
 import SortDropdown from './SortDropdown'
@@ -50,6 +50,7 @@ function CategoryListing({
   const genderOverride = searchParams.get('gender')
   const saleOnly = searchParams.get('sale') === 'true'
   const { bestsellerProductIds } = useBestsellers()
+  const { categoryTabs: TABS, subCategoriesByCategory: SUB_CATEGORIES } = useCategories()
 
   const [queryInput, setQueryInput] = useState(qParam)
   const [visibleCount, setVisibleCount] = useState(PRODUCTS_PER_PAGE)
@@ -245,12 +246,12 @@ function CategoryListing({
         </div>
       )}
 
-      <div className="-mx-20 grid grid-cols-4 border-b border-line md:mx-0 md:flex md:gap-24">
+      <div className="-mx-20 flex border-b border-line md:mx-0 md:gap-24">
         {TABS.map((tab) => (
           <Link
             key={tab.id}
             to={categoryTabUrl(tab.id)}
-            className={`-mb-px w-full border-b py-12 text-center text-sm font-medium no-underline transition-colors active:scale-95 hover:border-primary hover:text-primary md:w-auto ${
+            className={`-mb-px flex-1 border-b py-12 text-center text-sm font-medium no-underline transition-colors active:scale-95 hover:border-primary hover:text-primary md:w-auto md:flex-none ${
               categoryParam === tab.id ? 'border-primary text-primary' : 'border-transparent text-disabled'
             }`}
           >

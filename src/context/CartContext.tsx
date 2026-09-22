@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { CartItem, Product } from '../types'
-import { safeSetItem } from '../utils/storage'
+import { supabase } from '../lib/supabaseClient'
 import { useAuth } from './AuthContext'
 import { clampOrderQuantity } from '../constants/purchase'
 
@@ -15,23 +15,65 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null)
 
-// 장바구니는 로그인해야만 담을 수 있어서(ProductDetail의 로그인 가드) 게스트용 버킷은 없음 —
-// 계정별로만 스코프해서, 같은 브라우저를 여러 계정이 써도 서로의 장바구니가 안 섞이게 한다.
-function cartKey(userId: string) {
+interface CartRow {
+  id: string
+  product_id: string
+  name: string
+  option: string
+  size: string
+  price: number
+  quantity: number
+  image: string | null
+}
+
+function toCartItem(row: CartRow): CartItem {
+  return {
+    id: row.id,
+    productId: row.product_id,
+    name: row.name,
+    option: row.option,
+    size: row.size,
+    price: row.price,
+    quantity: clampOrderQuantity(row.quantity),
+    image: row.image,
+  }
+}
+
+// 예전 localStorage 장바구니(계정별 키)가 남아있으면 최초 로드 시 한 번만 Supabase로
+// 옮긴다 — 이 함수는 Supabase 쪽 장바구니가 비어있을 때만 호출된다.
+function legacyCartKey(userId: string) {
   return `shop_cart:${userId}`
 }
 
-function readCart(userId: string): CartItem[] {
+async function migrateLegacyCart(userId: string): Promise<CartRow[] | null> {
+  const key = legacyCartKey(userId)
+  let legacy: CartItem[]
   try {
-    const parsed = JSON.parse(localStorage.getItem(cartKey(userId)) ?? '[]')
-    if (!Array.isArray(parsed)) return []
-    return (parsed as CartItem[]).map((item) => ({
-      ...item,
-      quantity: clampOrderQuantity(item.quantity),
-    }))
+    const parsed = JSON.parse(localStorage.getItem(key) ?? '[]')
+    if (!Array.isArray(parsed) || parsed.length === 0) return null
+    legacy = parsed as CartItem[]
   } catch {
-    return []
+    return null
   }
+
+  const rows: CartRow[] = legacy.map((item) => ({
+    id: item.id,
+    product_id: item.productId ?? '',
+    name: item.name,
+    option: item.option,
+    size: item.size ?? '',
+    price: item.price,
+    quantity: clampOrderQuantity(item.quantity),
+    image: item.image,
+  }))
+
+  const { error } = await supabase.from('cart_items').insert(rows.map((row) => ({ ...row, user_id: userId })))
+  if (error) {
+    console.error('예전 장바구니를 옮기지 못했습니다.', error)
+    return null
+  }
+  localStorage.removeItem(key)
+  return rows
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -39,7 +81,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const userId = user?.id
   const [items, setItems] = useState<CartItem[]>([])
   // authLoading은 InitialAuthLoading이 이미 걸러준 뒤라 CartProvider가 마운트될 땐 항상 false다.
-  // 그래서 별도로 "아직 로컬스토리지에서 읽어오기 전"인지를 나타내는 초기화 플래그를 둔다.
+  // 그래서 별도로 "아직 서버에서 읽어오기 전"인지를 나타내는 초기화 플래그를 둔다.
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -50,53 +92,93 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    const nextItems = readCart(userId)
-    setItems(nextItems)
-    safeSetItem(cartKey(userId), nextItems)
-    setLoading(false)
+    let cancelled = false
+    setLoading(true)
+
+    const load = async () => {
+      const { data, error } = await supabase.from('cart_items').select('*').eq('user_id', userId)
+      if (cancelled) return
+
+      if (error) {
+        console.error('장바구니를 불러오지 못했습니다.', error)
+        setItems([])
+        setLoading(false)
+        return
+      }
+
+      if ((data ?? []).length === 0) {
+        const migrated = await migrateLegacyCart(userId)
+        if (cancelled) return
+        if (migrated) {
+          setItems(migrated.map(toCartItem))
+          setLoading(false)
+          return
+        }
+      }
+
+      setItems((data ?? []).map(toCartItem))
+      setLoading(false)
+    }
+
+    load()
+    return () => {
+      cancelled = true
+    }
   }, [userId, authLoading])
 
-  const updateItems = (updater: (prev: CartItem[]) => CartItem[]) => {
-    if (!userId) return
-    setItems((prev) => {
-      const next = updater(prev)
-      safeSetItem(cartKey(userId), next)
-      return next
-    })
-  }
-
   const addItem = (product: Product, size: string, quantity = 1) => {
+    if (!userId) return
     const id = `${product.id}-${product.color.label}-${size}`
     const option = `${product.color.label} · ${size}`
     const safeQuantity = clampOrderQuantity(quantity)
 
-    updateItems((prev) => {
+    setItems((prev) => {
       const existing = prev.find((item) => item.id === id)
+
       if (existing) {
-        return prev.map((item) =>
-          item.id === id
-            ? { ...item, size, quantity: clampOrderQuantity(item.quantity + safeQuantity) }
-            : item
-        )
+        const nextQuantity = clampOrderQuantity(existing.quantity + safeQuantity)
+        supabase
+          .from('cart_items')
+          .update({ quantity: nextQuantity })
+          .eq('user_id', userId)
+          .eq('id', id)
+          .then(({ error }) => error && console.error('장바구니 수량 변경에 실패했습니다.', error))
+        return prev.map((item) => (item.id === id ? { ...item, size, quantity: nextQuantity } : item))
       }
-      return [
-        ...prev,
-        {
+
+      const newItem: CartItem = {
+        id,
+        productId: product.id,
+        name: product.name,
+        option,
+        size,
+        price: product.salePrice ?? product.price,
+        quantity: safeQuantity,
+        image: product.image,
+      }
+      supabase
+        .from('cart_items')
+        .insert({
           id,
-          productId: product.id,
-          name: product.name,
-          option,
-          size,
-          price: product.salePrice ?? product.price,
-          quantity: safeQuantity,
-          image: product.image,
-        },
-      ]
+          user_id: userId,
+          product_id: newItem.productId,
+          name: newItem.name,
+          option: newItem.option,
+          size: newItem.size,
+          price: newItem.price,
+          quantity: newItem.quantity,
+          image: newItem.image,
+        })
+        .then(({ error }) => error && console.error('장바구니 담기에 실패했습니다.', error))
+      return [...prev, newItem]
     })
   }
 
   const updateItemOption = (id: string, size: string, quantity: number) => {
-    updateItems((prev) => {
+    if (!userId) return
+    const safeQuantity = clampOrderQuantity(quantity)
+
+    setItems((prev) => {
       const current = prev.find((item) => item.id === id)
       if (!current?.productId) return prev
 
@@ -105,29 +187,59 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const existing = prev.find((item) => item.id === nextId && item.id !== id)
 
       if (existing) {
+        const mergedQuantity = clampOrderQuantity(existing.quantity + safeQuantity)
+        supabase
+          .from('cart_items')
+          .delete()
+          .eq('user_id', userId)
+          .eq('id', id)
+          .then(({ error }) => error && console.error('장바구니 옵션 변경에 실패했습니다.', error))
+        supabase
+          .from('cart_items')
+          .update({ quantity: mergedQuantity })
+          .eq('user_id', userId)
+          .eq('id', nextId)
+          .then(({ error }) => error && console.error('장바구니 옵션 변경에 실패했습니다.', error))
         return prev
           .filter((item) => item.id !== id)
-          .map((item) =>
-            item.id === nextId
-              ? { ...item, size, quantity: clampOrderQuantity(item.quantity + quantity) }
-              : item,
-          )
+          .map((item) => (item.id === nextId ? { ...item, size, quantity: mergedQuantity } : item))
       }
+
+      supabase
+        .from('cart_items')
+        .update({ id: nextId, size, option: `${colorLabel} · ${size}`, quantity: safeQuantity })
+        .eq('user_id', userId)
+        .eq('id', id)
+        .then(({ error }) => error && console.error('장바구니 옵션 변경에 실패했습니다.', error))
 
       return prev.map((item) =>
         item.id === id
-          ? { ...item, id: nextId, option: `${colorLabel} · ${size}`, size, quantity: clampOrderQuantity(quantity) }
+          ? { ...item, id: nextId, option: `${colorLabel} · ${size}`, size, quantity: safeQuantity }
           : item,
       )
     })
   }
 
   const removeItem = (id: string) => {
-    updateItems((prev) => prev.filter((item) => item.id !== id))
+    if (!userId) return
+    setItems((prev) => prev.filter((item) => item.id !== id))
+    supabase
+      .from('cart_items')
+      .delete()
+      .eq('user_id', userId)
+      .eq('id', id)
+      .then(({ error }) => error && console.error('장바구니 삭제에 실패했습니다.', error))
   }
 
   const removeItems = (ids: string[]) => {
-    updateItems((prev) => prev.filter((item) => !ids.includes(item.id)))
+    if (!userId) return
+    setItems((prev) => prev.filter((item) => !ids.includes(item.id)))
+    supabase
+      .from('cart_items')
+      .delete()
+      .eq('user_id', userId)
+      .in('id', ids)
+      .then(({ error }) => error && console.error('장바구니 삭제에 실패했습니다.', error))
   }
 
   return (

@@ -9,7 +9,7 @@ import { formatPrice } from '../../utils/formatPrice'
 import { uploadImage } from '../../utils/uploadImage'
 import { sizeOptions } from '../../mock/productDetail'
 import { MAX_DETAIL_IMAGES } from '../../types'
-import { PRODUCT_CATEGORIES, SUB_CATEGORIES } from '../../constants/categoryFilters'
+import { useCategories } from '../../context/CategoriesContext'
 import { useReviews } from '../../context/ReviewsContext'
 
 interface AdminProduct {
@@ -35,8 +35,8 @@ const EMPTY_FORM = {
   price: '',
   sale_price: '',
   gender: 'men' as 'men' | 'women',
-  category: PRODUCT_CATEGORIES[0],
-  sub_category: SUB_CATEGORIES[PRODUCT_CATEGORIES[0]][0],
+  category: '',
+  sub_category: '',
   image: '',
   detail_images: [] as string[],
   hover_image: '',
@@ -51,6 +51,7 @@ function ProductManage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { reviews, deleteReview } = useReviews()
+  const { categoryLabels, subCategoriesByCategory } = useCategories()
   const [reviewManageId, setReviewManageId] = useState<string | null>(null)
   const [reviewDeleteTargetId, setReviewDeleteTargetId] = useState<string | null>(null)
 
@@ -189,10 +190,16 @@ function ProductManage() {
   }
 
   const openCreateForm = () => {
+    const defaultCategory = categoryLabels[0] ?? ''
+    const nextForm = {
+      ...EMPTY_FORM,
+      category: defaultCategory,
+      sub_category: subCategoriesByCategory[defaultCategory]?.[0] ?? '',
+    }
     setEditingId(null)
     setReviewManageId(null)
-    setInitialForm(EMPTY_FORM)
-    setForm(EMPTY_FORM)
+    setInitialForm(nextForm)
+    setForm(nextForm)
     setShowForm(true)
   }
 
@@ -238,7 +245,7 @@ function ProductManage() {
   }
 
   const handleCategoryChange = (category: string) => {
-    setForm((prev) => ({ ...prev, category, sub_category: SUB_CATEGORIES[category]?.[0] ?? '' }))
+    setForm((prev) => ({ ...prev, category, sub_category: subCategoriesByCategory[category]?.[0] ?? '' }))
   }
 
   const handleSizeToggle = (size: string) => {
@@ -425,7 +432,7 @@ function ProductManage() {
               onChange={(e) => handleCategoryChange(e.target.value)}
               className="text-sm w-full appearance-none rounded-sm border border-line py-12 pl-16 pr-40"
             >
-              {PRODUCT_CATEGORIES.map((category) => (
+              {categoryLabels.map((category) => (
                 <option key={category} value={category}>
                   {category}
                 </option>
@@ -447,7 +454,7 @@ function ProductManage() {
               onChange={(e) => setForm((prev) => ({ ...prev, sub_category: e.target.value }))}
               className="text-sm w-full appearance-none rounded-sm border border-line py-12 pl-16 pr-40"
             >
-              {(SUB_CATEGORIES[form.category] ?? []).map((sub) => (
+              {(subCategoriesByCategory[form.category] ?? []).map((sub) => (
                 <option key={sub} value={sub}>
                   {sub}
                 </option>
@@ -700,7 +707,7 @@ function ProductManage() {
             className="text-body-sm appearance-none rounded-sm border border-line py-8 pl-12 pr-36"
           >
             <option value="all">전체 카테고리</option>
-            {PRODUCT_CATEGORIES.map((category) => (
+            {categoryLabels.map((category) => (
               <option key={category} value={category}>
                 {category}
               </option>
