@@ -107,6 +107,16 @@
   }
 }
 
+@keyframes hero-skeleton-bar-pulse {
+  0%,
+  100% {
+    background-color: rgb(0 0 0 / 6%);
+  }
+  50% {
+    background-color: rgb(0 0 0 / 12%);
+  }
+}
+
 @layer base {
   body {
     color: var(--color-primary);
@@ -141,8 +151,14 @@
     animation: hero-skeleton-pulse 2.4s ease-in-out infinite;
   }
 
+  .hero-skeleton-bar {
+    border-radius: 4px;
+    animation: hero-skeleton-bar-pulse 2.4s ease-in-out infinite;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .hero-skeleton {
+    .hero-skeleton,
+    .hero-skeleton-bar {
       animation: none;
     }
   }

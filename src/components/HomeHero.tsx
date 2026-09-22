@@ -14,6 +14,17 @@ interface HomeHeroProps {
 const frameClassName =
   'relative flex aspect-[3/4] items-end overflow-hidden text-inherit no-underline md:-mt-64 md:aspect-square lg:aspect-auto lg:h-screen'
 
+// 실제 타이틀(h1: 32/38/44px)·서브타이틀(p: 18px) 위치·크기를 흉내낸 뼈대 —
+// 로딩 중에도 텍스트가 들어설 자리와 대략적인 길이감을 미리 보여줘서 레이아웃 시프트를 줄인다.
+function HeroSkeletonBars() {
+  return (
+    <div className="absolute inset-x-0 bottom-[20%] z-10 flex flex-col gap-12 px-20 md:px-32 lg:px-80 xl:px-140 2xl:px-200">
+      <div className="hero-skeleton-bar h-32 w-[65%] max-w-360 md:h-38 md:w-[50%] md:max-w-420 lg:h-44 lg:w-[38%] lg:max-w-480" />
+      <div className="hero-skeleton-bar h-18 w-[42%] max-w-220 md:w-[32%] md:max-w-260 lg:w-[24%] lg:max-w-300" />
+    </div>
+  )
+}
+
 function HomeHero({ to, imageMobile, imageTablet, imageDesktop, title, subtitle, loading }: HomeHeroProps) {
   const [loadedImageSet, setLoadedImageSet] = useState('')
   const [failedImageSet, setFailedImageSet] = useState('')
@@ -27,6 +38,7 @@ function HomeHero({ to, imageMobile, imageTablet, imageDesktop, title, subtitle,
     return (
       <div className={frameClassName} aria-label="히어로 콘텐츠 불러오는 중" aria-busy="true">
         <div className="hero-skeleton absolute inset-0" />
+        <HeroSkeletonBars />
       </div>
     )
   }
@@ -56,7 +68,12 @@ function HomeHero({ to, imageMobile, imageTablet, imageDesktop, title, subtitle,
         <div className="absolute inset-0 bg-surface-muted" />
       )}
 
-      {!mediaReady && <div className="hero-skeleton absolute inset-0" />}
+      {!mediaReady && (
+        <>
+          <div className="hero-skeleton absolute inset-0" />
+          <HeroSkeletonBars />
+        </>
+      )}
 
       {mediaReady && (
         <>
