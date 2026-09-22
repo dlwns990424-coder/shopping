@@ -5,7 +5,7 @@ import { getBottomNavMode } from '../utils/bottomNavMode'
 import { animateScrollTo } from '../utils/animateScrollTo'
 
 const SHOW_AFTER_PX = 480
-const SCROLL_TO_TOP_DURATION_MS = 400
+const SCROLL_TO_TOP_DURATION_MS = 550
 
 function ScrollTopButton() {
   const location = useLocation()

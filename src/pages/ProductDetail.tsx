@@ -29,7 +29,7 @@ import { NotFoundContent } from './NotFound'
 // 통째로 재마운트되어 선택한 사이즈·수량이 날아간다. 그 사이만 잠깐 붙잡아두는 용도라
 // 상품ID가 다르면(다른 상품 보다 로그인한 경우 등) 무시하고, 읽는 즉시 지워서 1회성으로 쓴다.
 const PENDING_SELECTION_KEY = 'pdp_pending_selection'
-const STICKY_TAB_SCROLL_DURATION_MS = 300
+const STICKY_TAB_SCROLL_DURATION_MS = 550
 type ProductDetailAnchor = 'productInfo' | 'size' | 'review' | 'related'
 
 function shuffle<T>(items: T[]): T[] {
