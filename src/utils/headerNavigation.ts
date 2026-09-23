@@ -74,7 +74,7 @@ export function getCompactHeaderConfig(
   }
 
   if (/^\/products\//.test(pathname)) {
-    return { title: '상품 상세', fallbackPath: '/men?category=all', showShoppingActions: true }
+    return { title: '상품 상세', fallbackPath: '/men?category=all', showShoppingActions: true, alignTitleLeft: true }
   }
 
   if (pathname === '/cart') {

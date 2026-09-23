@@ -143,6 +143,26 @@
   }
 }
 
+/* iOS Safari는 포커스된 input/select/textarea의 font-size가 16px 미만이면 자동으로
+   화면을 확대한다. 디자인상 입력창은 Tailwind text-sm(14px) 유틸리티가 기준인데, 이 파일에 직접
+   쓴 순수 CSS는 Tailwind v4 빌드 시 자동으로 @layer components로 편입되어 @layer utilities(text-sm이
+   속한 곳)보다 우선순위가 낮아지므로 일반적인 "언레이어드가 이긴다" 규칙이 여기선 안 통한다
+   (실제로 겪은 문제 — !important 없이는 계속 14px로 덮어써졌음). 그래서 !important로 강제한다.
+   모바일 구간에서만 16px로 올려 확대를 막고 태블릿 이상(md: 768px+)에서는 원래 14px로 되돌린다. */
+input,
+select,
+textarea {
+  font-size: 16px !important;
+}
+
+@media (min-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 14px !important;
+  }
+}
+
 /* 여러 페이지/컴포넌트에서 반복 사용하는 타이포·레이아웃 패턴만 공용 유틸리티로 유지.
    그 외 컴포넌트 고유 스타일은 각 .tsx 파일 안에서 Tailwind 유틸리티 클래스로 직접 작성한다. */
 @layer components {
