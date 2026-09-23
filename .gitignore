@@ -20,6 +20,13 @@ dist-ssr
 # Local image generation/backup scratch folders (not app assets)
 /image-backups
 /output
+/design-assets
+/pexels-6211656-reference.jpg
+/피드백내용.txt
+/d
+
+# Claude Code local launch config (analogous to .vscode/*)
+.claude
 
 # Editor directories and files
 .vscode/*
